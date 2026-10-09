@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 780" role="img" aria-labelledby="title desc">
+  <title id="title">Minh họa trọn bộ sách Toán Cô Lê Nga</title>
+  <desc id="desc">Ba bìa sách minh họa cho lớp 2 đến lớp 9 và một trang bài toán có sơ đồ tư duy.</desc>
+  <rect width="720" height="780" fill="#f3eee5"/>
+  <path d="M48 105H672M48 680H672" stroke="#c84b31" stroke-width="2" opacity=".7"/>
+  <text x="52" y="72" fill="#0f766e" font-family="monospace" font-size="18" letter-spacing="3">CLB TOÁN CÔ LÊ NGA · MINH HỌA BỘ SÁCH</text>
+  <g transform="translate(90 165) rotate(-8)">
+    <rect width="260" height="440" fill="#f7f0df" stroke="#1e293b" stroke-width="3"/>
+    <rect x="22" y="24" width="216" height="1" fill="#1e293b"/>
+    <text x="24" y="58" fill="#1e293b" font-family="monospace" font-size="14" letter-spacing="2">BỒI DƯỠNG · LỚP 2—5</text>
+    <text x="24" y="145" fill="#1e293b" font-family="Georgia,serif" font-size="52" font-weight="700">TOÁN</text>
+    <text x="24" y="198" fill="#c84b31" font-family="Georgia,serif" font-size="40" font-style="italic">căn bản</text>
+    <text x="24" y="242" fill="#c84b31" font-family="Georgia,serif" font-size="40" font-style="italic">&amp; nâng cao</text>
+    <text x="192" y="350" fill="#0f766e" font-family="Georgia,serif" font-size="105" opacity=".55">△</text>
+    <text x="24" y="410" fill="#1e293b" font-family="monospace" font-size="12" letter-spacing="2">VỮNG NỀN TẢNG</text>
+  </g>
+  <g transform="translate(250 155) rotate(5)">
+    <rect width="280" height="470" fill="#c84b31" stroke="#1e293b" stroke-width="3"/>
+    <rect x="22" y="24" width="236" height="1" fill="#fdfbf7"/>
+    <text x="24" y="58" fill="#fdfbf7" font-family="monospace" font-size="14" letter-spacing="2">LUYỆN THI · LỚP 6—9</text>
+    <text x="24" y="150" fill="#fdfbf7" font-family="Georgia,serif" font-size="54" font-weight="700">TOÁN</text>
+    <text x="24" y="205" fill="#fdfbf7" font-family="Georgia,serif" font-size="39" font-style="italic">CLC &amp;</text>
+    <text x="24" y="250" fill="#fdfbf7" font-family="Georgia,serif" font-size="39" font-style="italic">vào 10</text>
+    <text x="184" y="363" fill="#f3eee5" font-family="Georgia,serif" font-size="112" opacity=".65">∑</text>
+    <text x="24" y="435" fill="#fdfbf7" font-family="monospace" font-size="12" letter-spacing="2">SÁNG TƯƠNG LAI</text>
+  </g>
+  <g transform="translate(420 240) rotate(15)">
+    <rect width="220" height="350" fill="#1e293b" stroke="#fdfbf7" stroke-width="3"/>
+    <rect x="18" y="21" width="184" height="1" fill="#fdfbf7" opacity=".8"/>
+    <text x="20" y="54" fill="#fdfbf7" font-family="monospace" font-size="12" letter-spacing="2">SỔ TAY · THỰC CHIẾN</text>
+    <text x="20" y="140" fill="#fdfbf7" font-family="Georgia,serif" font-size="45" font-weight="700">GIẢI</text>
+    <text x="20" y="188" fill="#f0b19e" font-family="Georgia,serif" font-size="38" font-style="italic">nhanh</text>
+    <text x="20" y="230" fill="#f0b19e" font-family="Georgia,serif" font-size="38" font-style="italic">Toán</text>
+    <text x="145" y="300" fill="#f0b19e" font-family="monospace" font-size="52">01</text>
+  </g>
+  <g transform="translate(55 715)">
+    <text fill="#1e293b" font-family="monospace" font-size="15" letter-spacing="2">BỘ 3 TẬP · LỚP 2—9 · HỌC THEO LỘ TRÌNH</text>
+  </g>
+</svg>
