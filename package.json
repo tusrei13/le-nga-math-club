@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "db:init": "node database/init.mjs"
+    "db:init": "node database/init.mjs",
+    "test": "node --test tests/api.test.mjs",
+    "test:ui": "node tests/order-ui.mjs"
   },
   "engines": { "node": ">=22.13.0" }
 }
