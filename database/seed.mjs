@@ -21,11 +21,17 @@ export function seed(db) {
   const content = {
     contact: {phone:'0989066885',phone_display:'0989 066 885',email:'clbtoanconga@gmail.com',address:'Số 02, Lô A7, Khu A, Geleximco, Lê Trọng Tấn, An Khánh, Hà Nội.',facebook:'https://www.facebook.com/daytoanclc',youtube:'https://www.youtube.com/@vuihoactoan382'},
     author: {name:'Cô Lê Nga',photo_url:'/assets/teacher-le-nga.jpg',qualification:'Thạc sĩ Phương pháp giảng dạy Toán học',experience_years:15,quote:'Mỗi học sinh đều có thể học giỏi Toán nếu được dẫn dắt bằng đúng phương pháp và sự tận tâm.'},
-    hero: {title:'Đồng hành cùng con bứt phá môn Toán.',description:'Giúp con lấy lại gốc, rèn tư duy và tự tin ôn thi HSG, trường Chất lượng cao, trường Chuyên.',illustration_url:'/assets/book-stack.svg'},
+    hero: {title:'Đồng hành cùng con bứt phá môn Toán.',description:'Giúp con lấy lại gốc, rèn tư duy và tự tin ôn thi HSG, trường Chất lượng cao, trường Chuyên.',illustration_url:'/assets/book-stack.png'},
     sales_policy: {shipping_vnd:0,payment_method:'cod',delivery_days:'2–5 ngày làm việc',return_days:7,gifts_with_order:true,price_note:'Giá mẫu do dự án đề xuất, có thể điều chỉnh trước khi bán.'}
   };
   const contentInsert = db.prepare('INSERT OR IGNORE INTO site_content(key,value_json) VALUES(?,?)');
   for (const [key,value] of Object.entries(content)) contentInsert.run(key,JSON.stringify(value));
+  // Replace the original illustration while preserving edited hero copy and custom images.
+  const currentHero = JSON.parse(db.prepare("SELECT value_json FROM site_content WHERE key='hero'").get().value_json);
+  if (['/assets/book-stack.svg','public/assets/book-stack.svg'].includes(currentHero.illustration_url)) {
+    currentHero.illustration_url = '/assets/book-stack.png';
+    db.prepare("UPDATE site_content SET value_json=? WHERE key='hero'").run(JSON.stringify(currentHero));
+  }
   const gift = db.prepare('INSERT OR IGNORE INTO gifts(id,title,description,kind,sort_order) VALUES(?,?,?,?,?)');
   gift.run('video','Khóa học Video','Hướng dẫn giải các dạng bài khó trong sách.','video',1);
   gift.run('zalo','Group Zalo giải đáp','Cộng đồng cùng đội ngũ trợ giảng CLB Cô Lê Nga.','community',2);
