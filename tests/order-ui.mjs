@@ -5,6 +5,8 @@ import { existsSync } from 'node:fs';
 import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve, sep } from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
+import { hashPassword } from '../passwords.mjs';
 const browser = process.env.UI_BROWSER_PATH || [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
   'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
@@ -100,8 +102,55 @@ try {
   assert.equal(await evaluate(`document.querySelector('#book-selection').hidden && document.querySelector('#order-receipt').hidden && !document.querySelector('#order-contact-fields').hidden && document.querySelector('#field-address').disabled`), true);
   await evaluate(`document.querySelector('#field-name').value='Nguyễn Thị An'; document.querySelector('#field-phone').value='0989066885'; document.querySelector('#field-grade').value='Lớp 5'; document.querySelector('#order-form').requestSubmit()`);
   await until(() => evaluate(`document.querySelector('#form-status').textContent.includes('Đã lưu yêu cầu tư vấn')`), 'consultation save');
+  await cdp('Emulation.setDeviceMetricsOverride', { width:1440, height:1000, deviceScaleFactor:1, mobile:false });
+  await cdp('Page.navigate', {url:`http://127.0.0.1:${port}/admin`});
+  await until(()=>evaluate(`document.querySelector('#login-view') && !document.querySelector('#login-view').hidden`),'admin login');
+  assert.equal(await evaluate(`document.querySelector('#setup-hint').hidden`),false);
+  const adminPassword='Test-only admin password 2026';
+  const adminDb=new DatabaseSync(join(scratch,'test.sqlite'));
+  adminDb.prepare('INSERT INTO admin_users(id,username,password_hash) VALUES(?,?,?)').run('ui-admin','admin',await hashPassword(adminPassword));
+  adminDb.close();
+  await cdp('Page.reload');
+  await until(()=>evaluate(`document.querySelector('#login-view') && !document.querySelector('#login-view').hidden`),'login reload');
+  await screenshot('admin-login.png');
+  await evaluate(`document.querySelector('#login-username').value='admin'; document.querySelector('#login-password').value='wrong password'; document.querySelector('#login-form').requestSubmit()`);
+  await until(()=>evaluate(`document.querySelector('#login-message').textContent.includes('không đúng')`),'wrong password');
+  await evaluate(`document.querySelector('#login-password').value=${JSON.stringify(adminPassword)}; document.querySelector('#login-form').requestSubmit()`);
+  await until(()=>evaluate(`!document.querySelector('#dashboard-view').hidden && document.querySelectorAll('#request-list tr').length===1`),'admin dashboard');
+  assert.equal(await evaluate(`document.querySelector('#summary-pending').textContent`),'1');
+  await screenshot('admin-desktop.png');
+  await evaluate(`document.querySelector('#search-input').value='no-matching-parent';document.querySelector('#search-form').requestSubmit()`);
+  await until(()=>evaluate(`!document.querySelector('#empty-state').hidden`),'empty search');
+  await evaluate(`document.querySelector('#search-input').value='0989';document.querySelector('#search-form').requestSubmit()`);
+  await until(()=>evaluate(`document.querySelectorAll('#request-list tr').length===1`),'phone search');
+  await evaluate(`document.querySelector('.detail-button').click()`);
+  await until(()=>evaluate(`document.querySelector('#detail-dialog').open && !document.querySelector('#status-form').hidden`),'order details');
+  assert.equal(await evaluate(`document.querySelector('#detail-content').textContent.includes('248.000đ')`),true);
+  await evaluate(`document.querySelector('#next-status').value='confirmed';document.querySelector('#status-form').requestSubmit()`);
+  await until(()=>evaluate(`document.querySelector('#detail-message').textContent==='Đã cập nhật trạng thái.'`),'order status save');
+  assert.equal(await evaluate(`document.querySelectorAll('.history li').length`),2);
+  await evaluate(`document.querySelector('#close-detail').click();document.querySelector('[data-inbox="consultations"]').click()`);
+  await until(()=>evaluate(`document.querySelector('#inbox-title').textContent==='Yêu cầu tư vấn' && document.querySelectorAll('#request-list tr').length===1`),'consultation inbox');
+  await evaluate(`document.querySelector('.detail-button').click()`);
+  await until(()=>evaluate(`document.querySelector('#detail-dialog').open && !document.querySelector('#status-form').hidden`),'consultation details');
+  await evaluate(`document.querySelector('#next-status').value='contacted';document.querySelector('#status-form').requestSubmit()`);
+  await until(()=>evaluate(`document.querySelector('#detail-message').textContent==='Đã cập nhật trạng thái.'`),'consultation status save');
+  await evaluate(`document.querySelector('#close-detail').click()`);
+  await cdp('Page.reload');
+  await until(()=>evaluate(`document.querySelector('#dashboard-view') && !document.querySelector('#dashboard-view').hidden && document.querySelectorAll('#request-list tr').length===1`),'session persistence');
+  await cdp('Emulation.setDeviceMetricsOverride', {width:390,height:844,deviceScaleFactor:1,mobile:true});
+  await cdp('Page.reload');
+  await until(()=>evaluate(`document.querySelector('#dashboard-view') && !document.querySelector('#dashboard-view').hidden && document.querySelectorAll('#request-list tr').length===1`),'mobile dashboard');
+  const mobileLayout=await evaluate(`({inner:innerWidth,viewport:visualViewport.width,scale:visualViewport.scale,doc:document.documentElement.scrollWidth,overflow:[...document.querySelectorAll('body *')].filter(e=>e.getBoundingClientRect().right>395 && getComputedStyle(e).display!=='none').slice(0,18).map(e=>({tag:e.tagName,class:e.className,width:e.getBoundingClientRect().width,right:e.getBoundingClientRect().right}))})`);
+  if(mobileLayout.inner!==390)console.log(JSON.stringify(mobileLayout));
+  assert.equal(mobileLayout.inner,390);
+  assert.equal(await evaluate(`document.documentElement.scrollWidth <= innerWidth`),true);
+  await screenshot('admin-mobile.png');
+  await evaluate(`document.querySelector('#logout-button').click()`);
+  await until(()=>evaluate(`!document.querySelector('#login-view').hidden && document.querySelector('#login-message').textContent==='Đã đăng xuất.'`),'logout');
+  assert.equal(await evaluate(`(async()=>{const r=await fetch('/api/admin/orders');return r.status;})()`),401);
   assert.deepEqual(browserErrors, []);
-  console.log(`Browser checks passed: groups, quantities, multi-group selection, both steps, focus, order and consultation persistence, mobile overflow. Desktop ticket: ${desktopHeight}px. Screenshots: data/order-desktop.png, data/order-mobile.png`);
+  console.log(`Browser checks passed: book ordering, consultations, admin login, invalid password, searching, empty states, details, status updates, session reload, logout and mobile overflow. Desktop ticket: ${desktopHeight}px. Screenshots saved in data/.`);
 } finally {
   if (socket?.readyState === WebSocket.OPEN) { try { await cdp('Browser.close'); } catch {} socket.close(); }
   for (const process of [chromium, server]) if (process && process.exitCode === null) {

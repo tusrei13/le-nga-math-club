@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
+import { hashPassword } from '../passwords.mjs';
 
 let child, directory, base;
 const token='test-only-admin-token-with-at-least-32-characters';
@@ -113,4 +114,61 @@ test('Khởi tạo lại giữ nguyên dữ liệu đã chỉnh sửa và các �
   assert.equal(result.data.faqs[0].answer,'Nội dung thử nghiệm từ database.');
   assert.equal((await api('/api/admin/orders','GET',undefined,adminHeaders)).data.total,2);
   assert.equal((await api('/api/products')).data.products.length,9);
+});
+const loginPassword='Test-only password for admin 2026';
+let sessionCookie, csrfToken;
+async function login(password=loginPassword, username='admin') {
+  const response=await fetch(base+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json',Origin:base},body:JSON.stringify({username,password})});
+  return {status:response.status,cookie:response.headers.get('set-cookie'),data:await response.json()};
+}
+test('Tạo tài khoản riêng, đăng nhập đúng/sai và không trả thông tin mật khẩu',async()=>{
+  assert.equal((await api('/api/auth/session')).data.setup_required,true);
+  const db=new DatabaseSync(join(directory,'test.sqlite'));
+  db.prepare('INSERT INTO admin_users(id,username,password_hash) VALUES(?,?,?)').run('test-admin','admin',await hashPassword(loginPassword));db.close();
+  assert.equal((await login('incorrect password')).status,401);
+  assert.equal((await login(loginPassword,'unknown-user')).status,401);
+  const result=await login();assert.equal(result.status,200);assert.equal(result.data.username,'admin');
+  assert.match(result.cookie,/HttpOnly/);assert.match(result.cookie,/SameSite=Strict/);assert.match(result.cookie,/Path=\//);
+  assert.equal(result.data.password_hash,undefined);
+  sessionCookie=result.cookie.split(';')[0];csrfToken=result.data.csrf_token;
+  const auth=await api('/api/auth/session','GET',undefined,{Cookie:sessionCookie});assert.equal(auth.data.authenticated,true);
+  const privateRows=await api('/api/admin/orders','GET',undefined,{Cookie:sessionCookie});assert.equal(privateRows.status,200);
+  const inspect=new DatabaseSync(join(directory,'test.sqlite'));const stored=inspect.prepare('SELECT token_hash FROM admin_sessions').get();
+  assert.notEqual(stored.token_hash,sessionCookie.split('=')[1]);inspect.close();
+});
+test('Session yêu cầu CSRF khi sửa dữ liệu; từ chối nguồn ngoài và trạng thái cũ',async()=>{
+  const headers={Cookie:sessionCookie};
+  const id=(await api('/api/admin/consultations','GET',undefined,headers)).data.data[0].id;
+  assert.equal((await api(`/api/admin/consultations/${id}/status`,'PATCH',{status:'contacted'},headers)).status,403);
+  assert.equal((await api(`/api/admin/consultations/${id}/status`,'PATCH',{status:'contacted'},{...headers,'X-CSRF-Token':'invalid'})).status,403);
+  assert.equal((await api(`/api/admin/consultations/${id}/status`,'PATCH',{status:'contacted'},{...headers,'X-CSRF-Token':csrfToken,Origin:'https://outside.example'})).status,403);
+  const secured={...headers,'X-CSRF-Token':csrfToken,Origin:base};
+  assert.equal((await api(`/api/admin/consultations/${id}/status`,'PATCH',{status:'contacted',expected_status:'new'},secured)).status,200);
+  assert.equal((await api(`/api/admin/consultations/${id}/status`,'PATCH',{status:'resolved',expected_status:'new'},secured)).status,409);
+  const detail=await api(`/api/admin/consultations/${id}`,'GET',undefined,headers);assert.equal(detail.data.history.length,2);assert.deepEqual(detail.data.allowed_statuses,['resolved','cancelled']);
+  assert.equal((await api('/api/admin/consultations?status=contacted&q=0989','GET',undefined,headers)).data.total,1);
+  assert.equal((await api('/api/admin/consultations?q=%25','GET',undefined,headers)).data.total,0);
+  assert.equal((await api('/api/admin/orders?status=invalid','GET',undefined,headers)).status,400);
+  const summary=await api('/api/admin/summary','GET',undefined,headers);assert.equal(summary.data.orders.completed,1);
+  const page=await fetch(base+'/admin');assert.equal(page.status,200);assert.match(page.headers.get('content-security-policy'),/frame-ancestors 'none'/);
+  assert.equal((await fetch(base+'/auth.mjs')).status,404);
+  assert.equal((await fetch(base+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json',Origin:'https://outside.example'},body:JSON.stringify({username:'admin',password:loginPassword})})).status,403);
+});
+test('Đăng xuất, hết hạn và thu hồi phiên chặn truy cập',async()=>{
+  const logout=await fetch(base+'/api/auth/logout',{method:'POST',headers:{Cookie:sessionCookie,'X-CSRF-Token':csrfToken,Origin:base,'Content-Type':'application/json'},body:'{}'});
+  assert.equal(logout.status,200);assert.match(logout.headers.get('set-cookie'),/Max-Age=0/);
+  assert.equal((await api('/api/admin/orders','GET',undefined,{Cookie:sessionCookie})).status,401);
+  const result=await login();const expiredCookie=result.cookie.split(';')[0];
+  const db=new DatabaseSync(join(directory,'test.sqlite'));db.prepare('UPDATE admin_sessions SET expires_at=?').run(Date.now()-1);db.close();
+  assert.equal((await api('/api/admin/orders','GET',undefined,{Cookie:expiredCookie})).status,401);
+  const idle=await login();const idleCookie=idle.cookie.split(';')[0];
+  const idleDb=new DatabaseSync(join(directory,'test.sqlite'));idleDb.prepare('UPDATE admin_sessions SET last_seen_at=?').run(Date.now()-31*60*1000);idleDb.close();
+  assert.equal((await api('/api/admin/orders','GET',undefined,{Cookie:idleCookie})).status,401);
+  const fresh=await login();const activeCookie=fresh.cookie.split(';')[0];
+  const reset=new DatabaseSync(join(directory,'test.sqlite'));reset.prepare('DELETE FROM admin_sessions WHERE user_id=?').run('test-admin');reset.close();
+  assert.equal((await api('/api/admin/orders','GET',undefined,{Cookie:activeCookie})).status,401);
+});
+test('Giới hạn thử đăng nhập liên tiếp',async()=>{
+  for(let i=0;i<5;i++) assert.equal((await login('wrong password')).status,401);
+  assert.equal((await login()).status,429);
 });
