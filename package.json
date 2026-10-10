@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node server.mjs"
-  }
+    "start": "node server.mjs",
+    "db:init": "node database/init.mjs"
+  },
+  "engines": { "node": ">=22.13.0" }
 }
