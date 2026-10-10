@@ -1,5 +1,6 @@
-import { randomUUID, createHash, timingSafeEqual } from 'node:crypto';
+import { randomUUID, createHash } from 'node:crypto';
 import { db, products, landing, transaction } from './database/db.mjs';
+import { AuthError, authorizeAdmin, handleAuth } from './auth.mjs';
 
 class ApiError extends Error { constructor(status,message) { super(message); this.status=status; } }
 function check(condition,message) { if (!condition) throw new ApiError(400,message); }
@@ -36,12 +37,6 @@ function previous(table,requestKey,digest) {
   if(row && row.request_hash!==digest) throw new ApiError(409,'Mã gửi đã được sử dụng cho nội dung khác.');
   return row;
 }
-function admin(request) {
-  const token=process.env.ADMIN_API_TOKEN;
-  if(!token || token.length<32) throw new ApiError(503,'API quản trị chưa được cấu hình.');
-  const actual=Buffer.from(request.headers.authorization || ''); const expected=Buffer.from(`Bearer ${token}`);
-  if(actual.length!==expected.length || !timingSafeEqual(actual,expected)) throw new ApiError(401,'Không có quyền quản trị.');
-}
 function mediaUrl(value) {
   if(typeof value!=='string' || value.length>2000) return false;
   try {
@@ -59,6 +54,7 @@ const transitions={orders:{pending:['confirmed','cancelled'],confirmed:['shippin
 export async function handleApi(request,response,url) {
   try {
     const path=url.pathname, method=request.method;
+    if(path.startsWith('/api/auth/')) return await handleAuth(request,response,path,body,json);
     if(path==='/api/landing' && method==='GET') return json(response,200,landing());
     if(path==='/api/products' && method==='GET') return json(response,200,{products:products()});
     if(['/api/orders','/api/consultations'].includes(path) && method==='POST') {
@@ -104,7 +100,12 @@ export async function handleApi(request,response,url) {
       return json(response,result.replay?200:201,receipt(result.row));
     }
     if(path.startsWith('/api/admin/')) {
-      admin(request);
+      authorizeAdmin(request);
+      if(path==='/api/admin/summary' && method==='GET') {
+        const orderCounts=db.prepare('SELECT status,count(*) AS count FROM orders GROUP BY status').all();
+        const consultationCounts=db.prepare('SELECT status,count(*) AS count FROM consultations GROUP BY status').all();
+        return json(response,200,{orders:Object.fromEntries(orderCounts.map(row=>[row.status,row.count])),consultations:Object.fromEntries(consultationCounts.map(row=>[row.status,row.count]))});
+      }
       if(path==='/api/admin/content' && method==='GET') {
         const result={content:landing().content};
         for(const table of Object.keys(contentTables)) result[table]=db.prepare(`SELECT * FROM ${table} ORDER BY sort_order`).all();
@@ -166,12 +167,28 @@ export async function handleApi(request,response,url) {
         if(path===`/api/admin/${table}` && method==='GET') {
           const limit=Math.min(100,Math.max(1,Number(url.searchParams.get('limit'))||25)),offset=Math.max(0,Number(url.searchParams.get('offset'))||0);
           check(Number.isInteger(limit) && Number.isInteger(offset),'Phân trang không hợp lệ.');
-          const rows=db.prepare(`SELECT * FROM ${table} ORDER BY created_at DESC,id LIMIT ? OFFSET ?`).all(limit,offset).map(row=>{
+          const filters=[],params=[];
+          const status=url.searchParams.get('status'),query=(url.searchParams.get('q') || '').trim();
+          check(query.length<=120,'Từ khóa tìm kiếm quá dài.');
+          if(status) {check(Object.hasOwn(transitions[table],status),'Trạng thái lọc không hợp lệ.'); filters.push('status=?');params.push(status);}
+          if(query) {const escaped=query.replace(/[\\%_]/g,'\\$&'); filters.push("(parent_name LIKE ? ESCAPE '\\' OR phone LIKE ? ESCAPE '\\' OR id LIKE ? ESCAPE '\\')");params.push(...Array(3).fill(`%${escaped}%`));}
+          const where=filters.length?`WHERE ${filters.join(' AND ')}`:'';
+          const rows=db.prepare(`SELECT * FROM ${table} ${where} ORDER BY created_at DESC,id LIMIT ? OFFSET ?`).all(...params,limit,offset).map(row=>{
             delete row.request_key; delete row.request_hash;
             if(table==='orders') {row.items=db.prepare('SELECT product_id,title,unit_price_vnd,quantity FROM order_items WHERE order_id=?').all(row.id); row.gifts=db.prepare('SELECT gift_id,title FROM order_gifts WHERE order_id=?').all(row.id);}
             return row;
           });
-          return json(response,200,{data:rows,total:db.prepare(`SELECT count(*) AS n FROM ${table}`).get().n,limit,offset});
+          return json(response,200,{data:rows,total:db.prepare(`SELECT count(*) AS n FROM ${table} ${where}`).get(...params).n,limit,offset});
+        }
+        const detailMatch=path.match(new RegExp(`^/api/admin/${table}/([A-Za-z0-9-]+)$`));
+        if(detailMatch && method==='GET') {
+          const row=db.prepare(`SELECT * FROM ${table} WHERE id=?`).get(detailMatch[1]);
+          if(!row) throw new ApiError(404,'Không tìm thấy yêu cầu.');
+          delete row.request_key;delete row.request_hash;
+          if(table==='orders') {row.items=db.prepare('SELECT product_id,title,unit_price_vnd,quantity FROM order_items WHERE order_id=?').all(row.id);row.gifts=db.prepare('SELECT gift_id,title FROM order_gifts WHERE order_id=?').all(row.id);}
+          row.history=db.prepare(`SELECT from_status,to_status,created_at FROM request_history WHERE ${table==='orders'?'order_id':'consultation_id'}=? ORDER BY id`).all(row.id);
+          row.allowed_statuses=transitions[table][row.status];
+          return json(response,200,row);
         }
         const statusMatch=path.match(new RegExp(`^/api/admin/${table}/([A-Za-z0-9-]+)/status$`));
         if(statusMatch && method==='PATCH') {
@@ -179,6 +196,7 @@ export async function handleApi(request,response,url) {
           const row=transaction(()=>{
             const current=db.prepare(`SELECT * FROM ${table} WHERE id=?`).get(statusMatch[1]);
             if(!current) throw new ApiError(404,'Không tìm thấy yêu cầu.');
+            if(input.expected_status!==undefined && input.expected_status!==current.status) throw new ApiError(409,'Trạng thái đã thay đổi. Vui lòng tải lại thông tin.');
             if(input.status===current.status) return current;
             check(transitions[table][current.status].includes(input.status),'Chuyển trạng thái không hợp lệ.');
             db.prepare(`UPDATE ${table} SET status=?,updated_at=CURRENT_TIMESTAMP WHERE id=?`).run(input.status,current.id);
@@ -191,7 +209,7 @@ export async function handleApi(request,response,url) {
     }
     throw new ApiError(404,'API không tồn tại.');
   } catch(error) {
-    if(!(error instanceof ApiError)) console.error(error);
+    if(!(error instanceof ApiError) && !(error instanceof AuthError)) console.error(error);
     json(response,error.status || 500,{error:error.status?error.message:'Không thể xử lý yêu cầu. Vui lòng thử lại.'});
   }
 }

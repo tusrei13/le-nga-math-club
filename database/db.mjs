@@ -16,6 +16,7 @@ export function transaction(action) {
 }
 transaction(() => {
   db.exec(readFileSync(new URL('./schema.sql', import.meta.url),'utf8'));
+  db.exec(readFileSync(new URL('./admin-schema.sql', import.meta.url),'utf8'));
   seed(db);
 });
 export function products(includeInactive = false) {

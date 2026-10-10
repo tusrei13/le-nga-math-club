@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node server.mjs",
     "db:init": "node database/init.mjs",
+    "admin:create": "node database/create-admin.mjs",
+    "admin:reset": "node database/create-admin.mjs --reset",
     "test": "node --test tests/api.test.mjs",
     "test:ui": "node tests/order-ui.mjs"
   },
