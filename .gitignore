@@ -1,2 +1,32 @@
+# Local planning notes
 /plan.md
 /TODO.md
+
+# Runtime data, SQLite files and browser previews
+/data/
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Environment secrets; keep a shareable example if added
+.env
+.env.*
+!.env.example
+
+# Node dependencies and generated output
+node_modules/
+/coverage/
+/dist/
+/logs/
+*.log
+*.log.*
+
+# Operating system metadata
+.DS_Store
+Thumbs.db
+Desktop.ini
