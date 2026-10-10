@@ -1,6 +1,6 @@
 # Cơ sở dữ liệu landing page CLB Toán Cô Lê Nga
 
-Dự án dùng **một database SQLite gồm 13 bảng liên kết**, phù hợp với landing page chạy trên một máy chủ Node.js. Không cần cài MySQL/PostgreSQL hoặc thư viện npm ngoài. Database thực tế nằm ở `data/landing.sqlite`, được tạo bằng `npm run db:init` hoặc tự động khi `npm start`.
+Dự án dùng **một database SQLite gồm 15 bảng liên kết**, phù hợp với landing page chạy trên một máy chủ Node.js. Không cần cài MySQL/PostgreSQL hoặc thư viện npm ngoài. Database thực tế nằm ở `data/landing.sqlite`, được tạo bằng `npm run db:init` hoặc tự động khi `npm start`.
 
 ## Phạm vi đã thực hiện
 
@@ -13,15 +13,15 @@ Dự án dùng **một database SQLite gồm 13 bảng liên kết**, phù hợp
 | Quà tặng | Danh mục 3 quà và bản chụp quà đi kèm từng đơn |
 | Giới thiệu, tác giả, liên hệ | JSON trong `site_content`, được frontend đọc qua API |
 | FAQ, phụ huynh, thành tích | Bảng riêng; giữ nhãn case tổng hợp ẩn danh của trang ban đầu |
-| Quản trị | API có Bearer token để đọc yêu cầu, đổi trạng thái, sửa giá/ảnh/nội dung và ẩn sách |
+| Quản trị | Trang `/admin` có đăng nhập để đọc và xử lý đơn/tư vấn; API vẫn hỗ trợ Bearer token để tích hợp |
 
-Các phần trang trí, menu, cuộn trang, chế độ di động và mở FAQ vẫn được xử lý ở frontend. Dự án chưa có giao diện quản trị, cổng thanh toán online, tự gửi email/Zalo hoặc hệ thống vận chuyển. Video, nhóm Zalo và bộ đề mới có dữ liệu quà tặng; cần bổ sung tài nguyên thật vào `gifts.resource_url` và quy trình cấp quyền nếu muốn phát tài nguyên tự động. URL tài nguyên quà tặng không được trả về API công khai.
+Các phần trang trí, menu, cuộn trang, chế độ di động và mở FAQ vẫn được xử lý ở frontend. Dự án chưa có cổng thanh toán online, tự gửi email/Zalo hoặc hệ thống vận chuyển. Video, nhóm Zalo và bộ đề mới có dữ liệu quà tặng; cần bổ sung tài nguyên thật vào `gifts.resource_url` và quy trình cấp quyền nếu muốn phát tài nguyên tự động. URL tài nguyên quà tặng không được trả về API công khai.
 
 ## Các bảng
 
 | Bảng | Mục đích |
 | --- | --- |
-| `schema_versions` | Ghi phiên bản schema; hiện tại v1 |
+| `schema_versions` | Ghi phiên bản schema; hiện tại v2 |
 | `products` | Danh mục, giá nguyên VND, lớp, tập, thứ tự, trạng thái bán |
 | `product_media` | Ảnh bìa và PDF mẫu; mỗi sách tối đa một media mỗi loại |
 | `site_content` | Nội dung `hero`, `author`, `contact`, `sales_policy` dạng JSON |
@@ -34,6 +34,8 @@ Các phần trang trí, menu, cuộn trang, chế độ di động và mở FAQ 
 | `order_gifts` | Tên và ID quà được ghi nhận tại thời điểm đặt |
 | `consultations` | Yêu cầu tư vấn và trạng thái liên hệ |
 | `request_history` | Lịch sử trạng thái đơn hàng/yêu cầu tư vấn |
+| `admin_users` | Tài khoản quản trị và mật khẩu đã băm |
+| `admin_sessions` | Hash token phiên, CSRF token, hạn phiên và hoạt động gần nhất |
 
 ```mermaid
 erDiagram
@@ -96,7 +98,7 @@ Tư vấn dùng cùng `name`, `phone`, `grade`, `note`, bỏ `address` và `item
 
 ## API quản trị
 
-Thiết lập biến môi trường `ADMIN_API_TOKEN` dài ít nhất 32 ký tự trên server. Khi thiếu token, API quản trị bị tắt (503); token sai trả 401. Gửi header `Authorization: Bearer <token>`; không đưa token vào frontend.
+Trang quản trị dùng phiên đăng nhập qua cookie; xem [ADMIN.md](ADMIN.md) để tạo tài khoản. Tích hợp API có thể dùng biến môi trường `ADMIN_API_TOKEN` dài ít nhất 32 ký tự và header `Authorization: Bearer <token>`. Không có phiên hoặc token hợp lệ trả 401. Không đưa Bearer token vào frontend.
 
 | Method | Endpoint | Body / kết quả |
 | --- | --- | --- |
@@ -131,4 +133,4 @@ Invoke-RestMethod 'http://localhost:3000/api/admin/products/toan-6-tap-1' `
 
 `DATABASE_PATH` cho phép thay đường dẫn database. Dùng một ổ lưu trữ bền vững khi deploy; database phải còn sau khi tiến trình khởi động lại. `data/` và `.env` đã được đưa vào `.gitignore`, và server chỉ phục vụ các file frontend công khai cùng assets, không phục vụ file SQLite/source backend.
 
-Sao lưu SQLite bằng công cụ hỗ trợ online backup, hoặc dừng server trước khi sao lưu thư mục `data/`; SQLite đang dùng WAL nên không chỉ chép riêng file `.sqlite` khi server đang ghi. Database này hướng tới một server ứng dụng; khi cần nhiều server ghi cùng lúc, nên chuyển sang PostgreSQL. Chạy init/seed lại không ghi đè giá, nội dung, media hay trạng thái đã chỉnh sửa. Schema v1 được lưu trong `schema_versions`; các thay đổi schema sau này cần migration riêng.
+Sao lưu SQLite bằng công cụ hỗ trợ online backup, hoặc dừng server trước khi sao lưu thư mục `data/`; SQLite đang dùng WAL nên không chỉ chép riêng file `.sqlite` khi server đang ghi. Database này hướng tới một server ứng dụng; khi cần nhiều server ghi cùng lúc, nên chuyển sang PostgreSQL. Chạy init/seed lại không ghi đè giá, nội dung, media hay trạng thái đã chỉnh sửa. Schema v2 bổ sung hai bảng quản trị qua `database/admin-schema.sql`; các thay đổi schema sau này cần migration riêng.

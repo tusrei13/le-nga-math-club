@@ -13,13 +13,18 @@ npm start
 
 Mở `http://localhost:3000`. Không mở trực tiếp `index.html` bằng `file://`, vì trang cần gọi API.
 
-Database tự tạo ở `data/landing.sqlite`, gồm 13 bảng và dữ liệu mẫu 10 sách với ảnh bìa trong `public/assets/books`. `npm start` cũng tự khởi tạo nếu chưa có database.
+Database tự tạo ở `data/landing.sqlite`, gồm 15 bảng và dữ liệu mẫu 10 sách với ảnh bìa trong `public/assets/books`. `npm start` cũng tự khởi tạo nếu chưa có database.
+
+## Trang quản trị
+
+Chạy `npm run admin:create` trong terminal để tự đặt tên đăng nhập và mật khẩu (tối thiểu 15 ký tự). Khởi động lại server rồi mở `http://localhost:3000/admin` để quản lý đơn sách và yêu cầu tư vấn. Dùng `npm run admin:reset` nếu cần đặt lại mật khẩu. Xem [ADMIN.md](ADMIN.md) để biết cách sử dụng và cấu hình triển khai.
 
 ## Biến môi trường
 
 - `PORT`: cổng server, mặc định `3000`.
 - `DATABASE_PATH`: đường dẫn SQLite, mặc định `data/landing.sqlite`.
 - `ADMIN_API_TOKEN`: token riêng dài ít nhất 32 ký tự để bật API quản trị. Đặt trong môi trường chạy server; `.env` không được tự động đọc.
+- `ADMIN_COOKIE_SECURE=true` hoặc `NODE_ENV=production`: dùng cookie đăng nhập Secure khi triển khai HTTPS. Giao diện quản trị đăng nhập bằng tài khoản, không cần Bearer token.
 
 ## Kiểm tra
 
