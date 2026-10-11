@@ -22,9 +22,13 @@ Lệnh tạo tài khoản dùng cùng `DATABASE_PATH` với server. Nếu dùng 
 
 ## Cách xử lý yêu cầu
 
+Thanh điều hướng navy phía trên cho phép chuyển giữa Đơn sách và Tư vấn; mục đang chọn có dấu trang vàng. Tên tài khoản, chữ cái đại diện, liên kết “Xem trang bán sách” và nút “Đăng xuất” được hiển thị trực tiếp trên thanh này.
+
+Trên máy tính, danh sách phiếu nằm bên trái và chi tiết được mở ngay bên phải. Phiếu hiển thị bìa sách, tổng tiền và trạng thái; đơn mới có vạch vàng. Trên điện thoại, chọn “Mở phiếu” để xem chi tiết toàn màn hình, rồi bấm “Đóng” để quay về danh sách.
+
 - **Đơn sách:** xem họ tên, điện thoại, lớp, địa chỉ, ghi chú, từng cuốn/số lượng/giá, quà tặng, tổng tiền và lịch sử. Chuyển lần lượt Mới nhận → Chờ giao → Đang giao → Hoàn tất. Có thể hủy khi đang Mới nhận hoặc Chờ giao.
 - **Tư vấn:** xem thông tin phụ huynh và ghi chú. Chuyển Chưa liên hệ → Đã liên hệ → Đã tư vấn. Có thể hủy trước khi kết thúc.
-- **Tìm kiếm:** tên, số điện thoại hoặc mã yêu cầu; có thể kết hợp lọc trạng thái. Các thẻ số đếm mở nhanh những yêu cầu cần xử lý.
+- **Tìm kiếm:** tên, số điện thoại hoặc mã yêu cầu; có thể kết hợp lọc trạng thái. Dòng nhắc việc mở nhanh các đơn chờ xác nhận, đơn đang giao và tư vấn mới.
 - **Làm mới:** lấy các đơn/tư vấn và số đếm mới nhất. Trang hiện chưa gửi thông báo email hoặc tự cập nhật nền.
 
 Khi nhiều người cùng xử lý, frontend gửi `expected_status`; nếu trạng thái đã thay đổi, server trả 409 để tránh ghi đè dựa trên thông tin cũ. Đóng chi tiết rồi mở lại để lấy trạng thái mới.
