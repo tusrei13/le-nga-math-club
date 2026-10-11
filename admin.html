@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#29315f" />
   <meta name="robots" content="noindex,nofollow" />
   <title>Quản trị đơn sách · CLB Toán Cô Lê Nga</title>
   <link rel="icon" href="/assets/logo.png" type="image/png" />
@@ -12,7 +13,7 @@
 <body>
   <p class="boot-status" id="boot-status" role="status">Đang mở trang quản trị…</p>
   <main class="login-shell" id="login-view" hidden>
-    <div class="login-brand"><img src="/assets/logo.png" alt="CLB Toán Cô Lê Nga" /><p>CLB TOÁN CÔ LÊ NGA</p><h1>Mỗi đơn sách,<br />một hành trình mới.</h1><p>Theo dõi đơn hàng và chăm sóc phụ huynh tại một nơi.</p><a href="/">← Về landing page</a></div>
+    <div class="login-brand"><img src="/assets/logo.png" alt="CLB Toán Cô Lê Nga" /><p>CLB TOÁN<strong>CÔ LÊ NGA</strong></p><h1>Mỗi đơn sách,<br /><em>một hành trình mới.</em></h1><p>Theo dõi đơn hàng và chăm sóc phụ huynh tại một nơi.</p><a href="/">← Về landing page</a></div>
     <section class="login-card" aria-labelledby="login-title">
       <span class="overline">KHÔNG GIAN QUẢN TRỊ</span>
       <h2 id="login-title">Chào mừng trở lại.</h2>
@@ -28,41 +29,48 @@
     </section>
   </main>
   <div class="admin-shell" id="dashboard-view" hidden>
-    <aside class="sidebar">
-      <a class="admin-brand" href="/admin"><img src="/assets/logo.png" alt="" /><span>CLB TOÁN<strong>CÔ LÊ NGA</strong></span></a>
-      <p class="sidebar-label">HỘP THƯ CLB</p>
+    <header class="admin-topbar">
+      <a class="admin-brand" href="/admin"><img src="/assets/logo.png" alt="" /><span>CLB TOÁN<strong>Cô Lê Nga</strong></span></a>
       <nav class="inbox-tabs" aria-label="Loại yêu cầu">
-        <button type="button" data-inbox="orders" aria-pressed="true"><span>Đơn sách</span><span id="order-badge" class="count-badge">0</span></button>
-        <button type="button" data-inbox="consultations" aria-pressed="false"><span>Yêu cầu tư vấn</span><span id="consultation-badge" class="count-badge">0</span></button>
+        <button type="button" data-inbox="orders" aria-pressed="true">Đơn sách <span id="order-badge" class="count-badge">0</span></button>
+        <button type="button" data-inbox="consultations" aria-pressed="false">Tư vấn <span id="consultation-badge" class="count-badge">0</span></button>
       </nav>
-      <div class="sidebar-footer"><a href="/" target="_blank" rel="noopener">Mở landing page ↗</a><span id="current-user"></span><button id="logout-button" type="button">Đăng xuất</button></div>
-    </aside>
+      <div class="account-menu"><a href="/" target="_blank" rel="noopener">Xem trang bán sách ↗</a><div class="account-identity"><span id="user-initial" class="account-avatar" aria-hidden="true"></span><span id="current-user"></span></div><button id="logout-button" type="button">Đăng xuất</button></div>
+    </header>
     <main class="workspace">
-      <header class="workspace-header"><div><p class="overline">QUẢN LÝ & CHĂM SÓC</p><h1 id="inbox-title">Đơn sách</h1><p id="inbox-description">Nhận đơn, xác nhận với phụ huynh và theo dõi giao sách.</p></div><button id="refresh-button" class="secondary-button" type="button">Làm mới ↻</button></header>
-      <section class="summary-grid" aria-label="Yêu cầu cần xử lý">
-        <button type="button" data-summary="pending"><span>Đơn mới cần xác nhận</span><strong id="summary-pending">0</strong><small>Mở các đơn mới →</small></button>
-        <button type="button" data-summary="shipping"><span>Đơn đang giao</span><strong id="summary-shipping">0</strong><small>Theo dõi giao sách →</small></button>
-        <button type="button" data-summary="consultations"><span>Tư vấn chưa liên hệ</span><strong id="summary-consultations">0</strong><small>Mở yêu cầu tư vấn →</small></button>
+      <header class="workspace-header"><div><h1 id="inbox-title">Đơn sách</h1><p id="inbox-description">Nhận đơn, xác nhận với phụ huynh và theo dõi giao sách.</p></div><button id="refresh-button" class="secondary-button" type="button">Làm mới ↻</button></header>
+      <section class="summary-strip" aria-labelledby="summary-heading">
+        <h2 class="summary-label" id="summary-heading">Việc đang chờ</h2>
+        <div class="summary-track">
+          <button type="button" data-summary="pending" aria-pressed="false"><strong id="summary-pending">00</strong><span>Chờ xác nhận</span></button>
+          <button type="button" data-summary="shipping" aria-pressed="false"><strong id="summary-shipping">00</strong><span>Đang giao</span></button>
+          <button type="button" data-summary="consultations" aria-pressed="false"><strong id="summary-consultations">00</strong><span>Tư vấn mới</span></button>
+        </div>
       </section>
-      <section class="inbox-panel" aria-labelledby="list-heading">
-        <h2 id="list-heading" class="sr-only">Danh sách yêu cầu</h2>
-        <form class="filters" id="search-form">
-          <label class="search-field"><span class="sr-only">Tìm theo tên, số điện thoại hoặc mã yêu cầu</span><input id="search-input" type="search" placeholder="Tìm tên, số điện thoại hoặc mã…" maxlength="120" /><button type="submit" class="secondary-button">Tìm</button></label>
-          <label class="status-filter"><span class="sr-only">Lọc trạng thái</span><select id="status-filter"></select></label>
-        </form>
-        <p id="dashboard-message" class="message" role="status" aria-live="polite"></p>
-        <div class="table-scroll"><table><thead><tr><th scope="col">Phụ huynh</th><th scope="col">Nội dung</th><th scope="col">Trạng thái</th><th scope="col">Ngày nhận</th><th scope="col"><span class="sr-only">Thao tác</span></th></tr></thead><tbody id="request-list"></tbody></table></div>
-        <div id="empty-state" class="empty-state" hidden><span class="empty-mark" aria-hidden="true">∅</span><h3 id="empty-title">Hộp thư đang trống.</h3><p id="empty-description">Khi phụ huynh gửi yêu cầu, thông tin sẽ xuất hiện tại đây.</p></div>
-        <footer class="pagination"><span id="result-count" role="status"></span><div><button id="previous-page" class="secondary-button" type="button">← Trước</button><button id="next-page" class="secondary-button" type="button">Sau →</button></div></footer>
-      </section>
+      <div class="work-desk">
+        <section class="inbox-panel" aria-labelledby="list-heading">
+          <div class="inbox-heading"><h2 id="list-heading">Hộp thư yêu cầu</h2><span>Chọn một phiếu để xử lý</span></div>
+          <form class="filters" id="search-form">
+            <label class="search-field"><span class="sr-only">Tìm theo tên, số điện thoại hoặc mã yêu cầu</span><input id="search-input" type="search" placeholder="Tên, số điện thoại hoặc mã…" maxlength="120" /><button type="submit" class="secondary-button">Tìm</button></label>
+            <label class="status-filter"><span class="sr-only">Lọc trạng thái</span><select id="status-filter"></select></label>
+          </form>
+          <p id="dashboard-message" class="message" role="status" aria-live="polite"></p>
+          <div id="request-list" class="request-list"></div>
+          <div id="empty-state" class="empty-state" hidden><span class="empty-mark" aria-hidden="true">∅</span><h3 id="empty-title">Hộp thư đang trống.</h3><p id="empty-description">Khi phụ huynh gửi yêu cầu, thông tin sẽ xuất hiện tại đây.</p></div>
+          <footer class="pagination"><span id="result-count" role="status"></span><div><button id="previous-page" class="secondary-button" type="button">← Trước</button><button id="next-page" class="secondary-button" type="button">Sau →</button></div></footer>
+        </section>
+        <section class="detail-slot" aria-label="Phiếu xử lý">
+          <div id="detail-placeholder" class="detail-placeholder"><span class="overline">MỖI ĐƠN SÁCH, MỘT HÀNH TRÌNH</span><h2>Sẵn sàng đồng hành<br />cùng phụ huynh.</h2><p>Chọn một yêu cầu bên trái để xem sách, thông tin nhận hàng và bước xử lý tiếp theo.</p><div class="placeholder-rule" aria-hidden="true"></div></div>
+          <dialog id="detail-dialog" aria-labelledby="detail-title">
+            <header class="detail-header"><div><p class="overline" id="detail-kind">PHIẾU ĐẶT SÁCH</p><h2 id="detail-title">Thông tin yêu cầu</h2></div><button type="button" id="close-detail" class="secondary-button" aria-label="Đóng chi tiết">Đóng ×</button></header>
+            <div id="detail-content"></div>
+            <p class="message" id="detail-message" role="status" aria-live="polite"></p>
+            <form class="status-actions" id="status-form"><label>Bước xử lý tiếp theo<select id="next-status" required></select></label><button type="submit" class="primary-button" id="save-status">Cập nhật trạng thái</button></form>
+          </dialog>
+        </section>
+      </div>
       <p class="workspace-footnote">Thông tin phụ huynh chỉ dùng để xác nhận đơn và tư vấn học tập.</p>
     </main>
   </div>
-  <dialog id="detail-dialog" aria-labelledby="detail-title">
-    <header class="detail-header"><div><p class="overline" id="detail-kind">CHI TIẾT ĐƠN SÁCH</p><h2 id="detail-title">Thông tin yêu cầu</h2></div><button type="button" id="close-detail" class="secondary-button" aria-label="Đóng chi tiết">Đóng ×</button></header>
-    <div id="detail-content"></div>
-    <p class="message" id="detail-message" role="status" aria-live="polite"></p>
-    <form class="status-actions" id="status-form"><label>Chuyển trạng thái<select id="next-status" required></select></label><button type="submit" class="primary-button" id="save-status">Cập nhật trạng thái</button></form>
-  </dialog>
 </body>
 </html>

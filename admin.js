@@ -5,6 +5,8 @@ const currency = value => `${new Intl.NumberFormat('vi-VN').format(value)}đ`;
 const dateFormat = new Intl.DateTimeFormat('vi-VN', { dateStyle:'short', timeStyle:'short', timeZone:'Asia/Bangkok' });
 const date = value => dateFormat.format(new Date(value.replace(' ','T') + 'Z'));
 let auth, inbox = 'orders', offset = 0, total = 0, sequence = 0, detail;
+let detailSequence = 0, selectedId, covers = new Map();
+const mobileDetail = matchMedia('(max-width: 850px)');
 const pageSize = 20;
 
 function element(tag, text, className) {
@@ -16,7 +18,7 @@ function element(tag, text, className) {
 function showLogin(message = '', setup = false) {
   auth = undefined; sequence++;
   $('#dashboard-view').hidden = true; $('#login-view').hidden = false; $('#boot-status').hidden = true;
-  if ($('#detail-dialog').open) $('#detail-dialog').close();
+  closeDetail();
   $('#request-list').replaceChildren(); $('#detail-content').replaceChildren(); detail = undefined;
   $('#login-message').textContent = message; $('#setup-hint').hidden = !setup;
   $('#login-password').value = '';
@@ -42,18 +44,26 @@ async function showDashboard(current) {
   auth = current; $('#login-form').reset();
   $('#login-password').type = 'password'; $('#password-toggle').textContent = 'Hiện'; $('#password-toggle').setAttribute('aria-pressed','false');
   $('#login-view').hidden = true; $('#boot-status').hidden = true; $('#dashboard-view').hidden = false;
-  $('#current-user').textContent = `Đăng nhập: ${current.username}`;
+  $('#current-user').textContent = current.username;
+  $('#user-initial').textContent = Array.from(current.username)[0].toLocaleUpperCase('vi-VN');
+  try {
+    const products = await request('/api/products');
+    covers = new Map(products.products.map(product => [product.id, product.media.find(media => media.kind === 'cover')?.url]));
+  } catch { covers = new Map(); }
   await refresh();
 }
 async function loadSummary() {
   const data = await request('/api/admin/summary');
-  $('#summary-pending').textContent = data.orders.pending || 0;
-  $('#summary-shipping').textContent = data.orders.shipping || 0;
-  $('#summary-consultations').textContent = data.consultations.new || 0;
+  for (const [key,count] of [['pending',data.orders.pending || 0],['shipping',data.orders.shipping || 0],['consultations',data.consultations.new || 0]]) {
+    const number=$(`#summary-${key}`);
+    number.textContent=String(count).padStart(2,'0');
+    number.parentElement.classList.toggle('has-work',count>0);
+  }
   $('#order-badge').textContent = data.orders.pending || 0;
   $('#consultation-badge').textContent = data.consultations.new || 0;
 }
 async function loadList() {
+  syncSummaryFilter();
   const version = ++sequence, table = inbox;
   $('#dashboard-message').textContent = '';
   $('.inbox-panel').setAttribute('aria-busy','true');
@@ -66,20 +76,26 @@ async function loadList() {
     total = data.total;
     if (offset >= total && total > 0) {offset = Math.floor((total-1)/pageSize)*pageSize;return await loadList();}
     for (const row of data.data) {
-      const tr = element('tr');
-      const parent = element('td'); parent.append(element('span',row.parent_name,'parent-name'));
-      const phone = element('a',row.phone,'cell-meta'); phone.href = `tel:${row.phone}`; parent.append(phone);
-      const content = element('td');
+      const card = element('article', undefined, `request-card ${['pending','new'].includes(row.status) ? 'is-new' : ''}`);
+      card.dataset.requestId = row.id;
+      const heading = element('div',undefined,'request-heading');
+      heading.append(element('h3',row.parent_name,'parent-name'),statusTag(row.status));
+      const parent = element('div',undefined,'request-contact');
+      const phone = element('a',row.phone); phone.href = `tel:${row.phone}`; parent.append(phone,element('span',`Lớp ${row.grade}`));
+      const content = element('div',undefined,'request-books');
       if (table === 'orders') {
         const books = row.items.reduce((sum,item) => sum+item.quantity,0);
-        content.append(element('span',`${books} cuốn · ${currency(row.total_vnd)}`,'cell-title'),element('span',`Lớp ${row.grade} · COD`,'cell-meta'));
+        const thumbnails=element('div',undefined,'book-thumbnails');
+        for (const item of row.items.slice(0,3)) { const image=coverImage(item); if(image) thumbnails.append(image); }
+        const copy=element('div');
+        copy.append(element('span',row.items.map(item=>item.title).join(' · '),'cell-title'),element('span',`${books} cuốn · Thanh toán COD`,'cell-meta'));
+        content.append(thumbnails,copy,element('strong',currency(row.total_vnd),'request-total'));
       } else content.append(element('span',`Tư vấn sách cho lớp ${row.grade}`,'cell-title'),element('span',row.note ? row.note.slice(0,65) + (row.note.length>65?'…':'') : 'Chưa có ghi chú','cell-meta'));
-      const status = element('td'); status.append(statusTag(row.status));
-      const received = element('td',date(row.created_at));
-      const action = element('td'), button = element('button','Xem chi tiết →','detail-button'); button.type='button';
+      const action = element('div',undefined,'request-footer'), button = element('button','Mở phiếu →','detail-button'); button.type='button';
       button.setAttribute('aria-label',`Xem ${table==='orders'?'đơn sách':'tư vấn'} của ${row.parent_name}`);
-      button.addEventListener('click',()=>openDetail(table,row.id)); action.append(button);
-      tr.append(parent,content,status,received,action); $('#request-list').append(tr);
+      button.addEventListener('click',()=>openDetail(table,row.id)); action.append(element('time',date(row.created_at)),button);
+      card.append(heading,parent,content,action); $('#request-list').append(card);
+      if(selectedId===row.id) card.classList.add('is-selected');
     }
     $('#empty-state').hidden = data.data.length > 0;
     const filtered = params.get('q') || params.get('status');
@@ -87,6 +103,7 @@ async function loadList() {
     $('#empty-description').textContent = filtered ? 'Thử từ khóa hoặc trạng thái khác.' : 'Khi phụ huynh gửi yêu cầu, thông tin sẽ xuất hiện tại đây.';
     $('#result-count').textContent = total ? `${offset+1}–${Math.min(offset+pageSize,total)} / ${total} yêu cầu` : '0 yêu cầu';
     $('#previous-page').disabled = offset === 0; $('#next-page').disabled = offset+pageSize >= total;
+    if (selectedId && !data.data.some(row=>row.id===selectedId)) closeDetail();
   } catch (error) { if(version===sequence) {$('#dashboard-message').textContent=error.message;$('#result-count').textContent='Chưa tải được dữ liệu';} }
   finally {if(version===sequence) $('.inbox-panel').removeAttribute('aria-busy');}
 }
@@ -97,11 +114,20 @@ async function refresh() {
   finally {button.disabled=false;}
 }
 function selectInbox(table, status = '') {
+  closeDetail();
   inbox = table; offset = 0;
   document.querySelectorAll('[data-inbox]').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.inbox === table)));
   $('#inbox-title').textContent = table === 'orders' ? 'Đơn sách' : 'Yêu cầu tư vấn';
   $('#inbox-description').textContent = table === 'orders' ? 'Nhận đơn, xác nhận với phụ huynh và theo dõi giao sách.' : 'Liên hệ phụ huynh và tìm sách phù hợp với con.';
   $('#search-input').value=''; populateFilter(); $('#status-filter').value=status; loadList();
+}
+function syncSummaryFilter() {
+  const status=$('#status-filter').value;
+  document.querySelectorAll('[data-summary]').forEach(button=>{
+    const key=button.dataset.summary;
+    const selected=key==='consultations' ? inbox==='consultations' && status==='new' : inbox==='orders' && status===key;
+    button.setAttribute('aria-pressed',String(selected));
+  });
 }
 function addField(list,title,value,wide=false) {
   const group = element('div',undefined,wide?'detail-wide':undefined);
@@ -109,10 +135,17 @@ function addField(list,title,value,wide=false) {
   if (value instanceof Node) description.append(value); else description.textContent = value;
   group.append(element('dt',title),description); list.append(group);
 }
+function coverImage(item) {
+  const url=covers.get(item.product_id);
+  if (!url) return null;
+  const image=element('img'); image.src=url; image.alt=item.title; image.loading='lazy';
+  image.addEventListener('error',()=>image.remove(),{once:true});
+  return image;
+}
 function renderDetail(row,table) {
   detail={row,table};
   const container=$('#detail-content'); container.replaceChildren();
-  $('#detail-kind').textContent=table==='orders'?'CHI TIẾT ĐƠN SÁCH':'CHI TIẾT TƯ VẤN';
+  $('#detail-kind').textContent=table==='orders'?'PHIẾU ĐẶT SÁCH':'PHIẾU TƯ VẤN';
   $('#detail-title').textContent=row.parent_name;
   container.append(element('p',row.id,'detail-id'),statusTag(row.status));
   const fields=element('dl',undefined,'detail-grid');
@@ -126,6 +159,8 @@ function renderDetail(row,table) {
     for(const item of row.items) {
       const line=element('div',undefined,'detail-book'),copy=element('div',item.title);
       copy.append(element('small',`${item.quantity} cuốn × ${currency(item.unit_price_vnd)}`));
+      const image=coverImage(item); if(image) line.append(image);
+      else line.classList.add('without-cover');
       line.append(copy,element('strong',currency(item.quantity*item.unit_price_vnd)));books.append(line);
     }
     books.append(element('p',`Phí giao hàng: ${currency(row.shipping_vnd)} · Thanh toán COD`,'cell-meta'));
@@ -142,14 +177,35 @@ function renderDetail(row,table) {
   const select=$('#next-status');select.replaceChildren();
   for(const status of row.allowed_statuses) select.add(new Option(labels[status],status));
   $('#status-form').hidden=!row.allowed_statuses.length;
+  updateActionLabel();
   if(!row.allowed_statuses.length) container.append(element('p','Yêu cầu đã kết thúc; không còn trạng thái tiếp theo.','final-status'));
 }
 async function openDetail(table,id) {
+  const version=++detailSequence; selectedId=id;
+  document.querySelectorAll('.request-card').forEach(card=>card.classList.toggle('is-selected',card.dataset.requestId===id));
   detail=undefined;$('#detail-title').textContent='Đang tải thông tin…';$('#detail-content').replaceChildren();$('#detail-message').textContent='';$('#status-form').hidden=true;
-  if(!$('#detail-dialog').open) $('#detail-dialog').showModal();
-  try {const row=await request(`/api/admin/${table}/${id}`);if($('#detail-dialog').open) renderDetail(row,table);}
-  catch(error) {$('#detail-message').textContent=error.message;}
+  $('#detail-placeholder').hidden=true;
+  const dialog=$('#detail-dialog');
+  if(!dialog.open) { if(mobileDetail.matches) dialog.showModal(); else dialog.show(); }
+  try {const row=await request(`/api/admin/${table}/${id}`);if(version===detailSequence && dialog.open && auth) renderDetail(row,table);}
+  catch(error) {if(version===detailSequence) $('#detail-message').textContent=error.message;}
 }
+function closeDetail() {
+  detailSequence++; selectedId=undefined; detail=undefined;
+  $('#detail-dialog').close(); $('#detail-placeholder').hidden=false;
+  $('#detail-content').replaceChildren(); $('#detail-message').textContent=''; $('#status-form').hidden=true;
+  document.querySelectorAll('.request-card').forEach(card=>card.classList.remove('is-selected'));
+}
+function updateActionLabel() {
+  const actions={confirmed:'Xác nhận đơn',shipping:'Bắt đầu giao sách',completed:'Hoàn tất đơn',cancelled:'Hủy yêu cầu',contacted:'Đánh dấu đã liên hệ',resolved:'Hoàn tất tư vấn'};
+  $('#save-status').textContent=actions[$('#next-status').value] || 'Cập nhật trạng thái';
+}
+mobileDetail.addEventListener('change',()=>{
+  const dialog=$('#detail-dialog'); if(!dialog.open)return;
+  dialog.close(); if(mobileDetail.matches)dialog.showModal();else dialog.show();
+});
+$('#detail-dialog').addEventListener('cancel',event=>{event.preventDefault();closeDetail();});
+$('#next-status').addEventListener('change',updateActionLabel);
 $('#login-form').addEventListener('submit',async event=>{
   event.preventDefault();const button=$('#login-submit');button.disabled=true;$('#login-message').textContent='Đang đăng nhập…';
   try {const result=await request('/api/auth/login',{method:'POST',data:{username:$('#login-username').value.trim(),password:$('#login-password').value}});await showDashboard(result);}
@@ -168,18 +224,19 @@ $('#logout-button').addEventListener('click',async()=>{
 document.querySelectorAll('[data-inbox]').forEach(button=>button.addEventListener('click',()=>selectInbox(button.dataset.inbox)));
 document.querySelectorAll('[data-summary]').forEach(button=>button.addEventListener('click',()=>selectInbox(button.dataset.summary==='consultations'?'consultations':'orders',button.dataset.summary==='consultations'?'new':button.dataset.summary)));
 $('#refresh-button').addEventListener('click',refresh);
-$('#search-form').addEventListener('submit',event=>{event.preventDefault();offset=0;loadList();});
-$('#status-filter').addEventListener('change',()=>{offset=0;loadList();});
-$('#previous-page').addEventListener('click',()=>{offset=Math.max(0,offset-pageSize);loadList();});
-$('#next-page').addEventListener('click',()=>{offset+=pageSize;loadList();});
-$('#close-detail').addEventListener('click',()=>$('#detail-dialog').close());
+$('#search-form').addEventListener('submit',event=>{event.preventDefault();closeDetail();offset=0;loadList();});
+$('#status-filter').addEventListener('change',()=>{closeDetail();offset=0;loadList();});
+$('#previous-page').addEventListener('click',()=>{closeDetail();offset=Math.max(0,offset-pageSize);loadList();});
+$('#next-page').addEventListener('click',()=>{closeDetail();offset+=pageSize;loadList();});
+$('#close-detail').addEventListener('click',closeDetail);
 $('#status-form').addEventListener('submit',async event=>{
   event.preventDefault();if(!detail)return;
   const {table,row}=detail,button=$('#save-status');button.disabled=true;$('#detail-message').textContent='Đang lưu…';
+  const version=detailSequence;
   try {
     await request(`/api/admin/${table}/${row.id}/status`,{method:'PATCH',data:{status:$('#next-status').value,expected_status:row.status}});
-    const updated=await request(`/api/admin/${table}/${row.id}`);renderDetail(updated,table);$('#detail-message').textContent='Đã cập nhật trạng thái.';await refresh();
-  } catch(error) {$('#detail-message').textContent=error.message;}
+    const updated=await request(`/api/admin/${table}/${row.id}`);if(version===detailSequence && auth){renderDetail(updated,table);$('#detail-message').textContent='Đã cập nhật trạng thái.';}if(auth)await refresh();
+  } catch(error) {if(version===detailSequence)$('#detail-message').textContent=error.message;}
   finally {button.disabled=false;}
 });
 populateFilter();
