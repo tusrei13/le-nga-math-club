@@ -28,7 +28,7 @@ async function api(request,env){const db=env.DB;fail(db,'Chưa cấu hình D1 bi
   if(path==='/api/customer/orders'&&method==='GET') {
     const user=await customer(request,env);
     const orders=await all(db,'SELECT o.id,o.status,o.total_vnd,o.created_at FROM orders o JOIN customer_orders c ON c.order_id=o.id WHERE c.customer_id=? ORDER BY o.created_at DESC,o.id DESC LIMIT 50',user.id);
-    if(orders.length){const ids=orders.map(o=>o.id),marks=ids.map(()=>'?').join(',');const items=await all(db,`SELECT order_id,title,quantity FROM order_items WHERE order_id IN (${marks})`,...ids);for(const order of orders)order.items=items.filter(item=>item.order_id===order.id);}
+    if(orders.length){const ids=orders.map(o=>o.id),marks=ids.map(()=>'?').join(',');const items=await all(db,`SELECT i.order_id,i.title,i.quantity,i.unit_price_vnd,m.url AS cover_url FROM order_items i LEFT JOIN product_media m ON m.product_id=i.product_id AND m.kind='cover' WHERE i.order_id IN (${marks}) ORDER BY i.id`,...ids);for(const order of orders)order.items=items.filter(item=>item.order_id===order.id);}
     return response({orders});
   }
   if(path==='/api/products'&&method==='GET')return response({products:await products(db)});

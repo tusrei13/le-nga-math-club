@@ -62,7 +62,7 @@ export async function handleApi(request,response,url) {
     if(path==='/api/customer/orders'&&method==='GET') {
       const user=await customer(request,process.env);
       const rows=db.prepare('SELECT o.id,o.status,o.total_vnd,o.created_at FROM orders o JOIN customer_orders c ON c.order_id=o.id WHERE c.customer_id=? ORDER BY o.created_at DESC,o.id DESC LIMIT 50').all(user.id);
-      for(const row of rows)row.items=db.prepare('SELECT title,quantity FROM order_items WHERE order_id=?').all(row.id);
+      for(const row of rows)row.items=db.prepare("SELECT i.title,i.quantity,i.unit_price_vnd,m.url AS cover_url FROM order_items i LEFT JOIN product_media m ON m.product_id=i.product_id AND m.kind='cover' WHERE i.order_id=? ORDER BY i.id").all(row.id);
       return json(response,200,{orders:rows});
     }
     if(path.startsWith('/api/auth/')) return await handleAuth(request,response,path,body,json);
