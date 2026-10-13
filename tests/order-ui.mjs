@@ -19,6 +19,7 @@ let server, chromium, socket;
 let id = 0;
 const requests = new Map();
 const browserErrors = [];
+let customerFixture;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function until(action, label) {
   const deadline = Date.now() + 15000;
@@ -65,6 +66,7 @@ try {
       if (result.error) request.reject(new Error(result.error.message)); else request.resolve(result.result);
     }
     if (result.method === 'Runtime.exceptionThrown') browserErrors.push(result.params.exceptionDetails.text);
+    if (result.method === 'Fetch.requestPaused' && customerFixture) customerFixture(result.params).catch(error => browserErrors.push(error.message));
   });
   await cdp('Runtime.enable'); await cdp('Page.enable');
   await cdp('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
@@ -112,6 +114,58 @@ try {
   await evaluate(`document.querySelector('#customer-google').click()`);
   await until(()=>evaluate(`document.querySelector('#customer-status').textContent.includes('chưa sẵn sàng')`),'unconfigured customer authentication');
   await evaluate(`document.querySelector('#customer-close').click()`);
+  // Isolated Firebase fixtures exercise signed-in UI without creating real users.
+  const avatarBody=(await readFile('public/assets/logo.png')).toString('base64');
+  const authModule=`
+    const user={uid:'ui-parent',displayName:'Tu Le',email:'parent@example.test',emailVerified:true,providerData:[{providerId:'google.com',photoURL:'https://lh3.googleusercontent.com/ui-avatar'}],getIdToken:()=>Promise.resolve('fixture-token')};
+    let listener;export const getAuth=()=>({currentUser:user});
+    export const onAuthStateChanged=(_,callback)=>{listener=callback;queueMicrotask(()=>callback(user));};
+    export const updateProfile=async(current,changes)=>{if(window.profileFailure)throw {code:'auth/network-request-failed'};Object.assign(current,changes);};
+    export const signOut=async()=>listener(null);
+  `;
+  customerFixture=async({requestId,request})=>{
+    const path=new URL(request.url).pathname;
+    let body,type='text/javascript',responseCode=200;
+    if(path==='/api/customer/config'){type='application/json';body=JSON.stringify({enabled:true,apiKey:'fixture',projectId:'fixture',authDomain:'fixture.firebaseapp.com'});}
+    else if(path.endsWith('/firebase-app.js'))body='export const initializeApp=config=>config;';
+    else if(path.endsWith('/firebase-auth.js'))body=authModule;
+    else if(path==='/api/customer/orders'){type='application/json';body=JSON.stringify({orders:[]});}
+    else if(path==='/ui-avatar'){await cdp('Fetch.fulfillRequest',{requestId,responseCode:200,responseHeaders:[{name:'Content-Type',value:'image/png'}],body:avatarBody});return;}
+    else {await cdp('Fetch.continueRequest',{requestId});return;}
+    await cdp('Fetch.fulfillRequest',{requestId,responseCode,responseHeaders:[{name:'Content-Type',value:type},{name:'Access-Control-Allow-Origin',value:'*'}],body:Buffer.from(body).toString('base64')});
+  };
+  await cdp('Fetch.enable',{patterns:[{urlPattern:'*/api/customer/config'},{urlPattern:'*/api/customer/orders'},{urlPattern:'https://www.gstatic.com/firebasejs/*'},{urlPattern:'https://lh3.googleusercontent.com/ui-avatar'}]});
+  await cdp('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});
+  await cdp('Page.navigate',{url:`http://127.0.0.1:${port}/`});
+  await until(()=>evaluate(`document.querySelector('#customer-entry-label')?.textContent==='Tu Le' && document.querySelector('#customer-avatar img')?.hidden===false`),'Google profile avatar');
+  assert.equal(await evaluate(`document.querySelector('#customer-chevron')`),null);
+  await evaluate(`document.querySelector('#customer-entry').click()`);
+  await until(()=>evaluate(`!document.querySelector('#customer-menu').hidden`),'parent menu');
+  await screenshot('customer-member-menu.png');
+  await evaluate(`document.querySelector('#customer-menu [data-customer-section="profile"]').click()`);
+  await until(()=>evaluate(`document.querySelector('#customer-dialog').open && !document.querySelector('#customer-profile-view').hidden`),'parent profile');
+  assert.equal(await evaluate(`document.querySelector('#customer-title').textContent`),'Tu Le');
+  assert.equal(await evaluate(`document.querySelector('#customer-profile-form').hidden`),true);
+  await screenshot('customer-member-profile-desktop.png');
+  await evaluate(`document.querySelector('#customer-profile-edit').click();document.querySelector('#customer-profile-name').value='Tên chưa lưu';document.querySelector('#customer-profile-cancel').click()`);
+  assert.equal(await evaluate(`document.querySelector('#customer-profile-display-name').textContent`),'Tu Le');
+  await evaluate(`document.querySelector('#customer-profile-edit').click();document.querySelector('#customer-profile-name').value='Lê Đình Tú';document.querySelector('#customer-profile-form').requestSubmit()`);
+  await until(()=>evaluate(`document.querySelector('#customer-status').textContent==='Đã lưu thông tin của bạn.' && document.querySelector('#customer-profile-form').hidden`),'save parent name');
+  assert.equal(await evaluate(`document.querySelector('#customer-title').textContent`),'Lê Đình Tú');
+  await evaluate(`window.profileFailure=true;document.querySelector('#customer-profile-edit').click();document.querySelector('#customer-profile-name').value='Tên lỗi';document.querySelector('#customer-profile-form').requestSubmit()`);
+  await until(()=>evaluate(`document.querySelector('#customer-status').textContent.includes('Không kết nối')`),'profile error feedback');
+  assert.equal(await evaluate(`document.querySelector('#customer-profile-form').hidden`),false);
+  await evaluate(`document.querySelector('#customer-profile-cancel').click()`);
+  await cdp('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+  assert.equal(await evaluate(`document.querySelector('#customer-dialog').scrollWidth<=390`),true);
+  await screenshot('customer-member-profile-mobile.png');
+  await evaluate(`document.querySelector('#customer-dialog [data-customer-section="orders"]').click()`);
+  await until(()=>evaluate(`document.querySelector('.customer-empty-books img')?.naturalWidth>0`),'empty bookshelf');
+  await screenshot('customer-member-orders-mobile.png');
+  await evaluate(`document.querySelector('#customer-close').click();document.querySelector('.menu-toggle').click();document.querySelector('#customer-entry').click();document.querySelector('#customer-menu-logout').click()`);
+  await until(()=>evaluate(`document.querySelector('#customer-entry-label').textContent==='Đăng nhập'`),'parent logout');
+  assert.equal(await evaluate(`document.querySelector('#customer-avatar').children.length`),0);
+  await cdp('Fetch.disable');customerFixture=undefined;
   await cdp('Emulation.setDeviceMetricsOverride', { width:1440, height:1000, deviceScaleFactor:1, mobile:false });
   await cdp('Page.navigate', {url:`http://127.0.0.1:${port}/admin`});
   await until(()=>evaluate(`document.querySelector('#login-view') && !document.querySelector('#login-view').hidden`),'admin login');
@@ -183,7 +237,7 @@ try {
   await until(()=>evaluate(`!document.querySelector('#login-view').hidden && document.querySelector('#login-message').textContent==='Đã đăng xuất.'`),'logout');
   assert.equal(await evaluate(`(async()=>{const r=await fetch('/api/admin/orders');return r.status;})()`),401);
   assert.deepEqual(browserErrors, []);
-  console.log(`Browser checks passed: book ordering, consultations, admin login, invalid password, searching, empty states, details, status updates, session reload, logout and mobile overflow. Desktop ticket: ${desktopHeight}px. Screenshots saved in data/.`);
+  console.log(`Browser checks passed: book ordering, consultations, parent avatars, profile editing/save/cancel/error, empty bookshelf, admin login, invalid password, searching, details, status updates, session reload, logout and mobile overflow. Desktop ticket: ${desktopHeight}px. Screenshots saved in data/.`);
 } finally {
   if (socket?.readyState === WebSocket.OPEN) { try { await cdp('Browser.close'); } catch {} socket.close(); }
   for (const process of [chromium, server]) if (process && process.exitCode === null) {
