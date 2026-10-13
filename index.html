@@ -30,12 +30,11 @@
             <button class="customer-entry" id="customer-entry" type="button" aria-expanded="false" aria-controls="customer-menu">
               <span class="customer-avatar" id="customer-avatar" aria-hidden="true" hidden></span>
               <span id="customer-entry-label">Đăng nhập</span>
-              <span class="customer-chevron" id="customer-chevron" aria-hidden="true" hidden>⌄</span>
             </button>
             <div class="customer-menu" id="customer-menu" aria-label="Góc phụ huynh" hidden>
-              <p>Góc phụ huynh</p><strong id="customer-menu-name"></strong>
-              <button type="button" data-customer-section="orders">Đơn sách của tôi <span aria-hidden="true">↗</span></button>
-              <button type="button" data-customer-section="profile">Thông tin cá nhân <span aria-hidden="true">↗</span></button>
+              <div class="customer-menu-identity"><span class="customer-avatar" id="customer-menu-avatar" aria-hidden="true"></span><div><p>Góc phụ huynh</p><strong id="customer-menu-name"></strong></div></div>
+              <button type="button" data-customer-section="orders">Đơn sách của tôi</button>
+              <button type="button" data-customer-section="profile">Hồ sơ cá nhân</button>
               <button type="button" id="customer-menu-logout">Đăng xuất</button>
               <p id="customer-menu-status" role="status"></p>
             </div>
@@ -292,7 +291,7 @@
     </div>
 
     <dialog class="customer-dialog" id="customer-dialog" aria-labelledby="customer-title">
-      <div class="customer-dialog-heading"><div><p class="customer-kicker" id="customer-kicker">CLB TOÁN CÔ LÊ NGA</p><h2 id="customer-title">Chào mừng bạn.</h2><p id="customer-welcome-note" hidden>Cùng theo dõi những cuốn sách dành cho con.</p></div><button type="button" id="customer-close" aria-label="Đóng cửa sổ">×</button></div>
+      <div class="customer-dialog-heading"><div class="customer-heading-identity"><span class="customer-avatar" id="customer-panel-avatar" aria-hidden="true" hidden></span><div><p class="customer-kicker" id="customer-kicker">CLB TOÁN CÔ LÊ NGA</p><h2 id="customer-title">Chào mừng bạn.</h2><p id="customer-welcome-note" hidden></p></div></div><button type="button" id="customer-close" aria-label="Đóng cửa sổ">×</button></div>
       <div class="customer-dialog-body">
       <div id="customer-auth-view">
         <div class="customer-tabs" aria-label="Đăng nhập hoặc đăng ký"><button type="button" data-customer-mode="login" aria-pressed="true">Đăng nhập</button><button type="button" data-customer-mode="register" aria-pressed="false">Đăng ký</button></div>
@@ -310,17 +309,22 @@
         <p class="customer-note">Bạn vẫn có thể đặt sách mà không cần tài khoản.</p>
       </div>
       <div id="customer-account-view" hidden>
-        <nav class="customer-account-tabs" aria-label="Góc phụ huynh"><button type="button" data-customer-section="orders" aria-pressed="true">Đơn sách của tôi</button><button type="button" data-customer-section="profile" aria-pressed="false">Thông tin cá nhân</button></nav>
+        <nav class="customer-account-tabs" aria-label="Góc phụ huynh"><button type="button" data-customer-section="orders" aria-pressed="true">Đơn sách của tôi</button><button type="button" data-customer-section="profile" aria-pressed="false">Hồ sơ cá nhân</button></nav>
         <section id="customer-orders-view" aria-labelledby="customer-orders-title">
           <div class="customer-orders-heading"><div><h3 id="customer-orders-title">Những cuốn sách dành cho con</h3><p>Đơn đặt khi đăng nhập sẽ được lưu tại đây.</p></div><button type="button" id="customer-refresh" aria-label="Tải lại đơn sách">↻</button></div>
           <div id="customer-orders" aria-live="polite"></div>
           <p class="customer-note" id="customer-orders-limit" hidden>Hiển thị 50 đơn mới nhất.</p>
         </section>
         <section id="customer-profile-view" aria-labelledby="customer-profile-title" hidden>
-          <h3 id="customer-profile-title">Để CLB biết tên bạn</h3><p class="customer-note">Tên này sẽ được gợi ý khi bạn đặt sách cho con.</p>
-          <form id="customer-profile-form"><label>Họ tên<input id="customer-profile-name" autocomplete="name" maxlength="120" required /></label><label>Email<input id="customer-profile-email" type="email" readonly /></label><p class="customer-note" id="customer-email-state"></p><button type="button" class="customer-text-button" id="customer-verify" hidden>Gửi email xác minh</button><button type="submit" class="btn btn-primary">Lưu thông tin <span aria-hidden="true">↗</span></button></form>
+          <div class="customer-profile-card">
+            <header class="customer-profile-brand"><img src="/assets/logo.png" alt="" width="40" height="40" /><div><p>CLB TOÁN CÔ LÊ NGA</p><h3 id="customer-profile-title">Hồ sơ phụ huynh</h3></div></header>
+            <div class="customer-profile-row" id="customer-profile-name-row"><div><span>Họ tên</span><strong id="customer-profile-display-name"></strong></div><button type="button" id="customer-profile-edit">Chỉnh sửa</button></div>
+            <form id="customer-profile-form" hidden><label>Họ tên<input id="customer-profile-name" autocomplete="name" maxlength="120" required /></label><div class="customer-profile-edit-actions"><button type="submit" class="btn btn-primary">Lưu tên</button><button type="button" id="customer-profile-cancel">Hủy</button></div></form>
+            <div class="customer-profile-email"><span>Email</span><p id="customer-profile-email"></p><p id="customer-email-state"></p><button type="button" class="customer-text-button" id="customer-verify" hidden>Gửi email xác minh</button></div>
+          </div>
+          <p class="customer-profile-note">Thông tin giúp CLB xác nhận đơn sách và đồng hành cùng gia đình bạn.</p>
         </section>
-        <footer class="customer-account-footer"><a href="tel:0989066885">Cần hỗ trợ? <strong>0989 066 885</strong></a><button type="button" id="customer-logout">Đăng xuất</button></footer>
+        <footer class="customer-account-footer"><a href="tel:0989066885">CLB luôn sẵn sàng hỗ trợ <strong>0989 066 885</strong></a></footer>
       </div>
       <p id="customer-status" role="status" aria-live="polite"></p>
       </div>

@@ -71,8 +71,7 @@ function closeMobileNavigation() {
 function displayName(current) {
   return current.displayName?.trim() || current.email?.split('@')[0] || 'bạn';
 }
-function renderAvatar(current, words) {
-  const avatar = $('#customer-avatar');
+function renderAvatar(current, words, avatar = $('#customer-avatar')) {
   const initials = document.createElement('span');
   initials.textContent = words.slice(-2).map(word => Array.from(word)[0]).join('').toLocaleUpperCase('vi-VN');
   avatar.replaceChildren(initials);
@@ -103,9 +102,17 @@ function renderAvatar(current, words) {
 function fillProfile() {
   if (!user) return;
   $('#customer-profile-name').value = user.displayName || '';
-  $('#customer-profile-email').value = user.email || '';
-  $('#customer-email-state').textContent = user.emailVerified ? 'Email đã được xác minh.' : 'Email chưa được xác minh. Xác minh để dễ khôi phục tài khoản.';
+  $('#customer-profile-display-name').textContent = displayName(user);
+  $('#customer-profile-email').textContent = user.email || 'Chưa có email';
+  $('#customer-email-state').textContent = user.emailVerified ? '✓ Đã xác minh' : 'Chưa xác minh';
+  $('#customer-email-state').dataset.verified = String(user.emailVerified);
   $('#customer-verify').hidden = !user.email || user.emailVerified;
+}
+function setProfileEditing(value) {
+  $('#customer-profile-form').hidden = !value;
+  $('#customer-profile-name-row').hidden = value;
+  fillProfile();
+  if (value) { $('#customer-profile-name').focus(); $('#customer-profile-name').select(); }
 }
 function showSection(next) {
   section = next;
@@ -114,7 +121,7 @@ function showSection(next) {
   for (const button of dialog.querySelectorAll('[data-customer-section]')) button.setAttribute('aria-pressed', String(button.dataset.customerSection === next));
   message('');
   if (next === 'orders') loadOrders();
-  else { generation++; ordersController?.abort(); fillProfile(); }
+  else { generation++; ordersController?.abort(); setProfileEditing(false); }
 }
 function openAccount(next) {
   if (!user) return;
@@ -131,7 +138,7 @@ function renderAccount(current) {
   $('#customer-account-view').hidden = !signedIn;
   $('#customer-welcome-note').hidden = !signedIn;
   $('#customer-avatar').hidden = !signedIn;
-  $('#customer-chevron').hidden = !signedIn;
+  $('#customer-panel-avatar').hidden = !signedIn;
   dialog.classList.toggle('is-account', signedIn);
   $('#customer-kicker').textContent = signedIn ? 'GÓC PHỤ HUYNH' : 'CLB TOÁN CÔ LÊ NGA';
   if (user) {
@@ -139,8 +146,11 @@ function renderAccount(current) {
     const words = name.split(/\s+/);
     $('#customer-entry-label').textContent = words.slice(-2).join(' ');
     renderAvatar(user, words);
+    renderAvatar(user, words, $('#customer-menu-avatar'));
+    renderAvatar(user, words, $('#customer-panel-avatar'));
     $('#customer-menu-name').textContent = name;
-    $('#customer-title').textContent = `Chào ${words.at(-1)},`;
+    $('#customer-title').textContent = name;
+    $('#customer-welcome-note').textContent = user.email || 'Cùng CLB đồng hành với con';
     entry.setAttribute('aria-label', `Góc phụ huynh của ${name}`);
     const orderName = $('#order-form [name="name"]');
     if (orderName && !orderName.value && user.displayName) orderName.value = user.displayName;
@@ -160,8 +170,16 @@ function renderAccount(current) {
     $('#customer-orders').replaceChildren();
     $('#customer-orders-limit').hidden = true;
     $('#customer-profile-form').reset();
+    $('#customer-profile-form').hidden = true;
+    $('#customer-profile-name-row').hidden = false;
+    $('#customer-profile-display-name').textContent = '';
+    $('#customer-profile-email').textContent = '';
+    $('#customer-email-state').textContent = '';
+    $('#customer-welcome-note').textContent = '';
     $('#customer-menu-name').textContent = '';
     $('#customer-avatar').replaceChildren();
+    $('#customer-menu-avatar').replaceChildren();
+    $('#customer-panel-avatar').replaceChildren();
     if (previousId) { $('#customer-form').reset(); if (dialog.open) dialog.close(); }
   }
 }
@@ -188,11 +206,11 @@ function emptyOrders() {
   const empty = element('div', undefined, 'customer-orders-empty');
   const books = element('div', undefined, 'customer-empty-books');
   books.setAttribute('aria-hidden', 'true');
-  for (const url of ['/assets/books/70_de_but_toc_thi_vao_lop_6_clc.jpg','/assets/books/Phan%20dang%20toan%20lop6%20t1.png','/assets/books/200_bai_hinh_hoc_thi_vao_lop_6_clc.jpg']) books.append(coverImage(url));
-  const link = element('a', 'Khám phá bộ sách ↗', 'btn btn-primary');
+  books.append(coverImage('/assets/book-stack.png'));
+  const link = element('a', 'Chọn sách cho con', 'btn btn-primary');
   link.href = '#bo-sach';
   link.addEventListener('click', () => dialog.close());
-  empty.append(books, element('h3', 'Cuốn sách đầu tiên đang chờ bạn.'), element('p', 'Chọn sách phù hợp với lớp và mục tiêu học tập của con.'), link);
+  empty.append(books, element('h3', 'Tủ sách của bạn bắt đầu từ đây.'), element('p', 'Một cuốn sách phù hợp, một khởi đầu cho con.'), link);
   return empty;
 }
 function orderCard(order) {
@@ -332,6 +350,8 @@ dialog.addEventListener('close', () => {
 document.querySelectorAll('[data-customer-section]').forEach(button => button.addEventListener('click', () => openAccount(button.dataset.customerSection)));
 document.querySelectorAll('[data-customer-mode]').forEach(button => button.addEventListener('click', () => setMode(button.dataset.customerMode)));
 $('#customer-refresh').addEventListener('click', loadOrders);
+$('#customer-profile-edit').addEventListener('click', () => { message(''); setProfileEditing(true); });
+$('#customer-profile-cancel').addEventListener('click', () => { message(''); setProfileEditing(false); $('#customer-profile-edit').focus(); });
 $('#customer-form').addEventListener('submit', event => {
   event.preventDefault();
   // Capture input before Firebase's initial state callback can update the view.
@@ -345,7 +365,7 @@ $('#customer-form').addEventListener('submit', event => {
       await waitFor(sdk.updateProfile(credential.user, {displayName:name}));
       renderAccount(credential.user);
       try { await waitFor(sdk.sendEmailVerification(credential.user)); message('Đã tạo tài khoản. Kiểm tra email để xác minh địa chỉ của bạn.'); }
-      catch { message('Đã tạo tài khoản. Bạn có thể gửi lại email xác minh trong Thông tin cá nhân.'); }
+      catch { message('Đã tạo tài khoản. Bạn có thể gửi lại email xác minh trong Hồ sơ cá nhân.'); }
     } else {
       const result = await waitFor(sdk.signInWithEmailAndPassword(auth, email, password));
       renderAccount(result.user);
@@ -379,12 +399,13 @@ $('#customer-profile-form').addEventListener('submit', event => {
     if (!user) return;
     await waitFor(sdk.updateProfile(user, {displayName:name}));
     renderAccount(user);
+    setProfileEditing(false);
+    requestAnimationFrame(() => { if (dialog.open && section === 'profile' && !busy) $('#customer-profile-edit').focus(); });
     message('Đã lưu thông tin của bạn.');
   }, 'Đang lưu thông tin…');
 });
 function logout() {
   action(async () => { await waitFor(sdk.signOut(auth)); renderAccount(null); closeMenu(); message('Đã đăng xuất.'); }, 'Đang đăng xuất…');
 }
-$('#customer-logout').addEventListener('click', logout);
 $('#customer-menu-logout').addEventListener('click', logout);
 initialize().catch(error => { if (dialog.open && !busy) message(errorMessage(error)); });
