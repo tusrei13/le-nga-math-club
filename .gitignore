@@ -4,6 +4,10 @@
 
 # Runtime data, SQLite files and browser previews
 /data/
+/.wrangler/
+/cloudflare/init.sql
+.dev.vars
+.dev.vars.*
 *.sqlite
 *.sqlite-*
 *.sqlite3

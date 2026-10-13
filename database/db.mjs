@@ -3,6 +3,7 @@ import { mkdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { seed } from './seed.mjs';
+import { production } from '../runtime.mjs';
 
 const defaultPath = fileURLToPath(new URL('../data/landing.sqlite', import.meta.url));
 export const databasePath = resolve(process.env.DATABASE_PATH || defaultPath);
@@ -17,6 +18,7 @@ export function transaction(action) {
 transaction(() => {
   db.exec(readFileSync(new URL('./schema.sql', import.meta.url),'utf8'));
   db.exec(readFileSync(new URL('./admin-schema.sql', import.meta.url),'utf8'));
+  db.exec(readFileSync(new URL('./customer-schema.sql', import.meta.url),'utf8'));
   seed(db);
 });
 export function products(includeInactive = false) {
@@ -29,6 +31,6 @@ export function landing() {
   return { products:products(), content,
     gifts:db.prepare('SELECT id,title,description,kind FROM gifts WHERE active=1 ORDER BY sort_order').all(),
     faqs:db.prepare('SELECT * FROM faqs WHERE active=1 ORDER BY sort_order').all(),
-    testimonials:db.prepare('SELECT * FROM testimonials WHERE published=1 ORDER BY sort_order').all(),
-    achievements:db.prepare('SELECT * FROM achievements WHERE published=1 ORDER BY sort_order').all() };
+    testimonials:db.prepare(`SELECT * FROM testimonials WHERE published=1 ${production ? 'AND is_composite=0' : ''} ORDER BY sort_order`).all(),
+    achievements:db.prepare(`SELECT * FROM achievements WHERE published=1 ${production ? 'AND is_composite=0' : ''} ORDER BY sort_order`).all() };
 }

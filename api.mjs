@@ -1,6 +1,9 @@
 import { randomUUID, createHash } from 'node:crypto';
 import { db, products, landing, transaction } from './database/db.mjs';
-import { AuthError, authorizeAdmin, handleAuth } from './auth.mjs';
+import { AuthError, authorizeAdmin, handleAuth, sameOrigin } from './auth.mjs';
+import { createRateLimiter, clientAddress } from './runtime.mjs';
+const publicLimit = createRateLimiter();
+import { customer, firebaseConfig, CustomerError } from './customer-auth.mjs';
 
 class ApiError extends Error { constructor(status,message) { super(message); this.status=status; } }
 function check(condition,message) { if (!condition) throw new ApiError(400,message); }
@@ -54,12 +57,24 @@ const transitions={orders:{pending:['confirmed','cancelled'],confirmed:['shippin
 export async function handleApi(request,response,url) {
   try {
     const path=url.pathname, method=request.method;
+    if(path==='/api/customer/config'&&method==='GET')return json(response,200,firebaseConfig(process.env));
+    if(path==='/api/customer/me'&&method==='GET')return json(response,200,await customer(request,process.env));
+    if(path==='/api/customer/orders'&&method==='GET') {
+      const user=await customer(request,process.env);
+      const rows=db.prepare('SELECT o.id,o.status,o.total_vnd,o.created_at FROM orders o JOIN customer_orders c ON c.order_id=o.id WHERE c.customer_id=? ORDER BY o.created_at DESC,o.id DESC LIMIT 50').all(user.id);
+      for(const row of rows)row.items=db.prepare('SELECT title,quantity FROM order_items WHERE order_id=?').all(row.id);
+      return json(response,200,{orders:rows});
+    }
     if(path.startsWith('/api/auth/')) return await handleAuth(request,response,path,body,json);
     if(path==='/api/landing' && method==='GET') return json(response,200,landing());
     if(path==='/api/products' && method==='GET') return json(response,200,{products:products()});
     if(['/api/orders','/api/consultations'].includes(path) && method==='POST') {
-      if(request.headers.origin && ![`http://${request.headers.host}`,`https://${request.headers.host}`].includes(request.headers.origin)) throw new ApiError(403,'Nguồn gửi không hợp lệ.');
+      sameOrigin(request);
+      if (!request.headers['content-type']?.startsWith('application/json')) throw new ApiError(415,'Yêu cầu phải dùng JSON.');
+      const retry = publicLimit(clientAddress(request));
+      if (retry) { response.setHeader('Retry-After',String(retry)); throw new ApiError(429,'Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau.'); }
       const input=await body(request), person=contact(input), requestKey=key(request);
+      const owner=path==='/api/orders'?await customer(request,process.env,false):null;
       if(path==='/api/consultations') {
         const digest=hash(person);
         const result=transaction(()=>{
@@ -93,6 +108,7 @@ export async function handleApi(request,response,url) {
         db.prepare('INSERT INTO orders(id,request_key,request_hash,parent_name,phone,grade,address,note,subtotal_vnd,shipping_vnd,total_vnd) VALUES(?,?,?,?,?,?,?,?,?,?,?)').run(id,requestKey,digest,person.name,person.phone,person.grade,address,person.note,subtotal,shipping,subtotal+shipping);
         const insert=db.prepare('INSERT INTO order_items(order_id,product_id,title,unit_price_vnd,quantity) VALUES(?,?,?,?,?)');
         for(const item of resolved) insert.run(id,item.product_id,item.product.title,item.product.price_vnd,item.quantity);
+        if(owner)db.prepare('INSERT INTO customer_orders(order_id,customer_id) VALUES(?,?)').run(id,owner.id);
         if(policy.gifts_with_order) db.prepare('INSERT INTO order_gifts(order_id,gift_id,title) SELECT ?,id,title FROM gifts WHERE active=1').run(id);
         db.prepare("INSERT INTO request_history(order_id,to_status) VALUES(?,'pending')").run(id);
         return {row:db.prepare('SELECT * FROM orders WHERE id=?').get(id)};
@@ -209,7 +225,7 @@ export async function handleApi(request,response,url) {
     }
     throw new ApiError(404,'API không tồn tại.');
   } catch(error) {
-    if(!(error instanceof ApiError) && !(error instanceof AuthError)) console.error(error);
+    if(!(error instanceof ApiError) && !(error instanceof AuthError) && !(error instanceof CustomerError)) console.error(error);
     json(response,error.status || 500,{error:error.status?error.message:'Không thể xử lý yêu cầu. Vui lòng thử lại.'});
   }
 }

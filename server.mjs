@@ -3,6 +3,8 @@ import { readFile } from 'node:fs/promises';
 import { extname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { handleApi } from './api.mjs';
+import { db } from './database/db.mjs';
+import { publicOrigin } from './runtime.mjs';
 
 const root = fileURLToPath(new URL('.', import.meta.url));
 const port = Number(process.env.PORT || 3000);
@@ -10,8 +12,24 @@ const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=u
 
 const server = createServer(async (request, response) => {
   response.setHeader('X-Content-Type-Options', 'nosniff');
+  response.setHeader('X-Frame-Options', 'DENY');
+  response.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   try {
     const url = new URL(request.url, `http://${request.headers.host || 'localhost'}`);
+    if (url.pathname === '/healthz' && ['GET','HEAD'].includes(request.method)) {
+      db.prepare('SELECT 1').get();
+      response.writeHead(200, {'Content-Type':'application/json', 'Cache-Control':'no-store'});
+      response.end(request.method === 'HEAD' ? undefined : '{"status":"ok"}'); return;
+    }
+    if (url.pathname === '/robots.txt') {
+      response.writeHead(200, {'Content-Type':'text/plain; charset=utf-8'});
+      response.end(`User-agent: *\nDisallow: /admin\nDisallow: /api/\n${publicOrigin ? `Sitemap: ${publicOrigin}/sitemap.xml\n` : ''}`); return;
+    }
+    if (url.pathname === '/sitemap.xml' && publicOrigin) {
+      response.writeHead(200, {'Content-Type':'application/xml; charset=utf-8'});
+      response.end(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${publicOrigin.replaceAll('&','&amp;').replaceAll('<','&lt;')}</loc></url></urlset>`); return;
+    }
     if (url.pathname.startsWith('/api/')) return await handleApi(request, response, url);
     if (!['GET', 'HEAD'].includes(request.method)) { response.writeHead(405); response.end(); return; }
     const pathname = decodeURIComponent(url.pathname);
@@ -26,10 +44,13 @@ const server = createServer(async (request, response) => {
       response.setHeader('Referrer-Policy','same-origin');
       response.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
     }
-    else if (['index.html', 'styles.css', 'app.js'].includes(relative)) file = join(root, relative);
+    else if (['index.html', 'styles.css', 'app.js', 'customer.js', 'customer.css'].includes(relative)) {
+      file = join(root, relative);
+      response.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' https://www.gstatic.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://*.firebaseapp.com; frame-src https://*.firebaseapp.com https://accounts.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
+    }
     else if (relative === 'manus-routes.json' || relative.startsWith('assets/')) file = resolve(publicRoot, relative);
     else if (relative.startsWith('public/assets/')) file = resolve(publicRoot, relative.slice(7));
-    if (!file || (!Object.hasOwn(adminFiles,relative) && !['index.html', 'styles.css', 'app.js'].includes(relative) && !file.startsWith(publicRoot + sep))) {
+    if (!file || (!Object.hasOwn(adminFiles,relative) && !['index.html', 'styles.css', 'app.js', 'customer.js', 'customer.css'].includes(relative) && !file.startsWith(publicRoot + sep))) {
       response.writeHead(404); response.end('Not found'); return;
     }
     const data = await readFile(file);
@@ -42,3 +63,12 @@ const server = createServer(async (request, response) => {
 });
 
 server.listen(port, '0.0.0.0', () => console.log(`CLB Toán Cô Lê Nga listening on 0.0.0.0:${server.address().port}`));
+server.requestTimeout = 30000;
+server.headersTimeout = 15000;
+let stopping = false;
+for (const signal of ['SIGINT','SIGTERM']) process.on(signal, () => {
+  if (stopping) return; stopping = true;
+  const force = setTimeout(() => process.exit(1), 10000); force.unref();
+  server.close(() => { clearTimeout(force); db.close(); process.exit(0); });
+  server.closeIdleConnections();
+});

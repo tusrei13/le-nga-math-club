@@ -1,6 +1,7 @@
 import { randomBytes, createHash, timingSafeEqual } from 'node:crypto';
 import { db } from './database/db.mjs';
 import { verifyPassword } from './passwords.mjs';
+import { publicOrigin, clientAddress } from './runtime.mjs';
 
 export class AuthError extends Error { constructor(status, message) { super(message); this.status = status; } }
 const cookieName = 'clb_admin_session';
@@ -23,7 +24,8 @@ function setCookie(response, value, age) {
 }
 export function sameOrigin(request) {
   const origin = request.headers.origin;
-  if (request.headers['sec-fetch-site'] === 'cross-site' || (origin && ![`http://${request.headers.host}`, `https://${request.headers.host}`].includes(origin)))
+  const allowed = publicOrigin ? [publicOrigin] : [`http://${request.headers.host}`, `https://${request.headers.host}`];
+  if (request.headers['sec-fetch-site'] === 'cross-site' || (origin && !allowed.includes(origin)))
     throw new AuthError(403, 'Nguồn yêu cầu không hợp lệ.');
 }
 export function session(request) {
@@ -62,7 +64,7 @@ export async function handleAuth(request, response, pathname, readBody, sendJson
     const input = await readBody(request);
     if (typeof input.username !== 'string' || input.username.length > 64 || typeof input.password !== 'string' || !input.password.length || input.password.length > 256)
       throw new AuthError(400, 'Vui lòng nhập tên đăng nhập và mật khẩu hợp lệ.');
-    const now = Date.now(), ip = request.socket.remoteAddress;
+    const now = Date.now(), ip = clientAddress(request);
     for (const [address, entry] of failures) if (entry.until <= now) failures.delete(address);
     const attempts = failures.get(ip);
     if (attempts?.count >= 5 || activeLogins >= 2 || (!attempts && failures.size >= 10000)) throw new AuthError(429, 'Đã thử đăng nhập quá nhiều lần. Vui lòng thử lại sau 15 phút.');

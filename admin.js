@@ -240,5 +240,5 @@ $('#status-form').addEventListener('submit',async event=>{
   finally {button.disabled=false;}
 });
 populateFilter();
-try {const current=await request('/api/auth/session');if(current.authenticated)await showDashboard(current);else showLogin('',current.setup_required);}
+try {const current=await request('/api/auth/session');if(current.deployment==='cloudflare') $('#setup-hint').textContent='Chưa có tài khoản D1. Chạy npm run pages:admin trên máy, rồi áp dụng file SQL theo hướng dẫn CLOUDFLARE.md.';if(current.authenticated)await showDashboard(current);else showLogin('',current.setup_required);}
 catch(error) {showLogin(error.message);}

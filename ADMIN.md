@@ -1,5 +1,7 @@
 # Trang quản trị CLB Toán Cô Lê Nga
 
+Tài liệu này mô tả bản Node/SQLite. Với Cloudflare Pages, dùng [CLOUDFLARE.md](CLOUDFLARE.md): `npm run pages:admin` cho phép tự nhập tên, email và mật khẩu; Firebase xác thực mật khẩu, D1 kiểm tra quyền admin. Các lệnh `admin:create`/`admin:reset` chỉ tác động SQLite local.
+
 Địa chỉ: **http://localhost:3000/admin**. Trang có đăng nhập, danh sách đơn sách/tư vấn, tìm theo tên/điện thoại/mã, lọc trạng thái, phân trang, xem chi tiết và lịch sử, cập nhật trạng thái, các số đếm cần xử lý và đăng xuất.
 
 ## Bắt đầu

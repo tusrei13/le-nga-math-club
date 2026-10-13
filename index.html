@@ -17,7 +17,7 @@
     <header class="site-header" id="dau-trang">
       <div class="container header-inner">
         <a class="brand" href="#dau-trang" aria-label="CLB Toán Cô Lê Nga về đầu trang">
-          <span class="brand-mark"><img src="/manus-storage/async-images/WtSv978QIR2M9pLP1wyXAT/image-2.webp" alt="Mascot bóng đèn tri thức đội mũ cử nhân" onerror="this.src='public/assets/logo.png'" /></span>
+          <span class="brand-mark"><img src="/assets/logo.png" alt="Mascot bóng đèn tri thức đội mũ cử nhân" /></span>
           <span class="brand-copy"><strong>CLB TOÁN</strong><span>CÔ LÊ NGA</span></span>
         </a>
         <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Mở menu"><span></span><span></span><span></span><b>Menu</b></button>
@@ -26,6 +26,7 @@
           <a href="#bo-sach">Bộ sách</a>
           <a href="#thanh-tich">Thành tích học viên</a>
           <a href="#qua-tang">Quà tặng</a>
+          <button class="customer-entry" id="customer-entry" type="button">Đăng nhập</button>
           <a href="#dat-sach" class="nav-cta" data-form-mode="order">Mua sách ngay <span aria-hidden="true">↗</span></a>
         </nav>
       </div>
@@ -49,7 +50,7 @@
             </div>
             <div class="trust-row reveal" aria-label="Thông tin uy tín">
               <div><strong>15</strong><span>năm kinh nghiệm</span></div>
-              <div><strong>32K<span>+</span></strong><span>theo dõi Fanpage</span></div>
+              <div><strong>6–9</strong><span>sách theo lớp</span></div>
               <div><strong>10<span>+</span></strong><span>đầu sách xuất bản</span></div>
             </div>
           </div>
@@ -173,7 +174,7 @@
         </div>
       </section>
 
-      <section class="section-pad proof-section" id="thanh-tich">
+      <section class="section-pad proof-section" id="thanh-tich" hidden>
         <div class="container">
           <div class="section-intro proof-intro">
             <div><h2>Chia sẻ từ phụ huynh</h2><p class="section-subtitle">Khi nỗ lực được gọi tên.</p></div>
@@ -267,7 +268,7 @@
     </main>
 
     <footer class="site-footer">
-      <div class="container footer-top"><div class="footer-brand"><a class="brand" href="#dau-trang"><span class="brand-mark"><img src="/manus-storage/async-images/WtSv978QIR2M9pLP1wyXAT/image-2.webp" alt="" onerror="this.src='public/assets/logo.png'" /></span><span class="brand-copy"><strong>CLB TOÁN</strong><span>CÔ LÊ NGA</span></span></a><p>Vững nền tảng — Sáng tương lai</p></div><div class="footer-links"><div><span>LIÊN HỆ</span><a href="tel:0989066885">0989 066 885</a><a href="mailto:clbtoanconga@gmail.com">clbtoanconga@gmail.com</a></div><div><span>GHÉ THĂM</span><p>Số 02, Lô A7, Khu A,<br />Geleximco, Lê Trọng Tấn,<br />An Khánh, Hà Nội.</p></div><div><span>KẾT NỐI</span><a href="https://www.facebook.com/daytoanclc" target="_blank" rel="noreferrer" aria-label="Tìm Fanpage Facebook Câu Lạc Bộ Toán Cô Lê Nga">Facebook ↗</a><a href="https://www.youtube.com/@vuihoactoan382" target="_blank" rel="noreferrer" aria-label="Kênh YouTube vuihoactoan382">YouTube ↗</a></div></div></div>
+      <div class="container footer-top"><div class="footer-brand"><a class="brand" href="#dau-trang"><span class="brand-mark"><img src="/assets/logo.png" alt="" /></span><span class="brand-copy"><strong>CLB TOÁN</strong><span>CÔ LÊ NGA</span></span></a><p>Vững nền tảng — Sáng tương lai</p></div><div class="footer-links"><div><span>LIÊN HỆ</span><a href="tel:0989066885">0989 066 885</a><a href="mailto:clbtoanconga@gmail.com">clbtoanconga@gmail.com</a></div><div><span>GHÉ THĂM</span><p>Số 02, Lô A7, Khu A,<br />Geleximco, Lê Trọng Tấn,<br />An Khánh, Hà Nội.</p></div><div><span>KẾT NỐI</span><a href="https://www.facebook.com/daytoanclc" target="_blank" rel="noreferrer" aria-label="Tìm Fanpage Facebook Câu Lạc Bộ Toán Cô Lê Nga">Facebook ↗</a><a href="https://www.youtube.com/@vuihoactoan382" target="_blank" rel="noreferrer" aria-label="Kênh YouTube vuihoactoan382">YouTube ↗</a></div></div></div>
       <div class="container footer-legal"><p id="chinh-sach"><strong>Chính sách bảo mật:</strong> Thông tin phụ huynh chỉ dùng để xác nhận đơn hàng và tư vấn lộ trình học phù hợp.</p><p id="dieu-khoan"><strong>Điều khoản sử dụng:</strong> Giá ưu đãi và quà tặng áp dụng theo chương trình hiện hành của CLB Toán Cô Lê Nga.</p></div>
       <div class="container footer-bottom"><span>© <span id="year"></span> CÂU LẠC BỘ TOÁN CÔ LÊ NGA</span><div><a href="#chinh-sach">Chính sách bảo mật</a><a href="#dieu-khoan">Điều khoản sử dụng</a></div><span>Được làm bằng sự tận tâm.</span></div>
     </footer>
@@ -277,6 +278,28 @@
       <button class="floating-toggle" type="button" aria-label="Thu gọn thanh mua sách" aria-expanded="true" aria-controls="floating-body"><span aria-hidden="true">−</span></button>
     </div>
 
+    <dialog class="customer-dialog" id="customer-dialog" aria-labelledby="customer-title">
+      <div class="customer-dialog-heading"><div><p class="customer-kicker">CLB TOÁN CÔ LÊ NGA</p><h2 id="customer-title">Chào mừng bạn.</h2></div><button type="button" id="customer-close" aria-label="Đóng đăng nhập">×</button></div>
+      <div id="customer-auth-view">
+        <div class="customer-tabs" aria-label="Đăng nhập hoặc đăng ký"><button type="button" data-customer-mode="login" aria-pressed="true">Đăng nhập</button><button type="button" data-customer-mode="register" aria-pressed="false">Đăng ký</button></div>
+        <p class="customer-intro">Lưu đơn sách và theo dõi hành trình học của con.</p>
+        <button type="button" class="customer-google" id="customer-google">Tiếp tục với Google</button>
+        <div class="customer-divider"><span>hoặc dùng email</span></div>
+        <form id="customer-form">
+          <label id="customer-name-field" hidden>Họ tên<input id="customer-name" autocomplete="name" maxlength="120" /></label>
+          <label>Email<input id="customer-email" type="email" autocomplete="email" required maxlength="254" /></label>
+          <label>Mật khẩu<input id="customer-password" type="password" autocomplete="current-password" required maxlength="128" /></label>
+          <label id="customer-confirm-field" hidden>Nhập lại mật khẩu<input id="customer-confirm" type="password" autocomplete="new-password" maxlength="128" /></label>
+          <button class="btn btn-primary" id="customer-submit" type="submit">Đăng nhập</button>
+        </form>
+        <button type="button" class="customer-text-button" id="customer-forgot">Quên mật khẩu?</button>
+        <p class="customer-note">Bạn vẫn có thể đặt sách mà không cần tài khoản.</p>
+      </div>
+      <div id="customer-account-view" hidden><p id="customer-identity"></p><div class="customer-account-actions"><button type="button" id="customer-verify" hidden>Gửi email xác minh</button><button type="button" id="customer-logout">Đăng xuất</button></div><h3>Đơn sách của tôi</h3><p class="customer-note">Hiển thị tối đa 50 đơn mới nhất đã đặt khi đăng nhập.</p><div id="customer-orders"></div></div>
+      <p id="customer-status" role="status" aria-live="polite"></p>
+    </dialog>
+    <link rel="stylesheet" href="/customer.css" />
+    <script src="/customer.js" type="module"></script>
     <script src="/app.js" defer></script>
   </body>
 </html>

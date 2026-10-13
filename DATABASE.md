@@ -1,6 +1,6 @@
 # Cơ sở dữ liệu landing page CLB Toán Cô Lê Nga
 
-Dự án dùng **một database SQLite gồm 15 bảng liên kết**, phù hợp với landing page chạy trên một máy chủ Node.js. Không cần cài MySQL/PostgreSQL hoặc thư viện npm ngoài. Database thực tế nằm ở `data/landing.sqlite`, được tạo bằng `npm run db:init` hoặc tự động khi `npm start`.
+Dự án dùng **một database SQLite gồm 16 bảng liên kết**, phù hợp với landing page chạy trên một máy chủ Node.js. Không cần cài MySQL/PostgreSQL hoặc thư viện npm ngoài. Database thực tế nằm ở `data/landing.sqlite`, được tạo bằng `npm run db:init` hoặc tự động khi `npm start`.
 
 ## Phạm vi đã thực hiện
 
@@ -131,6 +131,10 @@ Invoke-RestMethod 'http://localhost:3000/api/admin/products/toan-6-tap-1' `
 
 ## Lưu trữ và triển khai
 
+Cloudflare Pages dùng D1, hướng dẫn trong [CLOUDFLARE.md](CLOUDFLARE.md). SQLite tại máy và D1 là hai database độc lập. Với Node, `npm run db:backup` tạo bản sao nhất quán bằng SQLite online backup; không ghi đè file đã tồn tại.
+
 `DATABASE_PATH` cho phép thay đường dẫn database. Dùng một ổ lưu trữ bền vững khi deploy; database phải còn sau khi tiến trình khởi động lại. `data/` và `.env` đã được đưa vào `.gitignore`, và server chỉ phục vụ các file frontend công khai cùng assets, không phục vụ file SQLite/source backend.
 
 Sao lưu SQLite bằng công cụ hỗ trợ online backup, hoặc dừng server trước khi sao lưu thư mục `data/`; SQLite đang dùng WAL nên không chỉ chép riêng file `.sqlite` khi server đang ghi. Database này hướng tới một server ứng dụng; khi cần nhiều server ghi cùng lúc, nên chuyển sang PostgreSQL. Chạy init/seed lại không ghi đè giá, nội dung, media hay trạng thái đã chỉnh sửa. Schema v2 bổ sung hai bảng quản trị qua `database/admin-schema.sql`; các thay đổi schema sau này cần migration riêng.
+
+Schema v3 bổ sung customer_orders để liên kết đơn với Firebase UID đã được server xác minh. Firebase quản lý tài khoản khách hàng; database chỉ lưu ID liên kết, không lưu mật khẩu khách. Xem FIREBASE.md để cấu hình đăng nhập email và Google.

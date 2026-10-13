@@ -388,6 +388,7 @@ async function loadLanding() {
       const copy = element('div'); copy.append(element('h3', `${String(index+1).padStart(2,'0')} ${gift.title}`), element('p', gift.description));
       article.append(illustration,copy); giftList.append(article);
     }
+    document.querySelector('.proof-section').hidden = !data.testimonials.length && !data.achievements.length;
     const testimonials = document.querySelector('.testimonial-stack'); testimonials.replaceChildren();
     for (const item of data.testimonials) {
       const article = element('article', undefined, 'testimonial');
@@ -461,14 +462,15 @@ orderForm?.addEventListener('submit', async (event) => {
   const values = Object.fromEntries(new FormData(orderForm));
   const payload = { name: values.name, phone: values.phone, grade: Number(values.grade.replace('Lớp ','')), note: values.note };
   if (mode === 'order') { payload.address = values.address; payload.items = items; }
-  const fingerprint = JSON.stringify({ mode, payload });
+  const fingerprint = JSON.stringify({ mode, payload, customer: window.customerSession?.id || null });
   if (!pendingRequest || pendingRequest.fingerprint !== fingerprint) pendingRequest = { fingerprint, key: Array.from(crypto.getRandomValues(new Uint8Array(16)), byte => byte.toString(16).padStart(2,'0')).join('') };
   const button = orderForm.querySelector('[type="submit"]');
   submitting = true; button.disabled = true; orderForm.setAttribute('aria-busy','true');
   formStatus.textContent = 'Đang gửi thông tin…';
   try {
+    const customerToken = mode === 'order' ? await window.customerSession?.getToken() : null;
     const response = await fetch(mode === 'order' ? '/api/orders' : '/api/consultations', {
-      method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': pendingRequest.key },
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': pendingRequest.key, ...(customerToken ? {Authorization: 'Bearer ' + customerToken} : {}) },
       body: JSON.stringify(payload), signal: AbortSignal.timeout(15000),
     });
     const result = await response.json();

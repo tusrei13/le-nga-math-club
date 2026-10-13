@@ -102,6 +102,16 @@ try {
   assert.equal(await evaluate(`document.querySelector('#book-selection').hidden && document.querySelector('#order-receipt').hidden && !document.querySelector('#order-contact-fields').hidden && document.querySelector('#field-address').disabled`), true);
   await evaluate(`document.querySelector('#field-name').value='Nguyễn Thị An'; document.querySelector('#field-phone').value='0989066885'; document.querySelector('#field-grade').value='Lớp 5'; document.querySelector('#order-form').requestSubmit()`);
   await until(() => evaluate(`document.querySelector('#form-status').textContent.includes('Đã lưu yêu cầu tư vấn')`), 'consultation save');
+  await evaluate(`document.querySelector('#customer-entry').click()`);
+  await until(()=>evaluate(`document.querySelector('#customer-dialog').open`),'customer sign-in dialog');
+  assert.equal(await evaluate(`document.querySelector('#customer-google').textContent`),'Tiếp tục với Google');
+  await evaluate(`document.querySelector('[data-customer-mode="register"]').click()`);
+  assert.equal(await evaluate(`document.querySelector('#customer-name').required && document.querySelector('#customer-confirm').required && document.querySelector('#customer-password').minLength===12`),true);
+  assert.equal(await evaluate(`document.querySelector('#customer-dialog').scrollWidth <= document.querySelector('#customer-dialog').clientWidth`),true);
+  await screenshot('customer-register-mobile.png');
+  await evaluate(`document.querySelector('#customer-google').click()`);
+  await until(()=>evaluate(`document.querySelector('#customer-status').textContent.includes('chưa sẵn sàng')`),'unconfigured customer authentication');
+  await evaluate(`document.querySelector('#customer-close').click()`);
   await cdp('Emulation.setDeviceMetricsOverride', { width:1440, height:1000, deviceScaleFactor:1, mobile:false });
   await cdp('Page.navigate', {url:`http://127.0.0.1:${port}/admin`});
   await until(()=>evaluate(`document.querySelector('#login-view') && !document.querySelector('#login-view').hidden`),'admin login');
@@ -164,9 +174,9 @@ try {
   assert.equal(await evaluate(`document.querySelector('#detail-dialog').scrollWidth <= document.querySelector('#detail-dialog').clientWidth`),true);
   await screenshot('admin-mobile-detail.png');
   await cdp('Emulation.setDeviceMetricsOverride', {width:1440,height:1000,deviceScaleFactor:1,mobile:false});
-  assert.equal(await evaluate(`document.querySelector('#detail-dialog').open && !document.querySelector('#detail-dialog').matches(':modal')`),true);
+  await until(()=>evaluate(`document.querySelector('#detail-dialog').open && !document.querySelector('#detail-dialog').matches(':modal')`),'resize receipt to desktop');
   await cdp('Emulation.setDeviceMetricsOverride', {width:390,height:844,deviceScaleFactor:1,mobile:true});
-  assert.equal(await evaluate(`document.querySelector('#detail-dialog').matches(':modal')`),true);
+  await until(()=>evaluate(`document.querySelector('#detail-dialog').matches(':modal')`),'resize receipt to mobile');
   await evaluate(`document.querySelector('#close-detail').click()`);
   assert.equal(await evaluate(`document.querySelector('#detail-dialog').open`),false);
   await evaluate(`document.querySelector('#logout-button').click()`);

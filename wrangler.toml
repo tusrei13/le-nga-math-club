@@ -1,0 +1,16 @@
+name = "le-nga-books"
+pages_build_output_dir = "./dist"
+compatibility_date = "2026-10-13"
+compatibility_flags = ["nodejs_compat"]
+
+# Public Firebase web configuration (not passwords or service-account keys).
+# Fill these after creating Firebase; see FIREBASE.md.
+[vars]
+FIREBASE_API_KEY = "AIzaSyBBc9rQBP1IbnnCo1uNm4Z6ZL_Rf3ySY_s"
+FIREBASE_PROJECT_ID = "lenga-math-club"
+FIREBASE_AUTH_DOMAIN = "lenga-math-club.firebaseapp.com"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "le-nga-books"
+database_id = "46d7dd72-70ae-4fa1-8c65-a2ea812b2450"
