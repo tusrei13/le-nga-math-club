@@ -6,6 +6,14 @@ function closeMenu(){menu.classList.remove('is-open');toggle.setAttribute('aria-
 toggle.addEventListener('click',()=>{const open=menu.classList.toggle('is-open');toggle.setAttribute('aria-expanded',String(open));});
 menu.querySelectorAll('a').forEach(link=>link.addEventListener('click',closeMenu));
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&menu.classList.contains('is-open')){closeMenu();toggle.focus();}});
+const desktopNavigation=matchMedia('(min-width:1024px)');
+desktopNavigation.addEventListener('change',event=>{
+  if(!event.matches)return;
+  const toggleHadFocus=document.activeElement===toggle;
+  closeMenu();
+  if(toggleHadFocus)menu.querySelector('a').focus({preventScroll:true});
+});
+document.addEventListener('click',event=>{if(!event.target.closest('.site-header'))closeMenu();});
 function render(){
   if(grade<6)specialist=false;
   document.querySelectorAll('[data-grade]').forEach(button=>{button.setAttribute('aria-pressed',String(Number(button.dataset.grade)===grade));button.setAttribute('aria-label',`Lớp ${button.dataset.grade}`);});

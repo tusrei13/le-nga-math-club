@@ -19,6 +19,12 @@ npm run build:stem
 
 Output nằm ở `stem-maths/dist-stem/`. Chỉ upload output, không upload nguồn hoặc database.
 
+## Giao diện điện thoại, iPad và máy tính
+
+Bố cục tự thay đổi theo chiều rộng, hỗ trợ iPad dọc/ngang và chia đôi màn hình. Menu thu gọn dưới 1024px; các nút chọn lớp có vùng chạm tối thiểu 44px. Form chuyển về một cột trên màn hình hẹp, giữ chữ nhập liệu 16px và không khóa khả năng phóng to trang. Ảnh giữ tỷ lệ, khoảng đệm tính cả vùng an toàn của màn hình.
+
+Chạy `npm run test:ui` từ thư mục gốc để kiểm tra 19 kích thước từ 320 đến 2560px, menu cảm ứng, xoay màn hình và gửi form. Bài kiểm tra dùng Chrome/Edge với viewport mô phỏng; ảnh chụp lưu trong `data/stem-responsive-*.png`. Kiểm tra trực tiếp bằng Safari trên iPad khi có thiết bị để xác nhận thêm hành vi bàn phím và thanh trình duyệt.
+
 ## Sửa lỗi Cloudflare `Missing script: build:stem`
 
 Commit/push bản code này trước. Trong project **stem-maths-co-nga → Settings → Builds & deployments → Build configuration**, đặt:

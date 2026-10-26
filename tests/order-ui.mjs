@@ -172,6 +172,57 @@ try {
   await cdp('Page.navigate',{url:`http://127.0.0.1:${port}/stem/`});
   await until(()=>evaluate(`document.querySelector('#program-title')?.textContent==='Cơ bản · Lớp 6' && !document.querySelector('#enquiry-submit').disabled`),'STEM programs');
   await screenshot('stem-desktop.png');
+  const responsiveProblems=[];
+  const viewports=[
+    ['phone-small',320,568],['phone',375,667],['phone-large',430,932],
+    ['phone-landscape',667,375],['split-view',600,900],
+    ['ipad',768,1024],['ipad-10',810,1080],['ipad-air',820,1180],['ipad-pro-11',834,1194],
+    ['nav-boundary',1023,768],['ipad-landscape',1024,768],['ipad-10-landscape',1080,810],
+    ['ipad-air-landscape',1180,820],['ipad-pro-11-landscape',1194,834],
+    ['ipad-pro-13',1024,1366],['ipad-pro-13-landscape',1366,1024],
+    ['desktop',1440,900],['desktop-wide',1920,1080],['desktop-ultrawide',2560,1440],
+  ];
+  for(const [name,width,height] of viewports){
+    await cdp('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<1400});
+    await cdp('Emulation.setTouchEmulationEnabled',{enabled:width<1400});
+    await evaluate(`scrollTo({top:0,behavior:'instant'})`);
+    await sleep(80);
+    const layout=await evaluate(`(()=>{
+      const visible=e=>e.getClientRects().length>0;
+      const bounds=e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,width:r.width,height:r.height};};
+      const outside=[...document.querySelectorAll('body *')].filter(visible).filter(e=>{const r=bounds(e);return r.left<-.5||r.right>innerWidth+.5;}).map(e=>e.id||e.className||e.tagName).slice(0,8);
+      const clipped=[...document.querySelectorAll('.button,.grades button,.brand strong')].filter(visible).filter(e=>e.scrollWidth>e.clientWidth+1).map(e=>e.textContent.trim());
+      const smallTargets=[...document.querySelectorAll('.grades button,.menu-toggle,.button,.levels label,.check-label,.specialist-choice,.faq-grid summary,.site-header nav>a')].filter(visible).filter(e=>{const r=bounds(e);return r.width<43.5||r.height<43.5;}).map(e=>e.textContent.trim());
+      return {viewport:innerWidth,document:document.documentElement.scrollWidth,outside,clipped,smallTargets,menu:visible(document.querySelector('.menu-toggle')),formInputs:[...document.querySelectorAll('.enquiry-form input:not([type=checkbox]),.enquiry-form select,.enquiry-form textarea')].filter(e=>e.name!=='website').map(e=>parseFloat(getComputedStyle(e).fontSize))};
+    })()`);
+    if(layout.viewport!==width||layout.document>width||layout.outside.length||layout.clipped.length||layout.smallTargets.length||layout.formInputs.some(size=>size<16))responsiveProblems.push({name,width,...layout});
+    if(['phone-small','ipad','ipad-landscape','desktop-wide'].includes(name)){
+      await screenshot('stem-responsive-'+name+'.png');
+      await evaluate(`document.querySelector('#tu-van').scrollIntoView({behavior:'instant'})`);
+      await screenshot('stem-responsive-'+name+'-form.png');
+      await evaluate(`scrollTo({top:0,behavior:'instant'})`);
+    }
+    if(layout.menu){
+      const point=await evaluate(`(()=>{const r=document.querySelector('.menu-toggle').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`);
+      await cdp('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[point]});
+      await cdp('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+      await until(()=>evaluate(`document.querySelector('.menu-toggle').getAttribute('aria-expanded')==='true'`),'touch menu '+name);
+      if(!await evaluate(`document.querySelector('#main-nav').scrollWidth<=document.querySelector('#main-nav').clientWidth && document.querySelector('#main-nav').getBoundingClientRect().right<=innerWidth`))responsiveProblems.push({name,error:'Open menu overflows'});
+      await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+      await cdp('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+      assert.equal(await evaluate(`document.querySelector('.menu-toggle').getAttribute('aria-expanded')==='false' && document.activeElement===document.querySelector('.menu-toggle')`),true);
+    }
+  }
+  assert.deepEqual(responsiveProblems,[],'STEM layouts, touch targets and form fields must fit across phones, iPads and desktops');
+  // Rotation across the menu breakpoint must not reopen a stale mobile menu.
+  await cdp('Emulation.setDeviceMetricsOverride',{width:768,height:1024,deviceScaleFactor:1,mobile:true});
+  await evaluate(`document.querySelector('.menu-toggle').click()`);
+  await cdp('Emulation.setDeviceMetricsOverride',{width:1366,height:1024,deviceScaleFactor:1,mobile:true});
+  await until(()=>evaluate(`document.querySelector('.menu-toggle').getAttribute('aria-expanded')==='false'`),'close menu after rotation');
+  await cdp('Emulation.setDeviceMetricsOverride',{width:768,height:1024,deviceScaleFactor:1,mobile:true});
+  assert.equal(await evaluate(`getComputedStyle(document.querySelector('#main-nav')).display`),'none');
+  await evaluate(`document.querySelector('.menu-toggle').click();document.querySelector('#main-nav a').click()`);
+  assert.equal(await evaluate(`document.querySelector('.menu-toggle').getAttribute('aria-expanded')`),'false');
   await evaluate(`document.querySelector('[data-grade="3"]').click()`);
   assert.equal(await evaluate(`document.querySelector('#specialist-choice').hidden && document.querySelector('#form-specialist-label').hidden`),true);
   await evaluate(`document.querySelector('[data-grade="7"]').click();document.querySelector('input[name="level"][value="advanced"]').click();document.querySelector('#specialist-goal').click()`);
@@ -266,7 +317,7 @@ try {
   await until(()=>evaluate(`!document.querySelector('#login-view').hidden && document.querySelector('#login-message').textContent==='Đã đăng xuất.'`),'logout');
   assert.equal(await evaluate(`(async()=>{const r=await fetch('/api/admin/orders');return r.status;})()`),401);
   assert.deepEqual(browserErrors, []);
-  console.log(`Browser checks passed: STEM grade/level selection, specialist goal, public enquiry, admin notes and enrolment; book ordering, consultations, parent profile, admin sessions and mobile overflow. Desktop ticket: ${desktopHeight}px. Screenshots saved in data/.`);
+  console.log(`Browser checks passed: STEM across ${viewports.length} phone/tablet/desktop viewports, touch navigation and rotation; grade/level selection, specialist goal, public enquiry, admin notes and enrolment; book ordering, consultations, parent profile, admin sessions and mobile overflow. Desktop ticket: ${desktopHeight}px. Screenshots saved in data/.`);
 } finally {
   if (socket?.readyState === WebSocket.OPEN) { try { await cdp('Browser.close'); } catch {} socket.close(); }
   for (const process of [chromium, server]) if (process && process.exitCode === null) {
