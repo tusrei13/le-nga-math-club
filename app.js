@@ -372,7 +372,8 @@ async function loadLanding() {
     setBookGroup(activeBookGroup);
     if (catalog.length) {
       const minimum = Math.min(...catalog.map(p => p.price_vnd));
-      for (const id of ['catalog-min-price', 'hero-book-price', 'floating-book-price']) document.getElementById(id).textContent = `Từ ${currency(minimum)}`;
+      const uniform = catalog.every(product => product.price_vnd === minimum);
+      for (const id of ['catalog-min-price', 'hero-book-price', 'floating-book-price']) document.getElementById(id).textContent = uniform ? `${currency(minimum)}/cuốn` : `Từ ${currency(minimum)}`;
     }
     const faqList = document.querySelector('.faq-list'); faqList.replaceChildren();
     for (const [index, faq] of data.faqs.entries()) {
@@ -389,6 +390,7 @@ async function loadLanding() {
       article.append(illustration,copy); giftList.append(article);
     }
     document.querySelector('.proof-section').hidden = !data.testimonials.length && !data.achievements.length;
+    document.querySelectorAll('a[href="#thanh-tich"]').forEach(link => { link.hidden = !data.testimonials.length && !data.achievements.length; });
     const testimonials = document.querySelector('.testimonial-stack'); testimonials.replaceChildren();
     for (const item of data.testimonials) {
       const article = element('article', undefined, 'testimonial');
@@ -404,11 +406,6 @@ async function loadLanding() {
     const author = data.content.author;
     document.querySelector('.author-photo').src = author.photo_url;
     document.querySelector('.portrait-caption strong').textContent = author.name;
-    const credentials = document.querySelectorAll('.credentials>div');
-    credentials[0].querySelector('small').textContent = author.qualification;
-    credentials[1].querySelector('strong').textContent = `${author.experience_years} năm`;
-    document.querySelector('.trust-row>div:first-child strong').textContent = author.experience_years;
-    const quote = document.querySelector('.author-quote'); quote.replaceChildren(document.createTextNode(`“${author.quote}”`),element('cite',`— ${author.name}`));
     document.querySelector('.hero-deck').textContent = data.content.hero.description;
     const heroTitle = document.querySelector('.hero-title');
     if (heroTitle.textContent.replace(/\s+/g,' ').trim() !== data.content.hero.title) heroTitle.textContent = data.content.hero.title;
@@ -422,12 +419,16 @@ async function loadLanding() {
     document.querySelector('.footer-links>div:nth-child(2) p').textContent = contact.address;
     document.querySelector('.footer-links a[href*="facebook.com"]').href = contact.facebook;
     document.querySelector('.footer-links a[href*="youtube.com"]').href = contact.youtube;
-    document.querySelector('#shipping-label').textContent = salesPolicy.shipping_vnd ? `Phí giao hàng ${currency(salesPolicy.shipping_vnd)} · COD` : 'FREESHIP COD';
-    document.querySelector('.hero-offer>span').textContent = `${salesPolicy.gifts_with_order ? `+ ${data.gifts.length} quà tặng · ` : ''}${salesPolicy.shipping_vnd ? `Phí giao hàng ${currency(salesPolicy.shipping_vnd)}` : 'Freeship'} COD toàn quốc`;
+    const shippingNote = salesPolicy.shipping_vnd ? `Phí giao hàng ${currency(salesPolicy.shipping_vnd)}` : 'Phí vận chuyển được CLB xác nhận riêng';
+    document.querySelector('#shipping-label').textContent = shippingNote;
+    document.querySelector('#order-total-label').textContent = salesPolicy.shipping_vnd ? 'Tổng tiền' : 'Tiền sách';
+    document.querySelector('.hero-offer>span').textContent = shippingNote;
+    const showGifts = Boolean(salesPolicy.gifts_with_order && data.gifts.length);
+    document.querySelector('#qua-tang').hidden = !showGifts;
+    document.querySelectorAll('a[href="#qua-tang"]').forEach(link => { link.hidden = !showGifts; });
     document.querySelector('.gift-price strong').textContent = salesPolicy.gifts_with_order ? `${data.gifts.length} quà tặng` : 'Liên hệ CLB';
-    document.querySelector('.catalog-facts>div:last-child span').textContent = salesPolicy.shipping_vnd ? `Phí giao hàng ${currency(salesPolicy.shipping_vnd)}` : 'freeship toàn quốc';
-    document.querySelector('.promise-list p:nth-child(2)').replaceChildren(element('span','✓'),document.createTextNode(salesPolicy.shipping_vnd ? ` Phí giao hàng ${currency(salesPolicy.shipping_vnd)} qua COD` : ' Freeship toàn quốc qua COD'));
-    document.querySelector('.promise-list p:nth-child(3)').replaceChildren(element('span','✓'),document.createTextNode(` Đổi trả miễn phí ${salesPolicy.return_days} ngày nếu lỗi nhà in`));
+    document.querySelector('.catalog-facts>div:last-child span').textContent = 'CLB xác nhận phí giao hàng';
+    const promises = document.querySelector('.promise-list'); promises.replaceChildren(element('p',shippingNote),element('p','CLB xác nhận thông tin đơn sách trước khi gửi.'));
     catalogLoaded = true;
     updateTotal();
     window.dispatchEvent(new Event('landing:loaded'));
@@ -479,7 +480,7 @@ orderForm?.addEventListener('submit', async (event) => {
     orderForm.reset(); orderStep = 1; setFormMode(mode); updateTotal();
     formStatus.textContent = mode === 'consult'
       ? `Đã lưu yêu cầu tư vấn ${result.id}. CLB sẽ gọi lại trong thời gian sớm nhất.`
-      : `Đã lưu đơn ${result.id}, tổng tiền ${currency(result.total_vnd)}, thanh toán COD. CLB sẽ gọi lại xác nhận.`;
+      : `Đã lưu đơn ${result.id}, ${salesPolicy.shipping_vnd ? 'tổng tiền' : 'tiền sách'} ${currency(result.total_vnd)}. CLB sẽ xác nhận phí vận chuyển và thông tin đơn trước khi gửi.`;
   } catch (error) {
     formStatus.textContent = error.name === 'TimeoutError' || error.name === 'TypeError'
       ? 'Chưa nhận được xác nhận từ máy chủ. Vui lòng thử gửi lại; thông tin bạn nhập vẫn được giữ.'

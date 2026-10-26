@@ -71,14 +71,16 @@ try {
   await cdp('Runtime.enable'); await cdp('Page.enable');
   await cdp('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
   await cdp('Page.navigate', { url: `http://127.0.0.1:${port}/#dat-sach` });
-  await until(() => evaluate(`document.querySelectorAll('[data-product-quantity]').length === 10 && document.querySelector('#hero-book-price').textContent.includes('119')`), 'loaded catalog');
+  await until(() => evaluate(`document.querySelectorAll('[data-product-quantity]').length === 10 && document.querySelector('#hero-book-price').textContent.includes('299')`), 'loaded catalog');
   await sleep(300);
+  assert.equal(await evaluate(`/freeship|đổi trả miễn phí|lời giải chi tiết 100%/i.test(document.body.innerText)`),false);
+  assert.equal(await evaluate(`document.querySelector('#qua-tang').hidden && document.querySelector('#shipping-label').textContent.includes('xác nhận riêng')`),true);
   assert.equal(await evaluate(`document.querySelectorAll('.book-option:not([hidden])').length`), 2);
   assert.equal(await evaluate(`document.querySelector('#order-contact-fields').hidden`), true);
   await evaluate(`document.querySelector('#order-next').click()`);
   assert.equal(await evaluate(`document.querySelector('#items-error').hidden`), false);
   await evaluate(`document.querySelector('[data-picker-group="6"] [data-quantity-increase]').click(); document.querySelector('[data-book-group="7"]').click(); document.querySelector('[data-picker-group="7"] [data-quantity-increase]').click()`);
-  assert.equal(await evaluate(`document.querySelector('#order-total').textContent`), '248.000đ');
+  assert.equal(await evaluate(`document.querySelector('#order-total').textContent`), '598.000đ');
   assert.equal(await evaluate(`document.querySelector('#selected-book-count').textContent`), '2 cuốn');
   await evaluate(`document.querySelector('#order-panel').scrollIntoView({behavior:'instant',block:'start'})`);
   await screenshot('order-desktop.png');
@@ -194,7 +196,7 @@ try {
   await until(()=>evaluate(`document.querySelectorAll('#request-list .request-card').length===1`),'phone search');
   await evaluate(`document.querySelector('.detail-button').click()`);
   await until(()=>evaluate(`document.querySelector('#detail-dialog').open && !document.querySelector('#status-form').hidden`),'order details');
-  assert.equal(await evaluate(`document.querySelector('#detail-content').textContent.includes('248.000đ')`),true);
+  assert.equal(await evaluate(`document.querySelector('#detail-content').textContent.includes('598.000đ')`),true);
   assert.equal(await evaluate(`document.querySelector('#detail-dialog').matches(':modal')`),false);
   assert.equal(await evaluate(`document.querySelectorAll('.book-thumbnails img').length`),2);
   assert.equal(await evaluate(`document.querySelectorAll('.detail-book img').length`),2);

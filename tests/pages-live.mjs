@@ -14,7 +14,7 @@ try{
   const login=await request('/api/auth/login','POST',{username:user,password});assert.equal(login.status,200);auth=await login.json();cookie=login.headers.get('Set-Cookie').split(';')[0];
   const headers={Cookie:cookie,'X-CSRF-Token':auth.csrf_token};
   const payload={name:'Pages fixture',phone:'0989066885',grade:6,address:'Test address',items:[{product_id:'toan-6-tap-1',quantity:2}],total_vnd:1};
-  const key={'Idempotency-Key':randomUUID()};const created=await request('/api/orders','POST',payload,key);assert.equal(created.status,201);const order=await created.json();orderId=order.id;assert.equal(order.total_vnd,238000);assert.equal((await request('/api/orders','POST',payload,key)).status,200);
+  const key={'Idempotency-Key':randomUUID()};const created=await request('/api/orders','POST',payload,key);assert.equal(created.status,201);const order=await created.json();orderId=order.id;assert.equal(order.total_vnd,598000);assert.equal((await request('/api/orders','POST',payload,key)).status,200);
   assert.equal((await request(`/api/admin/orders/${orderId}/status`,'PATCH',{status:'confirmed',expected_status:'pending'},headers)).status,200);
   const detail=await (await request(`/api/admin/orders/${orderId}`,'GET',undefined,headers)).json();assert.equal(detail.items.length,1);assert.equal(detail.history.length,2);
   assert.equal((await request(`/api/admin/orders?q=${orderId}`,'GET',undefined,headers)).status,200);

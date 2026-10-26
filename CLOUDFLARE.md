@@ -40,6 +40,16 @@ Chỉ khi lệnh chuẩn bị thành công, áp dụng SQL bằng lệnh thứ h
 
 ## Publish
 
+### Cập nhật danh mục đang chạy: giá 299.000đ/cuốn
+
+Sau khi commit/push và deploy code mới thành công, cập nhật database D1 đang có dữ liệu bằng lệnh:
+
+```powershell
+npx wrangler d1 execute le-nga-books --remote --file=database/migrations/004-catalog-corrections.sql
+```
+
+Migration cập nhật 10 sách về 299.000đ/cuốn và gỡ các chính sách/nội dung mẫu chưa xác nhận. Giữ nguyên giá trong đơn cũ; chạy lại không ghi đè các chỉnh sửa sau này. Giá trị 0 ở `shipping_vnd` của đơn mới có nghĩa chưa cộng phí vận chuyển; giao diện ghi tiền sách và yêu cầu CLB xác nhận phí riêng, không coi là freeship. Commit/push code để cập nhật cả giao diện trên Pages.
+
 Điền D1 database ID và ba giá trị Firebase public trong `wrangler.toml`, bật Email/Password + Google và authorized domain theo [FIREBASE.md](FIREBASE.md). `npm run check:pages` kiểm tra các giá trị bắt buộc; lệnh deploy cũng chạy kiểm tra này để tránh publish bản thiếu đăng nhập.
 
 ```powershell

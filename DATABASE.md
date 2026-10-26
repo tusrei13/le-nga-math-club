@@ -50,22 +50,22 @@ erDiagram
 
 Không tách hồ sơ phụ huynh thành tài khoản đăng nhập: landing page cho phép đặt hàng trực tiếp, mỗi yêu cầu giữ thông tin riêng. Mã đơn là UUID; dữ liệu cá nhân chỉ có trong API quản trị.
 
-## 10 sách và giá mẫu
+## 10 sách và giá bán
 
 | ID | Sách | Giá / cuốn |
 | --- | --- | ---: |
-| `toan-6-tap-1` | Phân dạng Toán 6 tập 1 | 119.000đ |
-| `toan-6-tap-2` | Phân dạng Toán 6 tập 2 | 119.000đ |
-| `toan-7-tap-1` | Phân dạng Toán 7 tập 1 | 129.000đ |
-| `toan-7-tap-2` | Phân dạng Toán 7 tập 2 | 129.000đ |
-| `toan-8-tap-1` | Phân dạng Toán 8 tập 1 | 139.000đ |
-| `toan-8-tap-2` | Phân dạng Toán 8 tập 2 | 139.000đ |
-| `toan-9-tap-1` | Phân dạng Toán 9 tập 1 | 149.000đ |
-| `toan-9-tap-2` | Phân dạng Toán 9 tập 2 | 149.000đ |
-| `70-de-vao-6` | 70 đề bứt tốc thi vào lớp 6 Chất lượng cao | 179.000đ |
-| `200-bai-hinh-vao-6` | 200 bài hình học thi vào lớp 6 Chất lượng cao | 159.000đ |
+| `toan-6-tap-1` | Phân dạng Toán 6 tập 1 | 299.000đ |
+| `toan-6-tap-2` | Phân dạng Toán 6 tập 2 | 299.000đ |
+| `toan-7-tap-1` | Phân dạng Toán 7 tập 1 | 299.000đ |
+| `toan-7-tap-2` | Phân dạng Toán 7 tập 2 | 299.000đ |
+| `toan-8-tap-1` | Phân dạng Toán 8 tập 1 | 299.000đ |
+| `toan-8-tap-2` | Phân dạng Toán 8 tập 2 | 299.000đ |
+| `toan-9-tap-1` | Phân dạng Toán 9 tập 1 | 299.000đ |
+| `toan-9-tap-2` | Phân dạng Toán 9 tập 2 | 299.000đ |
+| `70-de-vao-6` | 70 đề bứt tốc thi vào lớp 6 Chất lượng cao | 299.000đ |
+| `200-bai-hinh-vao-6` | 200 bài hình học thi vào lớp 6 Chất lượng cao | 299.000đ |
 
-Tám ảnh PNG `Phan dang toan lop{6..9} t{1..2}.png` và hai ảnh JPG được gắn từ `public/assets/books`. URL có khoảng trắng đã được mã hóa. Giá do dự án đề xuất theo yêu cầu, không phải giá xác nhận của CLB. Chính sách mẫu giữ COD, miễn phí vận chuyển và 3 quà đi kèm từ landing page ban đầu; không dùng ưu đãi bộ 3 cuốn 299.000đ cũ.
+Tám ảnh PNG `Phan dang toan lop{6..9} t{1..2}.png` và hai ảnh JPG được gắn từ `public/assets/books`. URL có khoảng trắng đã được mã hóa. Giá toàn bộ sách được chủ dự án xác nhận là 299.000đ/cuốn. Phí vận chuyển xác nhận riêng, không công bố freeship. Quà tặng mẫu đang tắt; các cam kết giao hàng, đổi trả và thông tin bằng cấp/kinh nghiệm chưa xác nhận đã được gỡ. Migration 004 cập nhật dữ liệu đã tồn tại một lần, giữ nguyên giá trong đơn cũ.
 
 ## API công khai
 

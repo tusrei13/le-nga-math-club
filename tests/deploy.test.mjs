@@ -33,7 +33,7 @@ test('Pages D1 orders, private receipts, random-key login, CSRF, logout and repl
     const login=await req('/api/auth/login','POST',{username:'admin',password});assert.equal(login.status,200);const auth=await login.json();const cookie=login.headers.get('Set-Cookie').split(';')[0];assert.match(login.headers.get('Set-Cookie'),/Secure/);
     const admin={Cookie:cookie,'X-CSRF-Token':auth.csrf_token};
     const payload={name:'Nguyễn An',phone:'0989066885',grade:6,address:'Hà Nội',items:[{product_id:'toan-6-tap-1',quantity:2}],total_vnd:1};const key={'Idempotency-Key':crypto.randomUUID()};
-    const created=await req('/api/orders','POST',payload,key);assert.equal(created.status,201);const receipt=await created.json();assert.equal(receipt.total_vnd,238000);assert.equal(receipt.phone,undefined);
+    const created=await req('/api/orders','POST',payload,key);assert.equal(created.status,201);const receipt=await created.json();assert.equal(receipt.total_vnd,598000);assert.equal(receipt.phone,undefined);
     assert.equal((await req('/api/orders','POST',payload,key)).status,200);assert.equal((await req('/api/orders','POST',{...payload,address:'Khác'},key)).status,409);
     const invalid=await req('/api/orders','POST',{...payload,items:[{product_id:'toan-6-tap-1',quantity:2},{product_id:'missing',quantity:1}]},{'Idempotency-Key':crypto.randomUUID()});assert.equal(invalid.status,400);assert.equal(d1.db.prepare('SELECT count(*) n FROM orders').get().n,1);
     assert.equal((await req(`/api/admin/orders/${receipt.id}/status`,'PATCH',{status:'confirmed'},{Cookie:cookie})).status,403);
@@ -45,6 +45,25 @@ test('Pages D1 orders, private receipts, random-key login, CSRF, logout and repl
     assert.equal((await req('/api/auth/logout','POST',{},admin)).status,200);assert.equal((await req('/api/admin/orders','GET',undefined,admin)).status,401);
   } finally { d1.db.close(); }
 });
+test('Catalog corrections update existing prices once and preserve order snapshots and later edits',async()=>{
+  const d1=new D1();
+  try {
+    d1.db.exec("UPDATE products SET price_vnd=119000; UPDATE gifts SET active=1;");
+    const payload={name:'Parent',phone:'0989066885',grade:6,address:'Hà Nội',items:[{product_id:'toan-6-tap-1',quantity:2}]};
+    const response=await worker.fetch(new Request('https://books.pages.dev/api/orders',{method:'POST',headers:{'Content-Type':'application/json','Idempotency-Key':crypto.randomUUID()},body:JSON.stringify(payload)}),{DB:d1});
+    assert.equal(response.status,201);assert.equal((await response.json()).total_vnd,238000);
+    const migration=readFileSync('database/migrations/004-catalog-corrections.sql','utf8');
+    d1.db.exec(migration);
+    assert.equal(d1.db.prepare('SELECT count(*) AS n FROM products WHERE price_vnd=299000').get().n,10);
+    assert.equal(d1.db.prepare('SELECT count(*) AS n FROM gifts WHERE active=1').get().n,0);
+    assert.equal(d1.db.prepare('SELECT unit_price_vnd FROM order_items').get().unit_price_vnd,119000);
+    assert.equal(d1.db.prepare('SELECT total_vnd FROM orders').get().total_vnd,238000);
+    d1.db.exec("UPDATE products SET price_vnd=305000 WHERE id='toan-6-tap-1'");
+    d1.db.exec(migration);
+    assert.equal(d1.db.prepare("SELECT price_vnd FROM products WHERE id='toan-6-tap-1'").get().price_vnd,305000);
+  }finally{d1.db.close();}
+});
+
 test('Pages admin login accepts a chosen password only for the Firebase UID granted in D1',async()=>{
   const d1=new D1();const original=globalThis.fetch;
   const env={DB:d1,FIREBASE_API_KEY:'test-key',FIREBASE_PROJECT_ID:'test-project',FIREBASE_AUTH_DOMAIN:'test-project.firebaseapp.com'};

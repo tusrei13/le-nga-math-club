@@ -163,8 +163,8 @@ function renderDetail(row,table) {
       else line.classList.add('without-cover');
       line.append(copy,element('strong',currency(item.quantity*item.unit_price_vnd)));books.append(line);
     }
-    books.append(element('p',`Phí giao hàng: ${currency(row.shipping_vnd)} · Thanh toán COD`,'cell-meta'));
-    const total=element('div',undefined,'detail-total');total.append(element('span','Tổng thanh toán'),element('strong',currency(row.total_vnd)));books.append(total);
+    books.append(element('p',row.shipping_vnd ? `Phí giao hàng: ${currency(row.shipping_vnd)} · Thanh toán COD` : 'Phí giao hàng cần được xác nhận riêng.','cell-meta'));
+    const total=element('div',undefined,'detail-total');total.append(element('span',row.shipping_vnd ? 'Tổng tiền' : 'Tiền sách'),element('strong',currency(row.total_vnd)));books.append(total);
     if(row.gifts.length) books.append(element('p',`Quà kèm theo: ${row.gifts.map(g=>g.title).join(', ')}`,'cell-meta'));
     container.append(books);
   }

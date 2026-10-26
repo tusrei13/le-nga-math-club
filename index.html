@@ -24,8 +24,8 @@
         <nav class="site-nav" id="site-nav" aria-label="Điều hướng chính">
           <a href="#gioi-thieu">Giới thiệu</a>
           <a href="#bo-sach">Bộ sách</a>
-          <a href="#thanh-tich">Thành tích học viên</a>
-          <a href="#qua-tang">Quà tặng</a>
+          <a href="#thanh-tich" hidden>Thành tích học viên</a>
+          <a href="#qua-tang" hidden>Quà tặng</a>
           <div class="customer-nav">
             <button class="customer-entry" id="customer-entry" type="button" aria-expanded="false" aria-controls="customer-menu">
               <span class="customer-avatar" id="customer-avatar" aria-hidden="true" hidden></span>
@@ -55,15 +55,15 @@
               Đồng hành cùng con <em>bứt phá</em> môn Toán.
             </h1>
             <p class="hero-deck reveal">Giúp con lấy lại gốc, rèn tư duy và tự tin ôn thi HSG, trường Chất lượng cao, trường Chuyên.</p>
-            <p class="hero-offer reveal"><strong id="hero-book-price">10 đầu sách <span>· Chọn theo lớp</span></strong><span>+ 03 quà tặng · Freeship COD toàn quốc</span></p>
+            <p class="hero-offer reveal"><strong id="hero-book-price">299.000đ/cuốn</strong><span>Phí vận chuyển được CLB xác nhận riêng</span></p>
             <div class="hero-actions reveal">
               <a class="btn btn-primary" href="#dat-sach" data-form-mode="order">Đặt sách cho con ngay <span aria-hidden="true">↗</span></a>
               <a class="text-link" href="public/assets/trang-mau-toan.pdf" target="_blank" rel="noreferrer">Mở trang mẫu PDF <span aria-hidden="true">↗</span></a>
             </div>
             <div class="trust-row reveal" aria-label="Thông tin uy tín">
-              <div><strong>15</strong><span>năm kinh nghiệm</span></div>
+              <div><strong>10</strong><span>đầu sách trong danh mục</span></div>
               <div><strong>6–9</strong><span>sách theo lớp</span></div>
-              <div><strong>10<span>+</span></strong><span>đầu sách xuất bản</span></div>
+              <div><strong>2</strong><span>tập cho mỗi lớp 6–9</span></div>
             </div>
           </div>
           <div class="hero-stage reveal" data-depth="0.12">
@@ -106,7 +106,7 @@
           <div class="section-intro collection-intro">
             <div><h2>Bộ sách</h2><p class="section-subtitle">Kho tri thức cho từng chặng đường.</p></div>
           </div>
-          <div class="catalog-facts reveal"><div><strong>10 đầu sách</strong><span>chọn từng cuốn</span></div><div><strong>Lớp 5–9</strong><span>THCS &amp; thi vào 6</span></div><div><strong id="catalog-min-price">Theo từng cuốn</strong><span>giá VND</span></div><div><strong>COD</strong><span>freeship toàn quốc</span></div></div>
+          <div class="catalog-facts reveal"><div><strong>10 đầu sách</strong><span>chọn từng cuốn</span></div><div><strong>Lớp 5–9</strong><span>THCS &amp; thi vào 6</span></div><div><strong id="catalog-min-price">299.000đ/cuốn</strong><span>giá VND</span></div><div><strong>Giao sách</strong><span>CLB xác nhận phí giao hàng</span></div></div>
           <div class="book-catalog" id="book-catalog" aria-live="polite"><p>Đang tải danh mục sách…</p></div><div class="catalog-foot reveal">
             <p class="catalog-note"><strong>Chọn sách theo lớp và mục tiêu học tập.</strong> Sách Phân dạng Toán lớp 6–9 gồm hai tập mỗi lớp; hai cuốn luyện thi vào lớp 6 dành cho học sinh chuẩn bị chuyển cấp.</p>
             <div class="catalog-actions">
@@ -130,11 +130,11 @@
             <div class="route-labels" aria-hidden="true"><span>Điều con đang gặp</span><span>Cách bộ sách giúp con tiến bộ</span></div>
             <article class="route-row reveal">
               <div class="route-problem"><span class="route-number" aria-hidden="true">01</span><div><h3>Hổng kiến thức căn bản</h3><p>Các mảnh ghép chưa nối liền, bài mới trở thành một bức tường.</p></div></div>
-              <div class="route-answer"><span class="route-direction" aria-hidden="true">→</span><div><h4>Nối lại nền tảng</h4><p>Sơ đồ tư duy giúp con hệ thống kiến thức, hiểu mối liên hệ và nhớ lâu hơn.</p></div></div>
+              <div class="route-answer"><span class="route-direction" aria-hidden="true">→</span><div><h4>Xác định phần cần ôn</h4><p>Trao đổi với CLB về kiến thức hiện tại của con trước khi chọn sách.</p></div></div>
             </article>
             <article class="route-row reveal">
               <div class="route-problem"><span class="route-number" aria-hidden="true">02</span><div><h3>Sợ bài Toán nâng cao</h3><p>Biết công thức nhưng chưa biết bắt đầu với một đề bài lạ.</p></div></div>
-              <div class="route-answer"><span class="route-direction" aria-hidden="true">→</span><div><h4>Tiến từng bước vừa sức</h4><p>Bài tập đi từ cơ bản đến nâng cao, để con có điểm tựa trước mỗi thử thách.</p></div></div>
+              <div class="route-answer"><span class="route-direction" aria-hidden="true">→</span><div><h4>Chọn theo lớp đang học</h4><p>Danh mục Phân dạng Toán có hai tập cho mỗi lớp 6, 7, 8 và 9.</p></div></div>
             </article>
             <article class="route-row reveal">
               <div class="route-problem"><span class="route-number" aria-hidden="true">03</span><div><h3>Thiếu phương pháp tư duy</h3><p>Nhớ cách làm bài cũ nhưng khó tự tìm lời giải cho bài mới.</p></div></div>
@@ -142,7 +142,7 @@
             </article>
             <article class="route-row reveal">
               <div class="route-problem"><span class="route-number" aria-hidden="true">04</span><div><h3>Hoang mang trước kỳ thi</h3><p>Nhiều dạng đề, chưa rõ nên tập trung ôn luyện từ đâu.</p></div></div>
-              <div class="route-answer"><span class="route-direction" aria-hidden="true">→</span><div><h4>Ôn đúng dạng, rõ mục tiêu</h4><p>Luyện theo dạng đề HSG và Chất lượng cao, giúp con chuẩn bị có định hướng.</p></div></div>
+              <div class="route-answer"><span class="route-direction" aria-hidden="true">→</span><div><h4>Chọn theo mục tiêu kỳ thi</h4><p>Hai cuốn 70 đề bứt tốc và 200 bài hình học dành cho kỳ thi vào lớp 6 Chất lượng cao.</p></div></div>
             </article>
             <div class="route-footer"><p>Từ một bài toán,<br /><em>mở ra một cách nghĩ.</em></p><a class="btn btn-primary" href="#bo-sach">Tìm bộ sách cho con <span aria-hidden="true">↗</span></a></div>
           </div>
@@ -159,20 +159,12 @@
           <div class="author-copy">
             <h2 class="reveal">Tác giả bộ sách</h2>
             <p class="section-subtitle">Dạy Toán không chỉ là tìm đáp án.</p>
-            <p class="overline reveal">Chuẩn sư phạm · Tư duy hiện đại</p>
-            <p class="author-lead reveal">Đó là cách cô Lê Nga giúp con hiểu vì sao mình làm đúng — để lần sau, con có thể tự tin làm một bài toán chưa từng gặp. Cô là chuyên gia bồi dưỡng HSG và luyện thi trường Chuyên / CLC.</p>
-            <p class="author-channel reveal"><span>CỬ NHÂN SƯ PHẠM TOÁN</span><span>·</span><span>NỘI DUNG SỐ @vuihoactoan382</span></p>
-            <div class="credentials reveal">
-              <div><span class="credential-mark">01</span><div><strong>Thạc sĩ</strong><small>Phương pháp giảng dạy Toán học</small></div></div>
-              <div><span class="credential-mark">02</span><div><strong>15 năm</strong><small>Ôn luyện Toán chuyên sâu lớp 2 — 9</small></div></div>
-              <div><span class="credential-mark">03</span><div><strong>10+ đầu sách</strong><small>Đã xuất bản và được phụ huynh lựa chọn</small></div></div>
-            </div>
-            <blockquote class="author-quote reveal">“Mỗi học sinh đều có thể học giỏi Toán nếu được dẫn dắt bằng đúng phương pháp và sự tận tâm.”<cite>— Cô Lê Nga</cite></blockquote>
+            <p class="author-lead reveal">Bộ sách gồm Phân dạng Toán lớp 6–9 và hai cuốn luyện thi vào lớp 6 Chất lượng cao. Phụ huynh có thể liên hệ CLB để tìm hiểu nội dung từng cuốn.</p>
           </div>
         </div>
       </section>
 
-      <section class="section-pad gift-section" id="qua-tang">
+      <section class="section-pad gift-section" id="qua-tang" hidden>
         <div class="container">
           <div class="gift-heading">
             <div><h2>Quà tặng kèm bộ sách</h2><p class="section-subtitle">Con có thêm một đội ngũ đồng hành.</p></div>
@@ -190,14 +182,10 @@
         <div class="container">
           <div class="section-intro proof-intro">
             <div><h2>Chia sẻ từ phụ huynh</h2><p class="section-subtitle">Khi nỗ lực được gọi tên.</p></div>
-            <p class="intro-note">Các mốc điểm và chia sẻ dưới đây là case tổng hợp ẩn danh; khi có quyền công bố, CLB sẽ bổ sung tên trường, thời điểm và minh chứng cụ thể.</p>
           </div>
           <div class="proof-layout">
-            <div class="score-wall reveal"><div class="score-wall-head"><span>HỌC VIÊN TIÊU BIỂU</span><span>CASE TỔNG HỢP</span></div><div class="score-row"><strong>8.5<span>+</span></strong><div><b>Mốc điểm Toán lớp 6–9</b><small>Ghi nhận từ chia sẻ phụ huynh/học viên</small></div><span class="score-star">✳</span></div><div class="score-row score-row-accent"><strong>9.0<span>+</span></strong><div><b>Điểm Toán nổi bật</b><small>Những bước tiến sau khi học có lộ trình</small></div><span class="score-star">✳</span></div><div class="score-row"><strong>CLC</strong><div><b>Trường Chuyên / Chất lượng cao</b><small>Mục tiêu có lộ trình để chạm tới</small></div><span class="score-star">✳</span></div><div class="score-wall-foot"><span>CASE TỔNG HỢP ẨN DANH</span><span>CLB TOÁN CÔ LÊ NGA</span></div></div>
-            <div class="testimonial-stack">
-              <article class="testimonial reveal"><span class="quote-mark">“</span><p>Trước đây con rất ngại bài khó. Sau khi học theo từng dạng, con bắt đầu biết tự vẽ sơ đồ và giải thích lại cho mẹ.</p><footer><strong>Phụ huynh học sinh lớp 5</strong><span>Hà Nội · lớp 5 · chia sẻ ẩn danh</span></footer></article>
-              <article class="testimonial testimonial-offset reveal"><span class="quote-mark">“</span><p>Điều mình thích nhất là sách không chỉ đưa đáp án, mà chỉ cho con cách nhìn để lần sau tự làm được.</p><footer><strong>Phụ huynh học sinh lớp 8</strong><span>Hà Nội · lớp 8 · chia sẻ ẩn danh</span></footer></article>
-            </div>
+            <div class="score-wall reveal"><div class="score-wall-head"><span>HỌC VIÊN TIÊU BIỂU</span></div><div class="score-wall-foot"><span>CLB TOÁN CÔ LÊ NGA</span></div></div>
+            <div class="testimonial-stack"></div>
           </div>
         </div>
       </section>
@@ -209,7 +197,7 @@
             <p class="section-subtitle">Chọn sách cho chặng đường của con.</p>
             <p class="order-lead">Chọn theo lớp, để lại thông tin. CLB sẽ gọi xác nhận và đồng hành cùng phụ huynh.</p>
             <div class="order-book-display" aria-hidden="true"><img src="/assets/books/Phan%20dang%20toan%20lop6%20t1.png" alt="" loading="lazy" /><img src="/assets/books/Phan%20dang%20toan%20lop6%20t2.png" alt="" loading="lazy" /></div>
-            <div class="promise-list"><p><span>✓</span> Kiểm tra hàng trước khi thanh toán</p><p><span>✓</span> Freeship toàn quốc qua COD</p><p><span>✓</span> Đổi trả miễn phí 7 ngày nếu lỗi nhà in</p></div>
+            <div class="promise-list"><p>Phí vận chuyển được CLB xác nhận riêng.</p><p>CLB xác nhận thông tin đơn sách trước khi gửi.</p></div>
             <div class="order-contact"><span>HOTLINE / ZALO</span><a href="tel:0989066885">0989 066 885</a><small>clbtoanconga@gmail.com</small></div>
           </div>
           <div class="order-panel" id="order-panel" tabindex="-1">
@@ -245,7 +233,7 @@
               <section class="order-receipt field-wide" id="order-receipt" aria-label="Sách đã chọn">
                 <div class="receipt-heading"><span>Sách trong phiếu</span><span id="selected-book-count" aria-live="polite">Chưa chọn sách</span></div>
                 <div id="selected-books"></div>
-                <div class="receipt-total"><span>Tổng thanh toán <small id="shipping-label">Freeship · COD</small></span><strong id="order-total" aria-live="polite">0đ</strong></div>
+                <div class="receipt-total"><span><span id="order-total-label">Tiền sách</span><small id="shipping-label">Phí vận chuyển được CLB xác nhận riêng</small></span><strong id="order-total" aria-live="polite">0đ</strong></div>
               </section>
               <small class="field-error field-wide" id="items-error" hidden></small>
               <button class="btn btn-primary btn-full" id="order-next" type="button">Tiếp tục · Thông tin nhận sách <span aria-hidden="true">↗</span></button>
@@ -271,9 +259,9 @@
         <div class="container faq-grid">
           <div><h2>Câu hỏi thường gặp</h2><p class="faq-aside">Chưa tìm thấy câu trả lời? Gọi <a href="tel:0989066885">0989 066 885</a>, đội ngũ CLB luôn sẵn sàng lắng nghe.</p></div>
           <div class="faq-list">
-            <details open><summary>Con đang mất gốc có học theo sách được không?<span>+</span></summary><p>Có. Lộ trình trong sách bắt đầu từ những nền tảng cốt lõi, đi từ dễ đến nâng cao. Con có thể học lại theo từng dạng, từng bước một mà không bị quá tải.</p></details>
-            <details><summary>Sách có đáp án chi tiết không?<span>+</span></summary><p>Có lời giải chi tiết 100% kèm video hướng dẫn các dạng bài khó, giúp con hiểu cách nghĩ thay vì chỉ xem đáp số.</p></details>
-            <details><summary>Thời gian giao hàng mất bao lâu?<span>+</span></summary><p>Thông thường từ 2–5 ngày làm việc tùy khu vực. Phụ huynh được kiểm tra hàng trước khi thanh toán COD trên toàn quốc.</p></details>
+            <details open><summary>Con đang mất gốc có học theo sách được không?<span>+</span></summary><p>Phụ huynh nên xem trang mẫu và liên hệ CLB để chọn sách phù hợp với kiến thức hiện tại của con.</p></details>
+            <details><summary>Sách có đáp án chi tiết không?<span>+</span></summary><p>Vui lòng liên hệ CLB để xác nhận nội dung lời giải và tài liệu đi kèm của cuốn sách bạn chọn.</p></details>
+            <details><summary>Thời gian giao hàng mất bao lâu?<span>+</span></summary><p>CLB sẽ xác nhận phí vận chuyển và thời gian giao theo địa chỉ nhận sách trước khi gửi đơn.</p></details>
           </div>
         </div>
       </section>
@@ -281,7 +269,7 @@
 
     <footer class="site-footer">
       <div class="container footer-top"><div class="footer-brand"><a class="brand" href="#dau-trang"><span class="brand-mark"><img src="/assets/logo.png" alt="" /></span><span class="brand-copy"><strong>CLB TOÁN</strong><span>CÔ LÊ NGA</span></span></a><p>Vững nền tảng — Sáng tương lai</p></div><div class="footer-links"><div><span>LIÊN HỆ</span><a href="tel:0989066885">0989 066 885</a><a href="mailto:clbtoanconga@gmail.com">clbtoanconga@gmail.com</a></div><div><span>GHÉ THĂM</span><p>Số 02, Lô A7, Khu A,<br />Geleximco, Lê Trọng Tấn,<br />An Khánh, Hà Nội.</p></div><div><span>KẾT NỐI</span><a href="https://www.facebook.com/daytoanclc" target="_blank" rel="noreferrer" aria-label="Tìm Fanpage Facebook Câu Lạc Bộ Toán Cô Lê Nga">Facebook ↗</a><a href="https://www.youtube.com/@vuihoactoan382" target="_blank" rel="noreferrer" aria-label="Kênh YouTube vuihoactoan382">YouTube ↗</a></div></div></div>
-      <div class="container footer-legal"><p id="chinh-sach"><strong>Chính sách bảo mật:</strong> Thông tin phụ huynh chỉ dùng để xác nhận đơn hàng và tư vấn lộ trình học phù hợp.</p><p id="dieu-khoan"><strong>Điều khoản sử dụng:</strong> Giá ưu đãi và quà tặng áp dụng theo chương trình hiện hành của CLB Toán Cô Lê Nga.</p></div>
+      <div class="container footer-legal"><p id="chinh-sach"><strong>Chính sách bảo mật:</strong> Thông tin phụ huynh chỉ dùng để xác nhận đơn hàng và tư vấn lộ trình học phù hợp.</p><p id="dieu-khoan"><strong>Thông tin đặt sách:</strong> Giá sách 299.000đ/cuốn. Phí vận chuyển và thời gian giao được CLB xác nhận trước khi gửi đơn.</p></div>
       <div class="container footer-bottom"><span>© <span id="year"></span> CÂU LẠC BỘ TOÁN CÔ LÊ NGA</span><div><a href="#chinh-sach">Chính sách bảo mật</a><a href="#dieu-khoan">Điều khoản sử dụng</a></div><span>Được làm bằng sự tận tâm.</span></div>
     </footer>
 

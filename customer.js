@@ -232,7 +232,7 @@ function orderCard(order) {
     items.append(row);
   }
   const total = element('div', undefined, 'customer-order-total');
-  total.append(element('span', 'Tổng thanh toán · COD'), element('strong', money(order.total_vnd)));
+  total.append(element('span', 'Giá trị đơn sách'), element('strong', money(order.total_vnd)));
   card.append(header, items, total);
   if (order.status === 'cancelled') card.append(element('p', 'Đơn đã hủy. Liên hệ CLB nếu bạn cần hỗ trợ.', 'customer-order-cancelled'));
   else {

@@ -26,5 +26,6 @@ for (const table of ['products','product_media','site_content','gifts','faqs','t
     sql+=`INSERT OR IGNORE INTO ${table}(${Object.keys(row).join(',')}) VALUES(${Object.values(row).map(literal).join(',')});\n`;
   }
 }
+sql+='\n'+await readFile('database/migrations/004-catalog-corrections.sql','utf8');
 db.close(); await mkdir('cloudflare',{recursive:true}); await writeFile('cloudflare/init.sql',sql);
 console.log('Pages build ready in dist/. D1 initialization SQL: cloudflare/init.sql');

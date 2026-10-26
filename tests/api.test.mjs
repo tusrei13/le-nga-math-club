@@ -37,24 +37,25 @@ after(async()=>{
 });
 test('Danh mục chứa đúng 10 sách, giá và 10 ảnh bìa truy cập được',async()=>{
   const result=await api('/api/landing'); assert.equal(result.status,200); assert.equal(result.data.products.length,10);
-  assert.equal(result.data.faqs.length,3);assert.equal(result.data.gifts.length,3);
+  assert.equal(result.data.faqs.length,3);assert.equal(result.data.gifts.length,0);
+  assert.equal(result.data.content.sales_policy.gifts_with_order,false);
   for(const product of result.data.products) {
-    assert.ok(Number.isInteger(product.price_vnd) && product.price_vnd>0);
+    assert.equal(product.price_vnd,299000);
     const cover=product.media.find(m=>m.kind==='cover');assert.ok(cover);
     const image=await fetch(base+cover.url);assert.equal(image.status,200);assert.match(image.headers.get('content-type'),/^image\//);await image.arrayBuffer();
   }
 });
-test('Đơn lưu đúng giá phía server, snapshot và quà tặng; gửi lại không tạo đơn mới',async()=>{
+test('Đơn lưu giá 299k và snapshot; không tự thêm quà, gửi lại không tạo đơn mới',async()=>{
   const headers={'Idempotency-Key':randomUUID()};
-  const first=await api('/api/orders','POST',order,headers);assert.equal(first.status,201);assert.equal(first.data.total_vnd,417000);
+  const first=await api('/api/orders','POST',order,headers);assert.equal(first.status,201);assert.equal(first.data.total_vnd,897000);
   const replay=await api('/api/orders','POST',order,headers);assert.equal(replay.status,200);assert.equal(replay.data.id,first.data.id);
   const conflict=await api('/api/orders','POST',{...order,note:'Khác'},headers);assert.equal(conflict.status,409);
   const list=await api('/api/admin/orders','GET',undefined,adminHeaders);assert.equal(list.data.total,1);
-  assert.equal(list.data.data[0].items.length,2);assert.equal(list.data.data[0].gifts.length,3);assert.equal(list.data.data[0].parent_name,person.name);
+  assert.equal(list.data.data[0].items.length,2);assert.equal(list.data.data[0].gifts.length,0);assert.equal(list.data.data[0].parent_name,person.name);
   const update=await api('/api/admin/products/toan-6-tap-1','PATCH',{price_vnd:129000},adminHeaders);assert.equal(update.status,200);
-  const after=await api('/api/admin/orders','GET',undefined,adminHeaders);assert.equal(after.data.data[0].items.find(i=>i.product_id==='toan-6-tap-1').unit_price_vnd,119000);
-  assert.equal((await api('/api/orders','POST',order,headers)).data.total_vnd,417000);
-  await api('/api/admin/products/toan-6-tap-1','PATCH',{price_vnd:119000},adminHeaders);
+  const after=await api('/api/admin/orders','GET',undefined,adminHeaders);assert.equal(after.data.data[0].items.find(i=>i.product_id==='toan-6-tap-1').unit_price_vnd,299000);
+  assert.equal((await api('/api/orders','POST',order,headers)).data.total_vnd,897000);
+  await api('/api/admin/products/toan-6-tap-1','PATCH',{price_vnd:299000},adminHeaders);
 });
 test('Dữ liệu không hợp lệ bị từ chối, giao dịch lỗi không lưu nửa đơn',async()=>{
   for(const payload of [
@@ -97,10 +98,10 @@ test('Nội dung quản trị cập nhật được, ẩn nội dung và tính p
   assert.equal((await api('/api/admin/faqs/foundation','PATCH',{answer:'Nội dung thử nghiệm từ database.'},adminHeaders)).status,200);
   assert.equal((await api('/api/landing')).data.faqs[0].answer,'Nội dung thử nghiệm từ database.');
   assert.equal((await api('/api/admin/testimonials/parent-5','PATCH',{published:false},adminHeaders)).status,200);
-  assert.equal((await api('/api/landing')).data.testimonials.length,1);
+  assert.equal((await api('/api/landing')).data.testimonials.length,0);
   assert.equal((await api('/api/admin/content/sales_policy','PATCH',{shipping_vnd:25000,gifts_with_order:false},adminHeaders)).status,200);
   assert.equal((await api('/api/admin/content/contact','PATCH',{facebook:'javascript:alert(1)'},adminHeaders)).status,400);
-  const result=await api('/api/orders','POST',order,{'Idempotency-Key':randomUUID()});assert.equal(result.data.total_vnd,442000);
+  const result=await api('/api/orders','POST',order,{'Idempotency-Key':randomUUID()});assert.equal(result.data.total_vnd,922000);
   const rows=await api('/api/admin/orders','GET',undefined,adminHeaders);assert.equal(rows.data.data.find(row=>row.id===result.data.id).gifts.length,0);
   assert.equal((await api('/api/admin/products/toan-6-tap-1','PATCH',{cover_url:'/assets/books/Phan%20dang%20toan%20lop6%20t1.png'},adminHeaders)).status,200);
   assert.equal((await api('/api/admin/products/toan-6-tap-1','PATCH',{active:false},adminHeaders)).status,200);
