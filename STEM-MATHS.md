@@ -2,6 +2,8 @@
 
 Website mới ở thư mục `stem-maths/`, độc lập với giao diện bán sách. Hai website dùng chung D1 và trang quản trị tại `https://le-nga-books.pages.dev/admin`.
 
+Hướng dẫn bảo mật, URL Production/Preview, thu hồi phiên admin và kiểm tra dependency: [SECURITY.md](SECURITY.md).
+
 ## Chạy trên máy
 
 Tại thư mục gốc repository:

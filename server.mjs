@@ -1,3 +1,4 @@
+import {securityHeaders,policies} from './security.mjs';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, resolve, sep } from 'node:path';
@@ -17,6 +18,8 @@ const server = createServer(async (request, response) => {
   response.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   try {
     const url = new URL(request.url, `http://${request.headers.host || 'localhost'}`);
+    const policy=url.pathname.startsWith('/api/')||url.pathname==='/healthz'?policies.api:url.pathname.startsWith('/stem')?policies.stem:url.pathname.startsWith('/admin')?policies.admin:policies.books;
+    for(const [name,value] of Object.entries(securityHeaders({https:publicOrigin.startsWith('https:'),policy,sensitive:url.pathname.startsWith('/api/')||url.pathname.startsWith('/admin')||url.pathname==='/healthz'})))response.setHeader(name,value);
     if (url.pathname === '/healthz' && ['GET','HEAD'].includes(request.method)) {
       db.prepare('SELECT 1').get();
       response.writeHead(200, {'Content-Type':'application/json', 'Cache-Control':'no-store'});
@@ -41,18 +44,18 @@ const server = createServer(async (request, response) => {
     let file;
     if(Object.hasOwn(stemFiles,relative)){
       file=join(root,'stem-maths',stemFiles[relative]);
-      response.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
+      response.setHeader('Content-Security-Policy',policies.stem);
     }
     else if (Object.hasOwn(adminFiles,relative)) {
       file = join(root,adminFiles[relative]);
       response.setHeader('Cache-Control','no-store');
       response.setHeader('X-Frame-Options','DENY');
       response.setHeader('Referrer-Policy','same-origin');
-      response.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
+      response.setHeader('Content-Security-Policy',policies.admin);
     }
     else if (['index.html', 'styles.css', 'app.js', 'customer.js', 'customer.css'].includes(relative)) {
       file = join(root, relative);
-      response.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' https://www.gstatic.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://*.firebaseapp.com; frame-src https://*.firebaseapp.com https://accounts.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
+      response.setHeader('Content-Security-Policy', policies.books);
     }
     else if (relative === 'manus-routes.json' || relative.startsWith('assets/')) file = resolve(publicRoot, relative);
     else if (relative.startsWith('public/assets/')) file = resolve(publicRoot, relative.slice(7));

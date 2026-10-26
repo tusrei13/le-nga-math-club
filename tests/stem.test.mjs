@@ -80,5 +80,5 @@ test('STEM builds from root and Cloudflare project root without shipping private
   execFileSync(process.execPath,['scripts/build-stem.mjs']);
   execFileSync(process.execPath,['../scripts/build-stem.mjs'],{cwd:resolve('stem-maths')});
   for(const file of ['index.html','app.js','styles.css','_worker.js','_routes.json','assets/logo.png','assets/teacher-le-nga.jpg'])assert.equal(existsSync('stem-maths/dist-stem/'+file),true);
-  for(const file of ['server.mjs','stem-api.mjs','wrangler.toml','package.json','.env','data/landing.sqlite','database/migrations/005-stem-maths.sql'])assert.equal(existsSync('stem-maths/dist-stem/'+file),false);
+  for(const file of ['server.mjs','stem-api.mjs','security.mjs','edge-rate-limit.mjs','wrangler.toml','package.json','.env','data/landing.sqlite','database/migrations/005-stem-maths.sql'])assert.equal(existsSync('stem-maths/dist-stem/'+file),false);
 });

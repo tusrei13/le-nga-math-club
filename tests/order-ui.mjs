@@ -228,7 +228,7 @@ try {
   await evaluate(`document.querySelector('[data-grade="7"]').click();document.querySelector('input[name="level"][value="advanced"]').click();document.querySelector('#specialist-goal').click()`);
   assert.equal(await evaluate(`document.querySelector('#chosen-program').textContent`),'Nâng cao · Lớp 7 · Định hướng thi chuyên');
   await cdp('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
-  await evaluate(`document.querySelector('#tu-van').scrollIntoView({behavior:'instant'});const f=document.querySelector('#enquiry-form');f.elements.name.value='Phụ huynh STEM';f.elements.phone.value='0989066885';f.elements.note.value='Muốn trao đổi chương trình nâng cao';f.elements.consent.checked=true`);
+  await evaluate(`document.querySelector('#tu-van').scrollIntoView({behavior:'instant'});const f=document.querySelector('#enquiry-form');f.elements.name.value='Phụ huynh STEM';f.elements.phone.value='0989066885';f.elements.note.value='Muốn trao đổi chương trình nâng cao <img src=x onerror="window.__stemXss=true">';f.elements.consent.checked=true`);
   assert.equal(await evaluate(`document.documentElement.scrollWidth<=innerWidth`),true);
   await screenshot('stem-enquiry-mobile.png');
   await evaluate(`document.querySelector('#enquiry-form').requestSubmit()`);
@@ -305,6 +305,8 @@ try {
   await evaluate(`document.querySelector('.detail-button').click()`);
   await until(()=>evaluate(`document.querySelector('.stem-notes textarea')`),'STEM admin details');
   assert.equal(await evaluate(`document.querySelector('#detail-content').textContent.includes('Nâng cao · Lớp 7')`),true);
+  assert.equal(await evaluate(`document.querySelector('#detail-content').textContent.includes('<img src=x onerror=')`),true);
+  assert.equal(await evaluate(`Boolean(window.__stemXss)||Boolean(document.querySelector('#detail-content [onerror]'))`),false);
   await evaluate(`document.querySelector('.stem-notes textarea').value='Đã hẹn trao đổi tại CLB';document.querySelector('.stem-notes').requestSubmit()`);
   await until(()=>evaluate(`document.querySelector('#detail-message').textContent==='Đã lưu ghi chú.'`),'STEM staff notes');
   for(const status of ['contacted','advising','enrolled']){

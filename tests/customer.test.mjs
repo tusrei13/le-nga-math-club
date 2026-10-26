@@ -41,3 +41,22 @@ test('D1 customer orders isolate owners and ignore a forged client customer_id',
     assert.equal(db.prepare('SELECT count(*) n FROM customer_orders').get().n,1);
   }finally{globalThis.fetch=original;db.close();}
 });
+test('Firebase token revocation, disabled users and upstream failures fail closed',async()=>{
+  const original=globalThis.fetch,now=Math.floor(Date.now()/1000);
+  const token=authTime=>`${Buffer.from('{"alg":"RS256"}').toString('base64url')}.${Buffer.from(JSON.stringify({aud:'test-project',iss:'https://securetoken.google.com/test-project',sub:'alice',exp:now+3600,auth_time:authTime})).toString('base64url')}.signature`;
+  const request=authTime=>new Request('https://site.test',{headers:{Authorization:'Bearer '+token(authTime)}});
+  try{
+    globalThis.fetch=async()=>new Response(JSON.stringify({users:[{localId:'alice',validSince:String(now-100),emailVerified:true}]}));
+    await assert.rejects(customer(request(now-200),envConfig),error=>error.status===401);
+    assert.equal((await customer(request(now),envConfig)).id,'test-project:alice');
+    globalThis.fetch=async()=>new Response('{"users":[{"localId":"alice","disabled":true}]}');
+    await assert.rejects(customer(request(now),envConfig),error=>error.status===401);
+    globalThis.fetch=async()=>new Response('<html>Temporary failure</html>',{status:502});
+    await assert.rejects(customer(request(now),envConfig),error=>error.status===503);
+    globalThis.fetch=async()=>new Response('{"error":{"message":"QUOTA_EXCEEDED"}}',{status:429});
+    await assert.rejects(customer(request(now),envConfig),error=>error.status===503);
+    globalThis.fetch=async()=>{throw new Error('must not verify malformed claims');};
+    const malformed=`${Buffer.from('{}').toString('base64url')}.${Buffer.from('null').toString('base64url')}.signature`;
+    await assert.rejects(customer(new Request('https://site.test',{headers:{Authorization:'Bearer '+malformed}}),envConfig),error=>error.status===401);
+  }finally{globalThis.fetch=original;}
+});

@@ -1,3 +1,4 @@
+import {SecurityError,validateJsonHeaders,isJsonType} from './security.mjs';
 import { randomUUID, createHash } from 'node:crypto';
 import { db, products, landing, transaction } from './database/db.mjs';
 import { AuthError, authorizeAdmin, handleAuth, sameOrigin } from './auth.mjs';
@@ -14,6 +15,7 @@ function json(response,status,data) {
   response.end(JSON.stringify(data));
 }
 async function body(request) {
+  validateJsonHeaders(request.headers);
   const chunks=[]; let size=0;
   for await (const chunk of request) {
     size+=chunk.length; if(size>32768) throw new ApiError(413,'Nội dung yêu cầu quá lớn.');
@@ -81,7 +83,7 @@ export async function handleApi(request,response,url) {
     if(path==='/api/products' && method==='GET') return json(response,200,{products:products()});
     if(['/api/orders','/api/consultations'].includes(path) && method==='POST') {
       sameOrigin(request);
-      if (!request.headers['content-type']?.startsWith('application/json')) throw new ApiError(415,'Yêu cầu phải dùng JSON.');
+      if (!isJsonType(request.headers['content-type'])) throw new ApiError(415,'Yêu cầu phải dùng JSON.');
       const retry = publicLimit(clientAddress(request));
       if (retry) { response.setHeader('Retry-After',String(retry)); throw new ApiError(429,'Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau.'); }
       const input=await body(request), person=contact(input), requestKey=key(request);
@@ -236,7 +238,7 @@ export async function handleApi(request,response,url) {
     }
     throw new ApiError(404,'API không tồn tại.');
   } catch(error) {
-    if(!(error instanceof ApiError) && !(error instanceof AuthError) && !(error instanceof CustomerError) && !(error instanceof StemError)) console.error(error);
+    if(!(error instanceof ApiError) && !(error instanceof AuthError) && !(error instanceof CustomerError) && !(error instanceof StemError) && !(error instanceof SecurityError)) console.error('API failure',error.name);
     json(response,error.status || 500,{error:error.status?error.message:'Không thể xử lý yêu cầu. Vui lòng thử lại.'});
   }
 }

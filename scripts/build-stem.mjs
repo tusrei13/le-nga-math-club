@@ -1,3 +1,4 @@
+import {staticSecurityHeaders,policies} from '../security.mjs';
 import {cp,mkdir,writeFile,rm,readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {resolve} from 'node:path';
@@ -11,7 +12,7 @@ for(const file of ['index.html','styles.css','app.js'])await cp(resolve(site,fil
 for(const file of ['logo.png','teacher-le-nga.jpg'])await cp(resolve(root,'public/assets',file),resolve(output,'assets',file));
 await build({entryPoints:[resolve(site,'worker.mjs')],outfile:resolve(output,'_worker.js'),bundle:true,platform:'neutral',format:'esm',external:['node:crypto']});
 await writeFile(resolve(output,'_routes.json'),JSON.stringify({version:1,include:['/api/*','/healthz','/robots.txt','/sitemap.xml','/admin'],exclude:[]}));
-await writeFile(resolve(output,'_headers'),"/*\n  X-Content-Type-Options: nosniff\n  X-Frame-Options: DENY\n  Referrer-Policy: strict-origin-when-cross-origin\n  Permissions-Policy: camera=(), microphone=(), geolocation=()\n  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'\n");
+await writeFile(resolve(output,'_headers'),staticSecurityHeaders(policies.stem));
 await writeFile(resolve(output,'404.html'),'<!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Không tìm thấy trang · STEM Maths</title><link rel="stylesheet" href="/styles.css"><main class="wrap section"><h1>Không tìm thấy trang.</h1><p><a href="/">Về STEM Maths</a></p></main></html>');
 // Validate that the shared D1 migration is present, without copying SQL into public output.
 await readFile(resolve(root,'database/migrations/005-stem-maths.sql'),'utf8');

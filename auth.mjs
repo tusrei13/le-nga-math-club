@@ -1,13 +1,15 @@
+import {isJsonType} from './security.mjs';
 import { randomBytes, createHash, timingSafeEqual } from 'node:crypto';
 import { db } from './database/db.mjs';
 import { verifyPassword } from './passwords.mjs';
-import { publicOrigin, clientAddress } from './runtime.mjs';
+import { publicOrigin, clientAddress, createRateLimiter } from './runtime.mjs';
 
 export class AuthError extends Error { constructor(status, message) { super(message); this.status = status; } }
 const cookieName = 'clb_admin_session';
 const lifetime = 8 * 60 * 60 * 1000;
 const idleTime = 30 * 60 * 1000;
 const failures = new Map();
+const accountAttempts = createRateLimiter({limit:30});
 let activeLogins = 0;
 const dummyHash = `scrypt:${'0'.repeat(32)}:${'0'.repeat(128)}`;
 const digest = token => createHash('sha256').update(token).digest('hex');
@@ -60,7 +62,7 @@ export async function handleAuth(request, response, pathname, readBody, sendJson
   }
   if (pathname === '/api/auth/login' && request.method === 'POST') {
     sameOrigin(request);
-    if (!request.headers['content-type']?.startsWith('application/json')) throw new AuthError(415, 'Yêu cầu JSON không hợp lệ.');
+    if (!isJsonType(request.headers['content-type'])) throw new AuthError(415, 'Yêu cầu JSON không hợp lệ.');
     const input = await readBody(request);
     if (typeof input.username !== 'string' || input.username.length > 64 || typeof input.password !== 'string' || !input.password.length || input.password.length > 256)
       throw new AuthError(400, 'Vui lòng nhập tên đăng nhập và mật khẩu hợp lệ.');
@@ -68,6 +70,8 @@ export async function handleAuth(request, response, pathname, readBody, sendJson
     for (const [address, entry] of failures) if (entry.until <= now) failures.delete(address);
     const attempts = failures.get(ip);
     if (attempts?.count >= 5 || activeLogins >= 2 || (!attempts && failures.size >= 10000)) throw new AuthError(429, 'Đã thử đăng nhập quá nhiều lần. Vui lòng thử lại sau 15 phút.');
+    const retry=accountAttempts(input.username.trim().toLowerCase());
+    if(retry){response.setHeader('Retry-After',String(retry));throw new AuthError(429,'Đã thử đăng nhập quá nhiều lần. Vui lòng thử lại sau 15 phút.');}
     const user = db.prepare('SELECT * FROM admin_users WHERE username=? COLLATE NOCASE').get(input.username.trim());
     activeLogins++;
     let valid;

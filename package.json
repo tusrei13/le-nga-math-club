@@ -16,7 +16,7 @@
     "pages:deploy": "wrangler pages deploy dist",
     "admin:create": "node database/create-admin.mjs",
     "admin:reset": "node database/create-admin.mjs --reset",
-    "test": "node --test tests/api.test.mjs tests/runtime.test.mjs tests/deploy.test.mjs tests/customer.test.mjs tests/pages-admin.test.mjs tests/stem.test.mjs",
+    "test": "node --test tests/api.test.mjs tests/runtime.test.mjs tests/deploy.test.mjs tests/customer.test.mjs tests/pages-admin.test.mjs tests/stem.test.mjs tests/security.test.mjs",
     "test:ui": "node tests/order-ui.mjs"
   },
   "engines": {
@@ -25,5 +25,8 @@
   "devDependencies": {
     "esbuild": "^0.28.2",
     "wrangler": "^4.149.0"
+  },
+  "overrides": {
+    "undici": "^7.30.1"
   }
 }

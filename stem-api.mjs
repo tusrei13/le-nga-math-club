@@ -1,3 +1,5 @@
+import {readJson} from './security.mjs';
+import {edgeRateLimit} from './edge-rate-limit.mjs';
 import { createHash,randomUUID } from 'node:crypto';
 export class StemError extends Error {constructor(status,message){super(message);this.status=status;}}
 const check=(value,message,status=400)=>{if(!value)throw new StemError(status,message);};
@@ -10,14 +12,9 @@ const all=async(db,sql,...args)=>(await query(db,sql,...args).all()).results;
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY'}});
 function text(value,label,max,required=true){check(typeof value==='string'||(!required&&value==null),`${label} không hợp lệ.`);const result=(value||'').trim();check(result.length<=max&&(!required||result.length>0),`${label} không hợp lệ.`);return result;}
 async function readBody(request){
-  check(request.headers.get('Content-Type')?.startsWith('application/json'),'Yêu cầu phải dùng JSON.',415);
   const origin=request.headers.get('Origin');
   check(request.headers.get('Sec-Fetch-Site')!=='cross-site'&&(!origin||origin===new URL(request.url).origin),'Nguồn yêu cầu không hợp lệ.',403);
-  const reader=request.body?.getReader();check(reader,'Thiếu dữ liệu.');let size=0;const chunks=[];
-  while(true){const {value,done}=await reader.read();if(done)break;size+=value.length;if(size>32768){await reader.cancel();throw new StemError(413,'Nội dung quá dài.');}chunks.push(value);}
-  const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
-  let result;try{result=JSON.parse(new TextDecoder().decode(bytes));}catch{throw new StemError(400,'Dữ liệu không hợp lệ.');}
-  check(result&&typeof result==='object'&&!Array.isArray(result),'Dữ liệu không hợp lệ.');return result;
+  return readJson(request);
 }
 export async function stemSummary(db){
   if(!await first(db,"SELECT name FROM sqlite_master WHERE type='table' AND name='stem_enquiries'"))return {};
@@ -31,9 +28,8 @@ export async function handleStemApi(request,db,admin){
   if(path==='/api/stem/enquiries'&&method==='POST'){
     const input=await readBody(request),key=request.headers.get('Idempotency-Key');
     check(/^[a-zA-Z0-9-]{16,100}$/.test(key||''),'Thiếu mã xác nhận yêu cầu.');
-    const now=Date.now(),bucket=Math.floor(now/900000),rateKey=hash(`stem:${request.headers.get('CF-Connecting-IP')||'local'}:${bucket}`);
-    const attempts=await first(db,'INSERT INTO edge_rate_limits(key,count,expires_at) VALUES(?,1,?) ON CONFLICT(key) DO UPDATE SET count=count+1 RETURNING count',rateKey,(bucket+1)*900000);
-    check(attempts.count<=20,'Bạn đã gửi nhiều yêu cầu. Vui lòng thử lại sau 15 phút.',429);
+    const now=Date.now();
+    await edgeRateLimit(db,'stem',request.headers.get('CF-Connecting-IP')||'local',20,now);
     check(!input.website,'Không thể gửi yêu cầu.');check(input.consent===true,'Vui lòng đồng ý để CLB liên hệ tư vấn.');
     const name=text(input.name,'Họ tên phụ huynh',120),phone=text(input.phone,'Số điện thoại',30).replace(/[\s().-]/g,'').replace(/^\+84/,'0').replace(/^84(?=\d{9}$)/,'0');
     check(/^0[35789]\d{8}$/.test(phone),'Số điện thoại không hợp lệ.');
