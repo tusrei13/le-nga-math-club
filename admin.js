@@ -1,6 +1,6 @@
 const $ = selector => document.querySelector(selector);
-const labels = { pending:'Mới nhận', confirmed:'Chờ giao', shipping:'Đang giao', completed:'Hoàn tất', cancelled:'Đã hủy', new:'Chưa liên hệ', contacted:'Đã liên hệ', resolved:'Đã tư vấn' };
-const states = { orders:['pending','confirmed','shipping','completed','cancelled'], consultations:['new','contacted','resolved','cancelled'] };
+const labels = { pending:'Mới nhận', confirmed:'Chờ giao', shipping:'Đang giao', completed:'Hoàn tất', cancelled:'Đã hủy', new:'Chưa liên hệ', contacted:'Đã liên hệ', resolved:'Đã tư vấn',advising:'Đang tư vấn',enrolled:'Đã xếp lớp' };
+const states = { orders:['pending','confirmed','shipping','completed','cancelled'], consultations:['new','contacted','resolved','cancelled'],'stem-enquiries':['new','contacted','advising','enrolled','cancelled'] };
 const currency = value => `${new Intl.NumberFormat('vi-VN').format(value)}đ`;
 const dateFormat = new Intl.DateTimeFormat('vi-VN', { dateStyle:'short', timeStyle:'short', timeZone:'Asia/Bangkok' });
 const date = value => dateFormat.format(new Date(value.replace(' ','T') + 'Z'));
@@ -61,6 +61,7 @@ async function loadSummary() {
   }
   $('#order-badge').textContent = data.orders.pending || 0;
   $('#consultation-badge').textContent = data.consultations.new || 0;
+  $('#stem-badge').textContent = data.stem_enquiries?.new || 0;
 }
 async function loadList() {
   syncSummaryFilter();
@@ -90,7 +91,7 @@ async function loadList() {
         const copy=element('div');
         copy.append(element('span',row.items.map(item=>item.title).join(' · '),'cell-title'),element('span',`${books} cuốn · Thanh toán COD`,'cell-meta'));
         content.append(thumbnails,copy,element('strong',currency(row.total_vnd),'request-total'));
-      } else content.append(element('span',`Tư vấn sách cho lớp ${row.grade}`,'cell-title'),element('span',row.note ? row.note.slice(0,65) + (row.note.length>65?'…':'') : 'Chưa có ghi chú','cell-meta'));
+      } else content.append(element('span',table==='stem-enquiries'?row.program_title+(row.specialist_goal?' · Định hướng thi chuyên':''):`Tư vấn sách cho lớp ${row.grade}`,'cell-title'),element('span',row.note ? row.note.slice(0,65) + (row.note.length>65?'…':'') : 'Chưa có ghi chú','cell-meta'));
       const action = element('div',undefined,'request-footer'), button = element('button','Mở phiếu →','detail-button'); button.type='button';
       button.setAttribute('aria-label',`Xem ${table==='orders'?'đơn sách':'tư vấn'} của ${row.parent_name}`);
       button.addEventListener('click',()=>openDetail(table,row.id)); action.append(element('time',date(row.created_at)),button);
@@ -117,8 +118,8 @@ function selectInbox(table, status = '') {
   closeDetail();
   inbox = table; offset = 0;
   document.querySelectorAll('[data-inbox]').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.inbox === table)));
-  $('#inbox-title').textContent = table === 'orders' ? 'Đơn sách' : 'Yêu cầu tư vấn';
-  $('#inbox-description').textContent = table === 'orders' ? 'Nhận đơn, xác nhận với phụ huynh và theo dõi giao sách.' : 'Liên hệ phụ huynh và tìm sách phù hợp với con.';
+  $('#inbox-title').textContent = table === 'orders' ? 'Đơn sách' : table==='stem-enquiries'?'Tư vấn STEM Maths':'Yêu cầu tư vấn';
+  $('#inbox-description').textContent = table === 'orders' ? 'Nhận đơn, xác nhận với phụ huynh và theo dõi giao sách.' : table==='stem-enquiries'?'Trao đổi chương trình Toán offline, ghi chú và xác nhận xếp lớp.':'Liên hệ phụ huynh và tìm sách phù hợp với con.';
   $('#search-input').value=''; populateFilter(); $('#status-filter').value=status; loadList();
 }
 function syncSummaryFilter() {
@@ -153,6 +154,7 @@ function renderDetail(row,table) {
   addField(fields,'Số điện thoại',phone);addField(fields,'Lớp của con',`Lớp ${row.grade}`);
   addField(fields,'Ngày nhận',date(row.created_at));addField(fields,'Cập nhật gần nhất',date(row.updated_at));
   if(table==='orders') addField(fields,'Địa chỉ nhận sách',row.address,true);
+  if(table==='stem-enquiries'){addField(fields,'Chương trình',row.program_title,true);addField(fields,'Định hướng thi chuyên',row.specialist_goal?'Có':'Chưa chọn');addField(fields,'Hình thức','Học trực tiếp tại CLB');}
   addField(fields,'Ghi chú',row.note || 'Không có ghi chú.',true);container.append(fields);
   if(table==='orders') {
     const books=element('section',undefined,'detail-section');books.append(element('h3','Sách trong đơn'));
@@ -168,10 +170,20 @@ function renderDetail(row,table) {
     if(row.gifts.length) books.append(element('p',`Quà kèm theo: ${row.gifts.map(g=>g.title).join(', ')}`,'cell-meta'));
     container.append(books);
   }
+  if(table==='stem-enquiries'){
+    const notes=element('form',undefined,'detail-section stem-notes');
+    const label=element('label','Ghi chú nội bộ'),input=element('textarea');input.value=row.staff_note;input.maxLength=2000;input.rows=3;label.append(input);
+    const save=element('button','Lưu ghi chú','secondary-button'),status=element('p',undefined,'message');save.type='submit';status.setAttribute('role','status');
+    notes.append(label,save,status);container.append(notes);
+    notes.addEventListener('submit',async event=>{event.preventDefault();save.disabled=true;const version=detailSequence;
+      try{const result=await request(`/api/admin/stem-enquiries/${row.id}/notes`,{method:'PATCH',data:{staff_note:input.value,expected_note:row.staff_note}});if(version!==detailSequence)return;row.staff_note=result.staff_note;const updated=await request(`/api/admin/stem-enquiries/${row.id}`);if(version===detailSequence&&auth){renderDetail(updated,table);$('#detail-message').textContent='Đã lưu ghi chú.';}}
+      catch(error){status.textContent=error.message;}finally{save.disabled=false;}
+    });
+  }
   const history=element('section',undefined,'detail-section');history.append(element('h3','Lịch sử xử lý'));
   const list=element('ol',undefined,'history');
   for(const item of row.history) {
-    const line=element('li');line.append(element('span',`${item.from_status ? `${labels[item.from_status]} → ` : ''}${labels[item.to_status]}`),element('time',date(item.created_at)));list.append(line);
+    const line=element('li');line.append(element('span',item.event_type==='note'?'Cập nhật ghi chú nội bộ':`${item.from_status ? `${labels[item.from_status]} → ` : ''}${labels[item.to_status]}`),element('time',date(item.created_at)));list.append(line);
   }
   history.append(list);container.append(history);
   const select=$('#next-status');select.replaceChildren();
@@ -197,7 +209,7 @@ function closeDetail() {
   document.querySelectorAll('.request-card').forEach(card=>card.classList.remove('is-selected'));
 }
 function updateActionLabel() {
-  const actions={confirmed:'Xác nhận đơn',shipping:'Bắt đầu giao sách',completed:'Hoàn tất đơn',cancelled:'Hủy yêu cầu',contacted:'Đánh dấu đã liên hệ',resolved:'Hoàn tất tư vấn'};
+  const actions={confirmed:'Xác nhận đơn',shipping:'Bắt đầu giao sách',completed:'Hoàn tất đơn',cancelled:'Hủy yêu cầu',contacted:'Đánh dấu đã liên hệ',resolved:'Hoàn tất tư vấn',advising:'Bắt đầu tư vấn',enrolled:'Xác nhận đã xếp lớp'};
   $('#save-status').textContent=actions[$('#next-status').value] || 'Cập nhật trạng thái';
 }
 mobileDetail.addEventListener('change',()=>{

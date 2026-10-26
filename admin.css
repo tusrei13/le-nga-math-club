@@ -51,7 +51,7 @@ input::placeholder { color:var(--muted); }
 .admin-brand img { width:44px; height:44px; border-radius:50%; object-fit:cover; }
 .admin-brand>span { border-left:2px solid var(--brand-gold); padding-left:14px; line-height:1.7; }
 .admin-brand strong { display:block; color:var(--brand-gold); font-size:25px; font-weight:600; letter-spacing:-.025em; line-height:1.3; white-space:nowrap; }
-.inbox-tabs { display:flex; gap:14px; }
+.inbox-tabs { display:flex; gap:10px; flex-wrap:wrap; }
 .inbox-tabs button { position:relative; display:flex; align-items:center; gap:10px; border:0; background:transparent; color:#cdd5eb; padding:14px 18px; font-size:17px; font-weight:500; border-radius:0; }
 .inbox-tabs button:hover { color:white; }
 .inbox-tabs [aria-pressed="true"] { color:white; font-weight:700; }
@@ -145,6 +145,9 @@ dialog::backdrop { background:#29315f77; }
 .detail-grid dd { margin:0; font-size:16px; overflow-wrap:anywhere; white-space:pre-wrap; }
 .detail-wide { grid-column:1/-1; }
 .detail-section { border-top:1px solid var(--line); margin-top:24px; padding-top:20px; }
+.stem-notes { display:grid; gap:12px; }
+.stem-notes textarea { width:100%; min-height:110px; resize:vertical; padding:12px; border:1px solid var(--line); border-radius:4px; background:white; color:var(--ink); font:16px/1.6 var(--sans); }
+.stem-notes button { justify-self:start; }
 .detail-section h3 { font-size:17px; margin-bottom:14px; }
 .detail-book { display:grid; grid-template-columns:40px minmax(0,1fr) auto; align-items:center; gap:12px; padding:10px 0; font-size:15px; }
 .detail-book.without-cover { grid-template-columns:minmax(0,1fr) auto; }

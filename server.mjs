@@ -33,11 +33,17 @@ const server = createServer(async (request, response) => {
     if (url.pathname.startsWith('/api/')) return await handleApi(request, response, url);
     if (!['GET', 'HEAD'].includes(request.method)) { response.writeHead(405); response.end(); return; }
     const pathname = decodeURIComponent(url.pathname);
+    if(pathname==='/stem'){response.writeHead(302,{Location:'/stem/'});response.end();return;}
     const relative = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
     const adminFiles = { admin:'admin.html', 'admin/':'admin.html', 'admin.html':'admin.html', 'admin.js':'admin.js', 'admin.css':'admin.css' };
+    const stemFiles={'stem/':'index.html','stem/index.html':'index.html','stem/styles.css':'styles.css','stem/app.js':'app.js'};
     const publicRoot = resolve(root, 'public');
     let file;
-    if (Object.hasOwn(adminFiles,relative)) {
+    if(Object.hasOwn(stemFiles,relative)){
+      file=join(root,'stem-maths',stemFiles[relative]);
+      response.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
+    }
+    else if (Object.hasOwn(adminFiles,relative)) {
       file = join(root,adminFiles[relative]);
       response.setHeader('Cache-Control','no-store');
       response.setHeader('X-Frame-Options','DENY');
@@ -50,7 +56,7 @@ const server = createServer(async (request, response) => {
     }
     else if (relative === 'manus-routes.json' || relative.startsWith('assets/')) file = resolve(publicRoot, relative);
     else if (relative.startsWith('public/assets/')) file = resolve(publicRoot, relative.slice(7));
-    if (!file || (!Object.hasOwn(adminFiles,relative) && !['index.html', 'styles.css', 'app.js', 'customer.js', 'customer.css'].includes(relative) && !file.startsWith(publicRoot + sep))) {
+    if (!file || (!Object.hasOwn(stemFiles,relative) && !Object.hasOwn(adminFiles,relative) && !['index.html', 'styles.css', 'app.js', 'customer.js', 'customer.css'].includes(relative) && !file.startsWith(publicRoot + sep))) {
       response.writeHead(404); response.end('Not found'); return;
     }
     const data = await readFile(file);

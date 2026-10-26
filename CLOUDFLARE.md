@@ -1,5 +1,7 @@
 # Deploy miễn phí lên Cloudflare Pages + D1
 
+Trang STEM Maths có project và cấu hình build riêng; xem [STEM-MATHS.md](STEM-MATHS.md). Root directory của project STEM là `stem-maths`, không dùng cấu hình build trang sách bên dưới.
+
 Pages phục vụ giao diện; Pages Function trong `cloudflare/worker.mjs` xử lý API; D1 lưu sách, đơn, tư vấn và phiên quản trị. Không upload toàn bộ thư mục dự án. Không đưa file SQLite hay mật khẩu vào Git.
 
 ## Chuẩn bị trên máy

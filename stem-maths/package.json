@@ -1,0 +1,13 @@
+{
+  "name": "stem-maths-co-nga",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:stem": "node ../scripts/build-stem.mjs",
+    "start": "node ../server.mjs",
+    "pages:dev": "wrangler pages dev dist-stem"
+  },
+  "engines": {"node": ">=22.16.0"},
+  "devDependencies": {"esbuild": "^0.28.2", "wrangler": "^4.149.0"}
+}

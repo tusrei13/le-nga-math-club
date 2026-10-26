@@ -1,0 +1,9 @@
+name = "stem-maths-co-nga"
+pages_build_output_dir = "./dist-stem"
+compatibility_date = "2026-10-13"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "le-nga-books"
+database_id = "46d7dd72-70ae-4fa1-8c65-a2ea812b2450"

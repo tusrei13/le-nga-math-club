@@ -2,6 +2,8 @@
 
 Landing page bán 10 đầu sách, đặt sách COD và gửi yêu cầu tư vấn. Dữ liệu lưu trong SQLite; frontend và API chạy chung bằng Node.js.
 
+STEM Maths là landing page thứ hai dành cho chương trình Toán offline lớp 3–9. Chạy `npm run build:stem`, xem local tại `/stem/`; hướng dẫn Cloudflare và D1 trong [STEM-MATHS.md](STEM-MATHS.md).
+
 ## Chạy dự án
 
 Cần Node.js **22.16 trở lên** (khuyến nghị Node.js 24). Bản Node không cần package runtime; Wrangler và esbuild dùng để build Cloudflare.

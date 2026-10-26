@@ -1,6 +1,7 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { customer, firebaseConfig, CustomerError } from '../customer-auth.mjs';
 import { verifyPagesAdmin } from '../pages-admin-auth.mjs';
+import {handleStemApi,stemSummary,StemError} from '../stem-api.mjs';
 const hash=value=>createHash('sha256').update(value).digest('hex');
 const token=()=>randomBytes(32).toString('hex');
 const equal=(a,b)=>{const x=Buffer.from(a||''),y=Buffer.from(b||'');return x.length===y.length&&timingSafeEqual(x,y);};
@@ -23,6 +24,7 @@ async function products(db){const list=await all(db,'SELECT * FROM products WHER
 async function hydrate(db,table,row){if(table==='orders'){row.items=await all(db,'SELECT product_id,title,unit_price_vnd,quantity FROM order_items WHERE order_id=?',row.id);row.gifts=await all(db,'SELECT gift_id,title FROM order_gifts WHERE order_id=?',row.id);}return row;}
 function receipt(row){return {id:row.id,status:row.status,...(row.total_vnd!==undefined?{subtotal_vnd:row.subtotal_vnd,shipping_vnd:row.shipping_vnd,total_vnd:row.total_vnd}:{}),created_at:row.created_at};}
 async function api(request,env){const db=env.DB;fail(db,'Chưa cấu hình D1 binding DB.',503);const url=new URL(request.url),path=url.pathname,method=request.method;
+  if(path.startsWith('/api/stem/')||path.startsWith('/api/admin/stem-enquiries'))return handleStemApi(request,db,path.startsWith('/api/admin/')?await authorize(db,request):undefined);
   if(path==='/api/customer/config'&&method==='GET')return response(firebaseConfig(env));
   if(path==='/api/customer/me'&&method==='GET')return response(await customer(request,env));
   if(path==='/api/customer/orders'&&method==='GET') {
@@ -49,7 +51,7 @@ async function api(request,env){const db=env.DB;fail(db,'Chưa cấu hình D1 bi
   }
   if(path.startsWith('/api/admin/')){
     await authorize(db,request);
-    if(path==='/api/admin/summary'&&method==='GET'){const result={};for(const table of ['orders','consultations'])result[table]=Object.fromEntries((await all(db,`SELECT status,count(*) AS count FROM ${table} GROUP BY status`)).map(r=>[r.status,r.count]));return response(result);}
+    if(path==='/api/admin/summary'&&method==='GET'){const result={};for(const table of ['orders','consultations'])result[table]=Object.fromEntries((await all(db,`SELECT status,count(*) AS count FROM ${table} GROUP BY status`)).map(r=>[r.status,r.count]));result.stem_enquiries=await stemSummary(db);return response(result);}
     const match=path.match(/^\/api\/admin\/(orders|consultations)(?:\/([^/]+)(\/status)?)?$/);if(match){const [,table,id,change]=match;
       if(!id&&method==='GET'){const limit=Math.min(100,Math.max(1,Number(url.searchParams.get('limit')||20))),offset=Number(url.searchParams.get('offset')||0),q=text(url.searchParams.get('q')||'','Recherche',120,false),status=url.searchParams.get('status')||'';fail(Number.isInteger(limit)&&Number.isSafeInteger(offset)&&offset>=0,'Phân trang không hợp lệ.');fail(!status||Object.hasOwn(states[table],status),'Trạng thái không hợp lệ.');const like='%'+q.replace(/[\\%_]/g,'\\$&')+'%',where="WHERE (?='' OR status=?) AND (parent_name LIKE ? ESCAPE '\\' OR phone LIKE ? ESCAPE '\\' OR id LIKE ? ESCAPE '\\')",args=[status,status,like,like,like];const count=await first(db,`SELECT count(*) AS total FROM ${table} ${where}`,...args);const rows=await all(db,`SELECT * FROM ${table} ${where} ORDER BY created_at DESC,id DESC LIMIT ? OFFSET ?`,...args,limit,offset);if(table==='orders'&&rows.length){const ids=rows.map(row=>row.id),marks=ids.map(()=>'?').join(',');const items=await all(db,`SELECT order_id,product_id,title,unit_price_vnd,quantity FROM order_items WHERE order_id IN (${marks})`,...ids);const gifts=await all(db,`SELECT order_id,gift_id,title FROM order_gifts WHERE order_id IN (${marks})`,...ids);for(const row of rows){row.items=items.filter(item=>item.order_id===row.id);row.gifts=gifts.filter(gift=>gift.order_id===row.id);}}return response({data:rows,total:count.total});}
       const row=await first(db,`SELECT * FROM ${table} WHERE id=?`,id);fail(row,'Không tìm thấy yêu cầu.',404);
@@ -66,4 +68,4 @@ export default {async fetch(request,env){const url=new URL(request.url);try{
   if(url.pathname==='/robots.txt')return new Response(`User-agent: *\nDisallow: /admin\nDisallow: /api/\nSitemap: ${url.origin}/sitemap.xml\n`,{headers:{'Content-Type':'text/plain'}});
   if(url.pathname==='/sitemap.xml')return new Response(`<?xml version="1.0"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${url.origin}</loc></url></urlset>`,{headers:{'Content-Type':'application/xml'}});
   const asset=await env.ASSETS.fetch(new Request(url,request));const result=new Response(asset.body,asset);if(url.pathname.startsWith('/admin')){result.headers.set('Cache-Control','no-store');result.headers.set('X-Frame-Options','DENY');result.headers.set('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");}return result;
-}catch(error){if(!(error instanceof Failure)&&!(error instanceof CustomerError))console.error('Pages API failure',error.message);return response({error:error instanceof Failure||error instanceof CustomerError?error.message:'Không thể xử lý yêu cầu.'},error.status||500,error.status===429?{'Retry-After':'900'}:{});}}};
+}catch(error){if(!(error instanceof Failure)&&!(error instanceof CustomerError)&&!(error instanceof StemError))console.error('Pages API failure',error.message);return response({error:error instanceof Failure||error instanceof CustomerError||error instanceof StemError?error.message:'Không thể xử lý yêu cầu.'},error.status||500,error.status===429?{'Retry-After':'900'}:{});}}};

@@ -26,6 +26,7 @@
 node_modules/
 /coverage/
 /dist/
+/stem-maths/dist-stem/
 /logs/
 *.log
 *.log.*

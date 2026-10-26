@@ -168,6 +168,20 @@ try {
   await until(()=>evaluate(`document.querySelector('#customer-entry-label').textContent==='Đăng nhập'`),'parent logout');
   assert.equal(await evaluate(`document.querySelector('#customer-avatar').children.length`),0);
   await cdp('Fetch.disable');customerFixture=undefined;
+  await cdp('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});
+  await cdp('Page.navigate',{url:`http://127.0.0.1:${port}/stem/`});
+  await until(()=>evaluate(`document.querySelector('#program-title')?.textContent==='Cơ bản · Lớp 6' && !document.querySelector('#enquiry-submit').disabled`),'STEM programs');
+  await screenshot('stem-desktop.png');
+  await evaluate(`document.querySelector('[data-grade="3"]').click()`);
+  assert.equal(await evaluate(`document.querySelector('#specialist-choice').hidden && document.querySelector('#form-specialist-label').hidden`),true);
+  await evaluate(`document.querySelector('[data-grade="7"]').click();document.querySelector('input[name="level"][value="advanced"]').click();document.querySelector('#specialist-goal').click()`);
+  assert.equal(await evaluate(`document.querySelector('#chosen-program').textContent`),'Nâng cao · Lớp 7 · Định hướng thi chuyên');
+  await cdp('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+  await evaluate(`document.querySelector('#tu-van').scrollIntoView({behavior:'instant'});const f=document.querySelector('#enquiry-form');f.elements.name.value='Phụ huynh STEM';f.elements.phone.value='0989066885';f.elements.note.value='Muốn trao đổi chương trình nâng cao';f.elements.consent.checked=true`);
+  assert.equal(await evaluate(`document.documentElement.scrollWidth<=innerWidth`),true);
+  await screenshot('stem-enquiry-mobile.png');
+  await evaluate(`document.querySelector('#enquiry-form').requestSubmit()`);
+  await until(()=>evaluate(`document.querySelector('#enquiry-status').textContent.startsWith('Đã nhận yêu cầu STEM-')`),'STEM enquiry saved');
   await cdp('Emulation.setDeviceMetricsOverride', { width:1440, height:1000, deviceScaleFactor:1, mobile:false });
   await cdp('Page.navigate', {url:`http://127.0.0.1:${port}/admin`});
   await until(()=>evaluate(`document.querySelector('#login-view') && !document.querySelector('#login-view').hidden`),'admin login');
@@ -235,11 +249,24 @@ try {
   await until(()=>evaluate(`document.querySelector('#detail-dialog').matches(':modal')`),'resize receipt to mobile');
   await evaluate(`document.querySelector('#close-detail').click()`);
   assert.equal(await evaluate(`document.querySelector('#detail-dialog').open`),false);
+  await evaluate(`document.querySelector('[data-inbox="stem-enquiries"]').click()`);
+  await until(()=>evaluate(`document.querySelector('#inbox-title').textContent==='Tư vấn STEM Maths' && document.querySelectorAll('.request-card').length===1`),'STEM admin inbox');
+  await evaluate(`document.querySelector('.detail-button').click()`);
+  await until(()=>evaluate(`document.querySelector('.stem-notes textarea')`),'STEM admin details');
+  assert.equal(await evaluate(`document.querySelector('#detail-content').textContent.includes('Nâng cao · Lớp 7')`),true);
+  await evaluate(`document.querySelector('.stem-notes textarea').value='Đã hẹn trao đổi tại CLB';document.querySelector('.stem-notes').requestSubmit()`);
+  await until(()=>evaluate(`document.querySelector('#detail-message').textContent==='Đã lưu ghi chú.'`),'STEM staff notes');
+  for(const status of ['contacted','advising','enrolled']){
+    await evaluate(`document.querySelector('#next-status').value='${status}';document.querySelector('#status-form').requestSubmit()`);
+    await until(()=>evaluate(`document.querySelector('#detail-message').textContent==='Đã cập nhật trạng thái.' && document.querySelector('#detail-content .status-tag').textContent==='${{contacted:'Đã liên hệ',advising:'Đang tư vấn',enrolled:'Đã xếp lớp'}[status]}'`),'STEM status '+status);
+  }
+  await screenshot('stem-admin-mobile.png');
+  await evaluate(`document.querySelector('#close-detail').click()`);
   await evaluate(`document.querySelector('#logout-button').click()`);
   await until(()=>evaluate(`!document.querySelector('#login-view').hidden && document.querySelector('#login-message').textContent==='Đã đăng xuất.'`),'logout');
   assert.equal(await evaluate(`(async()=>{const r=await fetch('/api/admin/orders');return r.status;})()`),401);
   assert.deepEqual(browserErrors, []);
-  console.log(`Browser checks passed: book ordering, consultations, parent avatars, profile editing/save/cancel/error, empty bookshelf, admin login, invalid password, searching, details, status updates, session reload, logout and mobile overflow. Desktop ticket: ${desktopHeight}px. Screenshots saved in data/.`);
+  console.log(`Browser checks passed: STEM grade/level selection, specialist goal, public enquiry, admin notes and enrolment; book ordering, consultations, parent profile, admin sessions and mobile overflow. Desktop ticket: ${desktopHeight}px. Screenshots saved in data/.`);
 } finally {
   if (socket?.readyState === WebSocket.OPEN) { try { await cdp('Browser.close'); } catch {} socket.close(); }
   for (const process of [chromium, server]) if (process && process.exitCode === null) {
