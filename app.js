@@ -13,7 +13,7 @@ const modeInputs = [...document.querySelectorAll('[name="request_mode"]')];
 const submitLabel = document.querySelector('#submit-label');
 let orderStep = 1;
 let activeBookGroup = '6';
-const visibility = { hero: true, order: false, footer: false };
+const visibility = { hero: true, order: false, footer: false, digital: false };
 const visibleActions = new Set();
 const overlappingContent = new Set();
 
@@ -33,7 +33,7 @@ function updateFloatingOrder() {
   const active = document.activeElement;
   const interacting = active?.matches('input, select, textarea, summary, button, a')
     && !floatingOrder.contains(active);
-  const visible = !visibility.hero && !visibility.order && !visibility.footer
+  const visible = !visibility.hero && !visibility.order && !visibility.footer && !visibility.digital
     && !interacting && visibleActions.size === 0 && overlappingContent.size === 0
     && !siteNav?.classList.contains('is-open');
   floatingOrder.hidden = !visible;
@@ -154,6 +154,7 @@ if ('IntersectionObserver' in window) {
     [document.querySelector('.hero'), 'hero'],
     [orderSection, 'order'],
     [document.querySelector('.site-footer'), 'footer'],
+    [document.querySelector('#tai-lieu-so'), 'digital'],
   ];
   const stickyObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
@@ -410,7 +411,14 @@ async function loadLanding() {
     const heroTitle = document.querySelector('.hero-title');
     if (heroTitle.textContent.replace(/\s+/g,' ').trim() !== data.content.hero.title) heroTitle.textContent = data.content.hero.title;
     heroTitle.setAttribute('aria-label',data.content.hero.title);
-    document.querySelector('.hero-art-image').src = data.content.hero.illustration_url;
+    document.querySelector('#hero-book-count').textContent = catalog.length;
+    document.querySelector('#catalog-book-count').textContent = catalog.length + ' đầu sách';
+    const heroImage = document.querySelector('.hero-art-image');
+    const illustration = data.content.hero.illustration_url;
+    const useBookCovers = ['/assets/book-stack.png','/assets/book-stack.svg','public/assets/book-stack.svg'].includes(illustration);
+    heroImage.hidden = useBookCovers;
+    document.querySelector('.hero-book-covers').hidden = !useBookCovers;
+    if (!useBookCovers) heroImage.src = illustration;
     const contact = data.content.contact;
     document.querySelectorAll('a[href^="tel:"]').forEach(a => { a.href = `tel:${contact.phone}`; a.textContent = contact.phone_display; });
     document.querySelector('.order-contact small').textContent = contact.email;

@@ -71,8 +71,45 @@ try {
   await cdp('Runtime.enable'); await cdp('Page.enable');
   await cdp('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
   await cdp('Page.navigate', { url: `http://127.0.0.1:${port}/#dat-sach` });
-  await until(() => evaluate(`document.querySelectorAll('[data-product-quantity]').length === 10 && document.querySelector('#hero-book-price').textContent.includes('299')`), 'loaded catalog');
+  await until(() => evaluate(`document.querySelectorAll('[data-product-quantity]').length === 9 && document.querySelector('#hero-book-price').textContent.includes('299')`), 'loaded catalog');
   await sleep(300);
+  assert.equal(await evaluate('document.title'),'Sách & Tài liệu Toán Cô Lê Nga');
+  assert.equal(await evaluate("document.querySelector('.site-nav a[href=\"#tai-lieu-so\"]').textContent"),'Tài liệu số');
+  const pdfBytes=await readFile(resolve('public/assets/trang-mau-toan.pdf'));
+  const pdfRoute=await fetch('http://127.0.0.1:'+port+'/assets/trang-mau-toan.pdf');
+  assert.match(pdfRoute.headers.get('Content-Type'),/^application\/pdf/);
+  assert.deepEqual(Buffer.from(await pdfRoute.arrayBuffer()),pdfBytes);
+  const downloadPath=join(scratch,'downloads');
+  await mkdir(downloadPath,{recursive:true});
+  await cdp('Browser.setDownloadBehavior',{behavior:'allow',downloadPath});
+  await evaluate("document.querySelector('#digital-download').click()");
+  const downloaded=await until(async()=>{const bytes=await readFile(join(downloadPath,'Tai-lieu-mau-Tu-duy-giai-Toan.pdf'));return bytes.length===pdfBytes.length&&bytes;},'free PDF download');
+  assert.deepEqual(downloaded,pdfBytes);
+  assert.equal(await evaluate("document.querySelector('#digital-view').rel.includes('noopener')"),true);
+  await mkdir(output,{recursive:true});
+  const documentViewports=[[320,720],[375,812],[430,932],[600,900],[768,1024],[820,1180],[900,1000],[901,1000],[1024,768],[1440,1000],[1920,1080]];
+  for(const [width,height] of documentViewports){
+    await cdp('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<1400});
+    await evaluate("document.querySelector('#gioi-thieu').scrollIntoView({behavior:'instant',block:'start'})");
+    await until(()=>evaluate("[...document.querySelectorAll('.hero-book-covers img')].every(img=>img.complete&&img.naturalWidth>0)"),'active hero covers');
+    assert.equal(await evaluate("document.documentElement.scrollWidth<=innerWidth"),true,'hero overflow at '+width);
+    if([375,768,1440].includes(width))await screenshot('book-hero-'+width+'.png');
+    await evaluate("document.querySelector('#tai-lieu-so').scrollIntoView({behavior:'instant',block:'start'})");
+    await sleep(100);
+    await until(()=>evaluate("document.querySelector('.document-preview img').complete&&document.querySelector('.document-preview img').naturalWidth>0"),'PDF preview image');
+    const layout=await evaluate("(()=>{const visible=e=>e.getClientRects().length>0;const outside=[...document.querySelectorAll('.digital-document,.document-preview,.document-copy,.document-actions,.document-actions a,.site-header .brand,.menu-toggle')].filter(visible).filter(e=>{const r=e.getBoundingClientRect();return r.left<-.5||r.right>innerWidth+.5;}).map(e=>e.id||e.className);return {inner:innerWidth,document:document.documentElement.scrollWidth,outside};})()");
+    assert.equal(layout.inner,width,JSON.stringify(layout));
+    assert.ok(layout.document<=width,JSON.stringify({width,...layout}));
+    assert.deepEqual(layout.outside,[],JSON.stringify({width,...layout}));
+    await until(()=>evaluate("document.querySelector('#floating-order').hidden"),'hide book CTA in digital section');
+    if([375,768,1440].includes(width)){
+      const clip=await evaluate("(()=>{const r=document.querySelector('#tai-lieu-so').getBoundingClientRect();return {x:r.left+scrollX,y:r.top+scrollY,width:r.width,height:r.height,scale:1};})()");
+      const capture=await cdp('Page.captureScreenshot',{format:'png',clip,captureBeyondViewport:true});
+      await writeFile(join(output,'digital-documents-'+width+'.png'),Buffer.from(capture.data,'base64'));
+    }
+  }
+  await cdp('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});
+  await evaluate("document.querySelector('#order-panel').scrollIntoView({behavior:'instant',block:'start'})");
   assert.equal(await evaluate(`/freeship|đổi trả miễn phí|lời giải chi tiết 100%/i.test(document.body.innerText)`),false);
   assert.equal(await evaluate(`document.querySelector('#qua-tang').hidden && document.querySelector('#shipping-label').textContent.includes('xác nhận riêng')`),true);
   assert.equal(await evaluate(`document.querySelectorAll('.book-option:not([hidden])').length`), 2);
@@ -92,7 +129,7 @@ try {
   await evaluate(`document.querySelector('#order-back').click(); document.querySelector('[data-book-group="6"]').click()`);
   assert.equal(await evaluate(`document.querySelector('[data-product-quantity="toan-6-tap-1"]').value`), '1');
   await evaluate(`document.querySelector('[data-book-group="entrance"]').click()`);
-  assert.equal(await evaluate(`document.querySelectorAll('.book-option:not([hidden])').length`), 2);
+  assert.equal(await evaluate(`document.querySelectorAll('.book-option:not([hidden])').length`), 1);
   await cdp('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
   await evaluate(`document.querySelector('#order-panel').scrollIntoView({behavior:'instant',block:'start'})`);
   await sleep(150);

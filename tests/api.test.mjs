@@ -35,8 +35,8 @@ after(async()=>{
   if(child && child.exitCode===null) {const exited=new Promise(resolve=>child.once('exit',resolve));child.kill();await exited;}
   if(directory) await rm(directory,{recursive:true,force:true});
 });
-test('Danh mục chứa đúng 10 sách, giá và 10 ảnh bìa truy cập được',async()=>{
-  const result=await api('/api/landing'); assert.equal(result.status,200); assert.equal(result.data.products.length,10);
+test('Danh mục chứa đúng 9 sách, giá và 9 ảnh bìa truy cập được',async()=>{
+  const result=await api('/api/landing'); assert.equal(result.status,200); assert.equal(result.data.products.length,9);
   assert.equal(result.data.faqs.length,3);assert.equal(result.data.gifts.length,0);
   assert.equal(result.data.content.sales_policy.gifts_with_order,false);
   for(const product of result.data.products) {
@@ -106,7 +106,7 @@ test('Nội dung quản trị cập nhật được, ẩn nội dung và tính p
   assert.equal((await api('/api/admin/products/toan-6-tap-1','PATCH',{cover_url:'/assets/books/Phan%20dang%20toan%20lop6%20t1.png'},adminHeaders)).status,200);
   assert.equal((await api('/api/admin/products/toan-6-tap-1','PATCH',{active:false},adminHeaders)).status,200);
   assert.equal((await api('/api/orders','POST',order,{'Idempotency-Key':randomUUID()})).status,400);
-  assert.equal((await api('/api/products')).data.products.length,9);
+  assert.equal((await api('/api/products')).data.products.length,8);
 });
 test('Khởi tạo lại giữ nguyên dữ liệu đã chỉnh sửa và các đơn đã lưu',async()=>{
   execFileSync(process.execPath,['database/init.mjs'],{cwd:new URL('..',import.meta.url),env:{...process.env,DATABASE_PATH:join(directory,'test.sqlite')},stdio:'pipe'});
@@ -114,7 +114,7 @@ test('Khởi tạo lại giữ nguyên dữ liệu đã chỉnh sửa và các �
   assert.equal(result.data.content.sales_policy.shipping_vnd,25000);
   assert.equal(result.data.faqs[0].answer,'Nội dung thử nghiệm từ database.');
   assert.equal((await api('/api/admin/orders','GET',undefined,adminHeaders)).data.total,2);
-  assert.equal((await api('/api/products')).data.products.length,9);
+  assert.equal((await api('/api/products')).data.products.length,8);
 });
 const loginPassword='Test-only password for admin 2026';
 let sessionCookie, csrfToken;

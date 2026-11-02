@@ -26,7 +26,7 @@ test('Pages D1 orders, private receipts, random-key login, CSRF, logout and repl
   async function req(path,method='GET',data,headers={}){return worker.fetch(new Request('https://books.pages.dev'+path,{method,headers:{'Content-Type':'application/json',...headers},body:data?JSON.stringify(data):undefined}),env);}
   try {
     assert.equal((await req('/healthz')).status,200);
-    const landing=await (await req('/api/landing')).json();assert.equal(landing.products.length,10);assert.deepEqual(landing.testimonials,[]);
+    const landing=await (await req('/api/landing')).json();assert.equal(landing.products.length,9);assert.deepEqual(landing.testimonials,[]);
     assert.equal((await req('/api/admin/orders')).status,401);
     assert.equal((await req('/api/auth/login','POST',{username:'admin',password:'wrong'})).status,401);
     assert.equal((await req('/api/auth/login','POST',{username:'admin',password},{Origin:'https://evil.test'})).status,403);
@@ -54,7 +54,7 @@ test('Catalog corrections update existing prices once and preserve order snapsho
     assert.equal(response.status,201);assert.equal((await response.json()).total_vnd,238000);
     const migration=readFileSync('database/migrations/004-catalog-corrections.sql','utf8');
     d1.db.exec(migration);
-    assert.equal(d1.db.prepare('SELECT count(*) AS n FROM products WHERE price_vnd=299000').get().n,10);
+    assert.equal(d1.db.prepare('SELECT count(*) AS n FROM products WHERE price_vnd=299000').get().n,9);
     assert.equal(d1.db.prepare('SELECT count(*) AS n FROM gifts WHERE active=1').get().n,0);
     assert.equal(d1.db.prepare('SELECT unit_price_vnd FROM order_items').get().unit_price_vnd,119000);
     assert.equal(d1.db.prepare('SELECT total_vnd FROM orders').get().total_vnd,238000);
@@ -84,4 +84,37 @@ test('Pages output excludes private files and SQLite online backups preserve row
   for(const file of ['_worker.js','index.html','admin.html','assets/book-stack.png'])assert.equal(existsSync(join('dist',file)),true);
   const scratch=mkdtempSync(join(tmpdir(),'le-nga-backup-')),source=join(scratch,'source.sqlite'),target=join(scratch,'backup.sqlite');
   try{const db=new DatabaseSync(source);db.exec("PRAGMA journal_mode=WAL;CREATE TABLE sample(value TEXT);INSERT INTO sample VALUES('saved');");execFileSync(process.execPath,['database/backup.mjs',target],{env:{...process.env,DATABASE_PATH:source}});const copy=new DatabaseSync(target);assert.equal(copy.prepare('SELECT value FROM sample').get().value,'saved');copy.close();db.close();}finally{rmSync(scratch,{recursive:true,force:true});}
+});
+
+
+test('Retiring a book preserves order snapshots, rejects purchases and survives reseeding',async()=>{
+  const d1=new D1(),db=d1.db;
+  try {
+    const retired='200-bai-hinh-vao-6',title='200 bài hình học thi vào lớp 6 Chất lượng cao';
+    db.prepare("INSERT INTO products(id,slug,title,category,grade,description,price_vnd) VALUES(?,?,?,'thi-vao-6',5,'Historical book',299000)").run(retired,retired,title);
+    db.prepare("INSERT INTO product_media(product_id,kind,url) VALUES(?,'cover','/assets/books/200_bai_hinh_hoc_thi_vao_lop_6_clc.jpg')").run(retired);
+    db.exec("INSERT INTO orders(id,request_key,request_hash,parent_name,phone,grade,address,subtotal_vnd,shipping_vnd,total_vnd) VALUES('legacy-order','legacy-request','hash','Test parent','0989066885',5,'Test address',598000,0,598000)");
+    db.prepare("INSERT INTO order_items(order_id,product_id,title,unit_price_vnd,quantity) VALUES('legacy-order',?,?,299000,2)").run(retired,title);
+    db.exec("INSERT INTO request_history(order_id,to_status) VALUES('legacy-order','pending')");
+    const snapshot=db.prepare("SELECT * FROM order_items WHERE order_id='legacy-order'").get();
+    const migration=readFileSync('database/migrations/006-retire-geometry-book.sql','utf8');
+    db.exec(migration);
+    assert.equal(db.prepare('SELECT active FROM products WHERE id=?').get(retired).active,0);
+    assert.equal(db.prepare("SELECT count(*) n FROM product_media WHERE product_id=? AND kind='cover'").get(retired).n,0);
+    seed(db);db.exec(migration);
+    assert.equal(db.prepare('SELECT active FROM products WHERE id=?').get(retired).active,0);
+    assert.equal(db.prepare("SELECT count(*) n FROM product_media WHERE product_id=? AND kind='cover'").get(retired).n,0);
+    assert.deepEqual(db.prepare("SELECT * FROM order_items WHERE order_id='legacy-order'").get(),snapshot);
+    assert.equal(db.prepare("SELECT total_vnd FROM orders WHERE id='legacy-order'").get().total_vnd,598000);
+    assert.equal(db.prepare("SELECT count(*) n FROM request_history WHERE order_id='legacy-order'").get().n,1);
+    assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(),[]);
+    const env={DB:d1},origin='https://books.pages.dev';
+    const catalog=await (await worker.fetch(new Request(origin+'/api/products'),env)).json();
+    assert.equal(catalog.products.length,9);
+    assert.equal(catalog.products.some(p=>p.id===retired),false);
+    const response=await worker.fetch(new Request(origin+'/api/orders',{method:'POST',headers:{'Content-Type':'application/json',Origin:origin,'Idempotency-Key':crypto.randomUUID()},body:JSON.stringify({name:'Test parent',phone:'0989066885',grade:5,address:'Test address',items:[{product_id:retired,quantity:1}]})}),env);
+    assert.equal(response.status,400);
+    assert.equal(db.prepare('SELECT count(*) n FROM orders').get().n,1);
+    assert.equal(db.prepare('SELECT count(*) n FROM schema_versions WHERE version=6').get().n,1);
+  } finally {db.close();}
 });

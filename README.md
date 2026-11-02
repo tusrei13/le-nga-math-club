@@ -1,6 +1,6 @@
-# CLB Toán Cô Lê Nga
+# Sách & Tài liệu Toán Cô Lê Nga
 
-Landing page bán 10 đầu sách, đặt sách COD và gửi yêu cầu tư vấn. Dữ liệu lưu trong SQLite; frontend và API chạy chung bằng Node.js.
+Landing page gồm sách giấy và tài liệu số: 9 đầu sách đặt COD, PDF mẫu miễn phí và form tư vấn. Dữ liệu lưu trong SQLite; frontend và API chạy chung bằng Node.js.
 
 STEM Maths là landing page thứ hai dành cho chương trình Toán offline lớp 3–9. Chạy `npm run build:stem`, xem local tại `/stem/`; hướng dẫn Cloudflare và D1 trong [STEM-MATHS.md](STEM-MATHS.md).
 
@@ -17,7 +17,13 @@ npm start
 
 Mở `http://localhost:3000`. Không mở trực tiếp `index.html` bằng `file://`, vì trang cần gọi API.
 
-Database tự tạo ở `data/landing.sqlite`, gồm 16 bảng và dữ liệu mẫu 10 sách với ảnh bìa trong `public/assets/books`. `npm start` cũng tự khởi tạo nếu chưa có database.
+Database tự tạo ở `data/landing.sqlite`, gồm 16 bảng và dữ liệu mẫu 9 sách với ảnh bìa trong `public/assets/books`. `npm start` cũng tự khởi tạo nếu chưa có database.
+
+## Tài liệu số
+
+Mục #tai-lieu-so có một tài liệu mẫu miễn phí: **Tư duy giải Toán**, PDF 2 trang (74 KB), kèm ảnh xem trước trang đầu, nút mở PDF và tải xuống. Dùng file hiện có tại public/assets/trang-mau-toan.pdf; không yêu cầu tài khoản hay thanh toán. File này là bản minh họa, không phải PDF đầy đủ của các sách giấy. Ảnh xem trước nằm trong public/assets/documents/.
+
+Đây là phần giới thiệu và tải mẫu. Chưa có bán file trả phí, xác nhận chuyển khoản hoặc cấp quyền tải riêng. File trả phí sau này phải đặt trong kho riêng và kiểm tra quyền tải phía server; không đưa file trả phí vào public/assets/.
 
 ## Tài khoản khách hàng
 
@@ -48,7 +54,7 @@ npm test
 
 Test dùng database tạm riêng; kiểm tra ảnh bìa, lưu đơn/tư vấn, giá tính phía server, gửi trùng, validation, quyền quản trị, trạng thái, chỉnh sửa nội dung và khả năng giữ dữ liệu khi khởi tạo lại.
 
-Phiếu đặt sách gồm hai bước: chọn sách theo nhóm lớp (mỗi nhóm hai cuốn), rồi điền thông tin nhận sách. Các cuốn đã chọn được giữ khi chuyển nhóm; chế độ tư vấn mở thẳng form liên hệ.
+Phiếu đặt sách gồm hai bước: chọn sách theo nhóm lớp (hai tập cho mỗi lớp 6–9 và một cuốn thi vào lớp 6), rồi điền thông tin nhận sách. Các cuốn đã chọn được giữ khi chuyển nhóm; chế độ tư vấn mở thẳng form liên hệ.
 
 Có thể kiểm tra thao tác thực tế trong Chrome/Edge đã cài bằng `npm run test:ui`. Script dùng trình duyệt ẩn và database tạm, kiểm tra cả desktop/mobile rồi lưu ảnh vào `data/order-desktop.png` và `data/order-mobile.png`. Dùng `UI_BROWSER_PATH` nếu trình duyệt nằm ở đường dẫn khác.
 
