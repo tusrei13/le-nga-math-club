@@ -9,7 +9,7 @@ STEM Maths dùng chung database, bổ sung `stem_programs`, `stem_enquiries`, `s
 | Chức năng | Dữ liệu / xử lý |
 | --- | --- |
 | Danh mục sách | 9 sách, giá VND, lớp, tập, mô tả, ảnh bìa thật, trạng thái bán |
-| Trang mẫu | Đường dẫn PDF; hiện là bản minh họa chung có sẵn, chưa phải nội dung riêng từng cuốn |
+| Trang mẫu | 9 đường dẫn PDF đọc thử riêng theo ID sách, lớp và tập; PDF minh họa chung nằm ở mục Tài liệu số |
 | Đặt sách COD | Chọn nhiều cuốn và số lượng, tính giá trên server, lưu thông tin phụ huynh và địa chỉ |
 | Nhận tư vấn | Lưu họ tên, điện thoại, lớp, ghi chú; không cần địa chỉ hoặc chọn sách |
 | Quà tặng | Danh mục 3 quà và bản chụp quà đi kèm từng đơn |
@@ -23,7 +23,7 @@ Các phần trang trí, menu, cuộn trang, chế độ di động và mở FAQ 
 
 | Bảng | Mục đích |
 | --- | --- |
-| `schema_versions` | Ghi phiên bản schema; hiện tại v6 |
+| `schema_versions` | Ghi phiên bản schema; hiện tại v7 |
 | `products` | Danh mục, giá nguyên VND, lớp, tập, thứ tự, trạng thái bán |
 | `product_media` | Ảnh bìa và PDF mẫu; mỗi sách tối đa một media mỗi loại |
 | `site_content` | Nội dung `hero`, `author`, `contact`, `sales_policy` dạng JSON |
@@ -69,6 +69,8 @@ Không tách hồ sơ phụ huynh thành tài khoản đăng nhập: landing pag
 Tám ảnh PNG `Phan dang toan lop{6..9} t{1..2}.png` và một ảnh JPG được gắn từ `public/assets/books`. URL có khoảng trắng đã được mã hóa. Giá toàn bộ sách được chủ dự án xác nhận là 299.000đ/cuốn. Phí vận chuyển xác nhận riêng, không công bố freeship. Quà tặng mẫu đang tắt; các cam kết giao hàng, đổi trả và thông tin bằng cấp/kinh nghiệm chưa xác nhận đã được gỡ. Migration 004 cập nhật dữ liệu đã tồn tại một lần, giữ nguyên giá trong đơn cũ.
 
 Migration 006 ngừng bán cuốn 200 bài hình học thi vào lớp 6, bỏ ảnh bìa đã xóa và giữ dữ liệu sách để bảo toàn lịch sử đơn hàng. Khởi tạo mới chỉ có 9 sách. Với D1 đang dùng, chạy: npx wrangler d1 execute le-nga-books --remote --file=database/migrations/006-retire-geometry-book.sql.
+
+Migration 007 cập nhật một lần sample trong product_media cho 9 sách sang PDF tương ứng tại public/assets/books preview/. Database SQLite áp dụng khi khởi động; với D1, deploy PDF trước rồi chạy npx wrangler d1 execute le-nga-books --remote --file=database/migrations/007-book-previews.sql. Các lần chạy sau giữ URL đã được quản trị chỉnh sửa.
 
 ## API công khai
 

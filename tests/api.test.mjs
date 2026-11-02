@@ -1,10 +1,10 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, execFileSync } from 'node:child_process';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, createHash } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import { hashPassword } from '../passwords.mjs';
 
@@ -35,7 +35,7 @@ after(async()=>{
   if(child && child.exitCode===null) {const exited=new Promise(resolve=>child.once('exit',resolve));child.kill();await exited;}
   if(directory) await rm(directory,{recursive:true,force:true});
 });
-test('Danh mục chứa đúng 9 sách, giá và 9 ảnh bìa truy cập được',async()=>{
+test('Danh mục chứa đúng 9 sách, giá, ảnh bìa và 9 PDF đọc thử đúng sách',async()=>{
   const result=await api('/api/landing'); assert.equal(result.status,200); assert.equal(result.data.products.length,9);
   assert.equal(result.data.faqs.length,3);assert.equal(result.data.gifts.length,0);
   assert.equal(result.data.content.sales_policy.gifts_with_order,false);
@@ -43,6 +43,14 @@ test('Danh mục chứa đúng 9 sách, giá và 9 ảnh bìa truy cập đượ
     assert.equal(product.price_vnd,299000);
     const cover=product.media.find(m=>m.kind==='cover');assert.ok(cover);
     const image=await fetch(base+cover.url);assert.equal(image.status,200);assert.match(image.headers.get('content-type'),/^image\//);await image.arrayBuffer();
+    const sample=product.media.find(media=>media.kind==='sample');assert.ok(sample);
+    const expectedFile=product.id==='70-de-vao-6'?'70 DE BUT TOC THI VAO LOP 6 CLC-BAN-DOC-THU.pdf':'PHAN DANG TOAN '+product.grade+'-TAP'+product.volume+'-BAN-DOC-THU.pdf';
+    assert.equal(sample.url,'/assets/books%20preview/'+encodeURIComponent(expectedFile));
+    const pdf=await fetch(base+sample.url);assert.equal(pdf.status,200);assert.match(pdf.headers.get('content-type'),/^application\/pdf/);
+    const received=Buffer.from(await pdf.arrayBuffer()),original=await readFile(join('public','assets','books preview',expectedFile));
+    assert.equal(received.subarray(0,5).toString('ascii'),'%PDF-');
+    assert.equal(createHash('sha256').update(received).digest('hex'),createHash('sha256').update(original).digest('hex'));
+
   }
 });
 test('Đơn lưu giá 299k và snapshot; không tự thêm quà, gửi lại không tạo đơn mới',async()=>{

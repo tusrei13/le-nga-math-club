@@ -25,6 +25,12 @@ Cụm sách đầu trang và minh họa tủ sách dùng ba PNG riêng ở publi
 
 Để tái tạo trên Windows, chạy pwsh -File scripts/prepare-book-cutouts.ps1. Script kiểm tra SHA-256 ảnh nguồn, xuất PNG và đối chiếu RGB các điểm ảnh không trong suốt. Nếu thay ảnh nguồn, cần rà và cập nhật mặt nạ trước khi chạy lại. Danh mục và database tiếp tục dùng ảnh gốc.
 
+## Bản đọc thử của 9 cuốn sách
+
+Mỗi thẻ sách có nút Đọc thử PDF, mở bản đọc thử riêng ở tab mới và không thay đổi giỏ sách. Chín PDF gốc nằm trong public/assets/books preview/. Ánh xạ theo ID sách nằm ở database/book-previews.mjs; URL mã hóa khoảng trắng nên dùng được trên Node và Cloudflare Pages.
+
+SQLite cập nhật tự động khi khởi động. Với D1 đã deploy, publish các PDF trước rồi áp dụng database/migrations/007-book-previews.sql; xem CLOUDFLARE.md. Migration giữ lịch sử đơn và không ghi đè thay đổi quản trị khi chạy lại. Build Pages sẽ báo lỗi nếu thiếu PDF bắt buộc.
+
 ## Tài liệu số
 
 Mục #tai-lieu-so có một tài liệu mẫu miễn phí: **Tư duy giải Toán**, PDF 2 trang (74 KB), kèm ảnh xem trước trang đầu, nút mở PDF và tải xuống. Dùng file hiện có tại public/assets/trang-mau-toan.pdf; không yêu cầu tài khoản hay thanh toán. File này là bản minh họa, không phải PDF đầy đủ của các sách giấy. Ảnh xem trước nằm trong public/assets/documents/.

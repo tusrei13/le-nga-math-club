@@ -6,6 +6,7 @@ import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { seed } from '../database/seed.mjs';
+import { bookPreviews } from '../database/book-previews.mjs';
 import { createHash, randomBytes } from 'node:crypto';
 import worker from '../cloudflare/worker.mjs';
 class D1 {
@@ -82,6 +83,10 @@ test('Pages output excludes private files and SQLite online backups preserve row
   execFileSync(process.execPath,['scripts/build-pages.mjs']);
   for(const file of ['server.mjs','api.mjs','auth.mjs','database/db.mjs','data/landing.sqlite','.env'])assert.equal(existsSync(join('dist',file)),false);
   for(const file of ['_worker.js','index.html','admin.html','assets/book-stack.png'])assert.equal(existsSync(join('dist',file)),true);
+  for(const preview of bookPreviews){
+    const source=readFileSync(join('public/assets/books preview',preview.file));
+    assert.ok(readFileSync(join('dist/assets/books preview',preview.file)).equals(source),'Deployed sample differs: '+preview.id);
+  }
   const scratch=mkdtempSync(join(tmpdir(),'le-nga-backup-')),source=join(scratch,'source.sqlite'),target=join(scratch,'backup.sqlite');
   try{const db=new DatabaseSync(source);db.exec("PRAGMA journal_mode=WAL;CREATE TABLE sample(value TEXT);INSERT INTO sample VALUES('saved');");execFileSync(process.execPath,['database/backup.mjs',target],{env:{...process.env,DATABASE_PATH:source}});const copy=new DatabaseSync(target);assert.equal(copy.prepare('SELECT value FROM sample').get().value,'saved');copy.close();db.close();}finally{rmSync(scratch,{recursive:true,force:true});}
 });
@@ -116,5 +121,31 @@ test('Retiring a book preserves order snapshots, rejects purchases and survives 
     assert.equal(response.status,400);
     assert.equal(db.prepare('SELECT count(*) n FROM orders').get().n,1);
     assert.equal(db.prepare('SELECT count(*) n FROM schema_versions WHERE version=6').get().n,1);
+  } finally {db.close();}
+});
+
+
+test('Book preview migration replaces legacy samples once and preserves orders and later edits',async()=>{
+  const d1=new D1(),db=d1.db,env={DB:d1};
+  try {
+    db.exec("UPDATE product_media SET url='/assets/trang-mau-toan.pdf',alt='Legacy generic sample' WHERE kind='sample'; UPDATE products SET price_vnd=305000 WHERE id='toan-6-tap-1';");
+    const created=await worker.fetch(new Request('https://books.pages.dev/api/orders',{method:'POST',headers:{'Content-Type':'application/json','Idempotency-Key':crypto.randomUUID()},body:JSON.stringify({name:'Test parent',phone:'0989066885',grade:6,address:'Test address',items:[{product_id:'toan-6-tap-1',quantity:1}]})}),env);
+    assert.equal(created.status,201);
+    const receipt=await created.json(),snapshot=db.prepare('SELECT * FROM order_items WHERE order_id=?').get(receipt.id);
+    const migration=readFileSync('database/migrations/007-book-previews.sql','utf8');
+    db.exec(migration);
+    for(const preview of bookPreviews){
+      const rows=db.prepare("SELECT url,alt FROM product_media WHERE product_id=? AND kind='sample'").all(preview.id);
+      assert.equal(rows.length,1);assert.equal(rows[0].url,preview.url);assert.match(rows[0].alt,/^Bản đọc thử /);
+    }
+    assert.equal(new Set(db.prepare("SELECT url FROM product_media WHERE kind='sample'").all().map(row=>row.url)).size,9);
+    assert.deepEqual(db.prepare('SELECT * FROM order_items WHERE order_id=?').get(receipt.id),snapshot);
+    assert.equal(db.prepare('SELECT total_vnd FROM orders WHERE id=?').get(receipt.id).total_vnd,305000);
+    assert.equal(db.prepare("SELECT price_vnd FROM products WHERE id='toan-6-tap-1'").get().price_vnd,305000);
+    db.prepare("UPDATE product_media SET url=? WHERE product_id='toan-6-tap-1' AND kind='sample'").run('/assets/later-admin-sample.pdf');
+    db.exec(migration);seed(db);
+    assert.equal(db.prepare("SELECT url FROM product_media WHERE product_id='toan-6-tap-1' AND kind='sample'").get().url,'/assets/later-admin-sample.pdf');
+    assert.equal(db.prepare('SELECT count(*) n FROM schema_versions WHERE version=7').get().n,1);
+    assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(),[]);
   } finally {db.close();}
 });

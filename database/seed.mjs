@@ -1,3 +1,4 @@
+import { bookPreviews } from './book-previews.mjs';
 export function seed(db) {
   const insert = db.prepare(`INSERT OR IGNORE INTO products(id,slug,title,category,grade,volume,description,price_vnd,sort_order) VALUES(?,?,?,?,?,?,?,?,?)`);
   let position = 0;
@@ -14,7 +15,11 @@ export function seed(db) {
   }
   cover.run('70-de-vao-6','/assets/books/70_de_but_toc_thi_vao_lop_6_clc.jpg','Bìa 70 đề bứt tốc thi vào lớp 6 Chất lượng cao');
   const media = db.prepare(`INSERT OR IGNORE INTO product_media(product_id,kind,url,alt) VALUES(?,'sample',?,?)`);
-  for (const p of db.prepare('SELECT id,title FROM products').all()) media.run(p.id,'/assets/trang-mau-toan.pdf',`Trang mẫu minh họa chung; chưa phải trang mẫu riêng của ${p.title}`);
+  const productTitle = db.prepare('SELECT title FROM products WHERE id=?');
+  for (const preview of bookPreviews) {
+    const product = productTitle.get(preview.id);
+    if (product) media.run(preview.id,preview.url,'Bản đọc thử '+product.title);
+  }
   const content = {
     contact: {phone:'0989066885',phone_display:'0989 066 885',email:'clbtoanconga@gmail.com',address:'Số 02, Lô A7, Khu A, Geleximco, Lê Trọng Tấn, An Khánh, Hà Nội.',facebook:'https://www.facebook.com/daytoanclc',youtube:'https://www.youtube.com/@vuihoactoan382'},
     author: {name:'Cô Lê Nga',photo_url:'/assets/teacher-le-nga.jpg',qualification:'',experience_years:0,quote:''},

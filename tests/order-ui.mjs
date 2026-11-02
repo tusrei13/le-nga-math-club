@@ -19,6 +19,7 @@ let server, chromium, socket;
 let id = 0;
 const requests = new Map();
 const browserErrors = [];
+const openedWindows = [];
 let customerFixture;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function until(action, label) {
@@ -66,15 +67,40 @@ try {
       if (result.error) request.reject(new Error(result.error.message)); else request.resolve(result.result);
     }
     if (result.method === 'Runtime.exceptionThrown') browserErrors.push(result.params.exceptionDetails.text);
+    if (result.method === 'Page.windowOpen') openedWindows.push(result.params);
     if (result.method === 'Fetch.requestPaused' && customerFixture) customerFixture(result.params).catch(error => browserErrors.push(error.message));
   });
   await cdp('Runtime.enable'); await cdp('Page.enable');
   await cdp('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
-  await cdp('Page.navigate', { url: `http://127.0.0.1:${port}/#dat-sach` });
+  await cdp('Page.navigate', { url: `http://127.0.0.1:${port}/` });
   await until(() => evaluate(`document.querySelectorAll('[data-product-quantity]').length === 9 && document.querySelector('#hero-book-price').textContent.includes('299')`), 'loaded catalog');
   await sleep(300);
   assert.equal(await evaluate('document.title'),'Sách & Tài liệu Toán Cô Lê Nga');
   assert.equal(await evaluate("document.querySelector('.site-nav a[href=\"#tai-lieu-so\"]').textContent"),'Tài liệu số');
+
+  const readingProducts=(await(await fetch('http://127.0.0.1:'+port+'/api/landing')).json()).products;
+  const readingLinks=await evaluate("[...document.querySelectorAll('.book-card [data-book-preview]')].map(a=>({id:a.dataset.bookPreview,href:a.href,target:a.target,rel:a.rel,label:a.getAttribute('aria-label')}))");
+  assert.equal(readingLinks.length,9);
+  assert.equal(new Set(readingLinks.map(link=>link.href)).size,9);
+  for(const product of readingProducts){
+    const link=readingLinks.find(link=>link.id===product.id);
+    assert.equal(link.href,new URL(product.media.find(media=>media.kind==='sample').url,'http://127.0.0.1:'+port).href);
+    assert.equal(link.target,'_blank');assert.ok(link.rel.includes('noopener')&&link.rel.includes('noreferrer'));assert.ok(link.label.includes(product.title));
+  }
+  const previousTargets=new Set((await cdp('Target.getTargets')).targetInfos.map(target=>target.targetId));
+  await evaluate("document.fonts.ready.then(()=>true)");
+  await evaluate("(()=>{const a=document.querySelector('.book-card [data-book-preview]');a.focus({preventScroll:true});a.scrollIntoView({behavior:'instant',block:'center'});})()");
+  await sleep(150);
+  const previewPoint=await evaluate("(()=>{const r=document.querySelector('.book-card [data-book-preview]').getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()");
+  assert.equal(await evaluate('document.elementFromPoint('+previewPoint.x+','+previewPoint.y+')?.closest("a")?.href'),readingLinks[0].href,'pointer hits the preview action');
+  await cdp('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,...previewPoint});
+  await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,...previewPoint});
+  // Headless Chromium can download PDFs rather than retain a PDF page target.
+  const openedPreview=await until(()=>openedWindows.find(opened=>opened.url===readingLinks[0].href),'browser opens the matching reading sample');
+  assert.equal(openedPreview.userGesture,true);
+  for(const target of (await cdp('Target.getTargets')).targetInfos)if(!previousTargets.has(target.targetId)&&target.type==='page')await cdp('Target.closeTarget',{targetId:target.targetId});
+  assert.equal(await evaluate("[...document.querySelectorAll('[data-product-quantity]')].every(input=>input.value==='0')"),true,'reading a preview must not select a book');
+
   const pdfBytes=await readFile(resolve('public/assets/trang-mau-toan.pdf'));
   const pdfRoute=await fetch('http://127.0.0.1:'+port+'/assets/trang-mau-toan.pdf');
   assert.match(pdfRoute.headers.get('Content-Type'),/^application\/pdf/);
@@ -94,6 +120,14 @@ try {
     await until(()=>evaluate("[...document.querySelectorAll('.hero-book-covers img')].every(img=>img.complete&&img.naturalWidth>0)"),'active hero covers');
     assert.equal(await evaluate("document.documentElement.scrollWidth<=innerWidth"),true,'hero overflow at '+width);
     if([375,768,1440].includes(width))await screenshot('book-hero-'+width+'.png');
+
+    const previewLayout=await evaluate("(()=>{const links=[...document.querySelectorAll('.book-card [data-book-preview]')];return {count:links.length,small:links.some(a=>a.getBoundingClientRect().height<44),outside:links.some(a=>{const r=a.getBoundingClientRect();return r.left<0||r.right>innerWidth+.5;})};})()");
+    assert.deepEqual(previewLayout,{count:9,small:false,outside:false},'book preview actions at '+width);
+    if([375,768,1440].includes(width)){
+      await evaluate("document.querySelector('.book-card-actions').scrollIntoView({behavior:'instant',block:'center'})");
+      await screenshot('book-previews-'+width+'.png');
+    }
+
     await evaluate("document.querySelector('#tai-lieu-so').scrollIntoView({behavior:'instant',block:'start'})");
     await sleep(100);
     await until(()=>evaluate("document.querySelector('.document-preview img').complete&&document.querySelector('.document-preview img').naturalWidth>0"),'PDF preview image');

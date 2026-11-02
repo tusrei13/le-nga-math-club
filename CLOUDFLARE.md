@@ -40,6 +40,16 @@ Chỉ khi lệnh chuẩn bị thành công, áp dụng SQL bằng lệnh thứ h
 
 Áp dụng lại SQL với cùng tên đăng nhập sẽ chuyển liên kết tài khoản và thu hồi mọi phiên admin cũ. Nếu đổi mật khẩu trong Firebase, áp dụng lại SQL để thu hồi ngay phiên D1 đã đăng nhập; nếu không, phiên D1 vẫn có thể tồn tại đến khi hết hạn. Tài khoản mật khẩu ngẫu nhiên cũ tiếp tục hoạt động tới khi được chuyển đổi. Không có endpoint công khai tự cấp quyền admin. Cookie `Secure`, `HttpOnly`, `SameSite=Strict`; phiên tối đa 8 giờ, nghỉ quá 30 phút hết phiên; sửa dữ liệu yêu cầu CSRF. D1 giới hạn gửi đơn/tư vấn và thử đăng nhập theo IP; giới hạn thử đăng nhập là 10 lần/15 phút (khác local Node).
 
+## Cập nhật 9 bản đọc thử
+
+Commit cả thư mục public/assets/books preview/ cùng mã nguồn, rồi push để Cloudflare deploy các PDF. Sau khi deployment thành công, chạy:
+
+```powershell
+npx wrangler d1 execute le-nga-books --remote --file=database/migrations/007-book-previews.sql
+```
+
+Thực hiện theo thứ tự trên để các đường dẫn PDF tồn tại trước khi D1 trả về link mới. Migration chỉ cập nhật lần đầu; không đổi giá hay dữ liệu đơn hàng. Làm mới trang chính và kiểm tra nút Đọc thử PDF ở cả 9 cuốn. Database mới dùng cloudflare/init.sql sau build đã có ánh xạ này.
+
 ## Publish
 
 ### Cập nhật danh mục đang chạy: giá 299.000đ/cuốn

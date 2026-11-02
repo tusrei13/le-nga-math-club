@@ -321,6 +321,23 @@ function element(tag, text, className) {
   if (className) node.className = className;
   return node;
 }
+function bookPreviewLink(product) {
+  const sample = product.media.find(media => media.kind === 'sample');
+  if (!sample?.url) return null;
+  let url;
+  try { url = new URL(sample.url, location.origin); } catch { return null; }
+  if (!['https:', 'http:'].includes(url.protocol)) return null;
+  // The general digital sample is not a reading sample of an individual book.
+  if (url.origin === location.origin && ['/assets/trang-mau-toan.pdf', '/public/assets/trang-mau-toan.pdf'].includes(url.pathname)) return null;
+  const link = element('a', 'Đọc thử PDF ↗', 'book-preview');
+  link.href = url.href;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.dataset.bookPreview = product.id;
+  link.setAttribute('aria-label', 'Đọc thử ' + product.title + ' (PDF, mở trong tab mới)');
+  return link;
+}
+
 async function loadLanding() {
   try {
     const response = await fetch('/api/landing', { signal: AbortSignal.timeout(15000) });
@@ -351,7 +368,11 @@ async function loadLanding() {
         quantity.value = Math.min(20, Number(quantity.value) + 1); updateTotal(); orderStep = 1; openForm('order');
         quantity.focus({ preventScroll: true });
       });
-      copy.append(choose); card.append(meta, art, copy); cards.append(card);
+      const actions = element('div', undefined, 'book-card-actions');
+      actions.append(choose);
+      const preview = bookPreviewLink(product);
+      if (preview) actions.append(preview);
+      copy.append(actions); card.append(meta, art, copy); cards.append(card);
       const option = element('div', undefined, 'book-option');
       option.dataset.pickerGroup = product.category === 'thi-vao-6' ? 'entrance' : String(product.grade);
       const thumbnail = element('img'); thumbnail.alt = ''; thumbnail.loading = 'lazy';

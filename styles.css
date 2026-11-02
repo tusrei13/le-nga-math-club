@@ -630,3 +630,11 @@ details p { font-size:16px; color:var(--ink-soft); margin:16px 0 0; }
 .hero-book-covers img:first-child { left:1%; transform:rotate(-6deg); }
 .hero-book-covers img:nth-child(2) { left:28%; width:44%; bottom:7%; z-index:2; }
 .hero-book-covers img:last-child { right:1%; transform:rotate(5deg); }
+
+/* Read the matching sample before choosing a physical book. */
+.book-card-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; }
+.book-card-actions .text-link { padding:8px 0; border:0; background:transparent; color:var(--brand-navy); font:inherit; font-size:15px; }
+.book-preview { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:8px 12px; border:1px solid var(--line); background:var(--paper-deep); color:var(--brand-navy); font-size:14px; font-weight:600; text-decoration:none; }
+.book-preview:hover { border-color:var(--brand-navy); background:#fff1c7; }
+.book-preview:focus-visible { outline:2px solid var(--brand-navy); outline-offset:3px; }
+.catalog-sample-note { margin:0; font-size:14px; }

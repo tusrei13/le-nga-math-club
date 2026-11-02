@@ -3,9 +3,15 @@ import { cp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { seed } from '../database/seed.mjs';
+import { bookPreviews } from '../database/book-previews.mjs';
 import { build } from 'esbuild';
 const root = resolve('.'), output = resolve('dist');
 if (output !== resolve(root,'dist')) throw new Error('Invalid output path');
+// Fail before publishing if a book's reading sample is absent or not a PDF.
+for (const preview of bookPreviews) {
+  const pdf = await readFile(resolve(root,'public/assets/books preview',preview.file));
+  if (pdf.subarray(0,5).toString('ascii') !== '%PDF-') throw new Error('Invalid reading sample: '+preview.file);
+}
 await rm(output,{recursive:true,force:true}); await mkdir(output,{recursive:true});
 for (const name of ['index.html','styles.css','app.js','admin.html','admin.css','admin.js','customer.js','customer.css']) await cp(name,`${output}/${name}`);
 await cp('public/assets',`${output}/assets`,{recursive:true});
@@ -30,5 +36,6 @@ for (const table of ['products','product_media','site_content','gifts','faqs','t
 sql+='\n'+await readFile('database/migrations/004-catalog-corrections.sql','utf8');
 sql+='\n'+await readFile('database/migrations/005-stem-maths.sql','utf8');
 sql+='\n'+await readFile('database/migrations/006-retire-geometry-book.sql','utf8');
+sql+='\n'+await readFile('database/migrations/007-book-previews.sql','utf8');
 db.close(); await mkdir('cloudflare',{recursive:true}); await writeFile('cloudflare/init.sql',sql);
 console.log('Pages build ready in dist/. D1 initialization SQL: cloudflare/init.sql');
