@@ -19,6 +19,12 @@ Mở `http://localhost:3000`. Không mở trực tiếp `index.html` bằng `fil
 
 Database tự tạo ở `data/landing.sqlite`, gồm 16 bảng và dữ liệu mẫu 9 sách với ảnh bìa trong `public/assets/books`. `npm start` cũng tự khởi tạo nếu chưa có database.
 
+## Ảnh bìa tách nền
+
+Cụm sách đầu trang và minh họa tủ sách dùng ba PNG riêng ở public/assets/books/cutouts/, xếp chồng bằng CSS. Chữ và hình trên bìa lấy nguyên điểm ảnh từ ba ảnh gốc, chỉ thêm alpha ở nền; không dùng ảnh dựng lại bằng AI.
+
+Để tái tạo trên Windows, chạy pwsh -File scripts/prepare-book-cutouts.ps1. Script kiểm tra SHA-256 ảnh nguồn, xuất PNG và đối chiếu RGB các điểm ảnh không trong suốt. Nếu thay ảnh nguồn, cần rà và cập nhật mặt nạ trước khi chạy lại. Danh mục và database tiếp tục dùng ảnh gốc.
+
 ## Tài liệu số
 
 Mục #tai-lieu-so có một tài liệu mẫu miễn phí: **Tư duy giải Toán**, PDF 2 trang (74 KB), kèm ảnh xem trước trang đầu, nút mở PDF và tải xuống. Dùng file hiện có tại public/assets/trang-mau-toan.pdf; không yêu cầu tài khoản hay thanh toán. File này là bản minh họa, không phải PDF đầy đủ của các sách giấy. Ảnh xem trước nằm trong public/assets/documents/.

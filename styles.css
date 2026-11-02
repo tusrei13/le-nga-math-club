@@ -624,9 +624,9 @@ details p { font-size:16px; color:var(--ink-soft); margin:16px 0 0; }
   .document-actions .text-link { align-self:flex-start; }
 }
 
-/* Use current book covers rather than the retired three-book illustration. */
-.hero-book-covers { position:relative; z-index:1; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:center; gap:12px; height:100%; padding:22px 8px; }
-.hero-book-covers img { display:block; width:100%; height:auto; box-shadow:0 12px 20px rgb(41 49 95 / .12); }
-.hero-book-covers img:first-child { transform:translateY(12px) rotate(-5deg); }
-.hero-book-covers img:nth-child(2) { position:relative; z-index:1; transform:scale(1.08); }
-.hero-book-covers img:last-child { transform:translateY(12px) rotate(5deg); }
+/* Three independent cutouts retain the original cover pixels. CSS controls the grouping. */
+.hero-book-covers { position:relative; isolation:isolate; width:100%; height:100%; }
+.hero-book-covers img { position:absolute; display:block; width:39%; height:auto; bottom:7%; filter:drop-shadow(0 10px 8px rgb(41 49 95 / .16)); transform-origin:50% 95%; }
+.hero-book-covers img:first-child { left:1%; transform:rotate(-6deg); }
+.hero-book-covers img:nth-child(2) { left:28%; width:44%; bottom:7%; z-index:2; }
+.hero-book-covers img:last-child { right:1%; transform:rotate(5deg); }

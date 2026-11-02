@@ -206,7 +206,7 @@ function emptyOrders() {
   const empty = element('div', undefined, 'customer-orders-empty');
   const books = element('div', undefined, 'customer-empty-books');
   books.setAttribute('aria-hidden', 'true');
-  for (const url of ['/assets/books/70_de_but_toc_thi_vao_lop_6_clc.jpg', '/assets/books/Phan%20dang%20toan%20lop6%20t1.png', '/assets/books/Phan%20dang%20toan%20lop6%20t2.png']) books.append(coverImage(url));
+  for (const url of ['/assets/books/cutouts/70-de-vao-6.png', '/assets/books/cutouts/toan-6-tap-1.png', '/assets/books/cutouts/toan-6-tap-2.png']) books.append(coverImage(url));
   const link = element('a', 'Chọn sách cho con', 'btn btn-primary');
   link.href = '#bo-sach';
   link.addEventListener('click', () => dialog.close());
