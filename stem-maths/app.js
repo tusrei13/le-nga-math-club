@@ -14,7 +14,8 @@ desktopNavigation.addEventListener('change',event=>{
   if(toggleHadFocus)menu.querySelector('a').focus({preventScroll:true});
 });
 document.addEventListener('click',event=>{if(!event.target.closest('.site-header'))closeMenu();});
-function render(){
+const reducedMotion=matchMedia('(prefers-reduced-motion:reduce)');
+function render(animate=false){
   if(grade<6)specialist=false;
   document.querySelectorAll('[data-grade]').forEach(button=>{button.setAttribute('aria-pressed',String(Number(button.dataset.grade)===grade));button.setAttribute('aria-label',`Lớp ${button.dataset.grade}`);});
   document.querySelectorAll('[name=level]').forEach(input=>{if(input.type==='radio')input.checked=input.value===level;});
@@ -22,12 +23,18 @@ function render(){
   form.elements.grade.value=String(grade);form.elements.level.value=level;form.elements.specialist_goal.checked=specialist;
   form.elements.specialist_goal.disabled=grade<6;$('#form-specialist-label').hidden=grade<6;
   const program=programs.find(item=>item.grade===grade&&item.level===level);
+  $('#program-number').textContent=String(grade);
   $('#program-grade').textContent=`Lớp ${grade} · Học trực tiếp`;
   $('#program-title').textContent=program?.title||'Chưa tải được chương trình';
   $('#program-description').textContent=program?.description||'Vui lòng tải lại danh mục hoặc liên hệ CLB qua hotline.';
   $('#specialist-note').hidden=!specialist;
   $('#chosen-program').textContent=program?program.title+(specialist?' · Định hướng thi chuyên':''):'Vui lòng tải lại chương trình';
   $('#choose-program').setAttribute('aria-disabled',String(!program));$('#enquiry-submit').disabled=busy||!program;
+  if(animate&&!reducedMotion.matches){
+    const content=$('#program-result-content');
+    content.getAnimations().forEach(animation=>animation.cancel());
+    content.animate([{opacity:.35,transform:'translateY(5px)'},{opacity:1,transform:'translateY(0)'}],{duration:200,easing:'ease-out'});
+  }
 }
 async function loadPrograms(){
   $('#program-retry').hidden=true;
@@ -36,9 +43,10 @@ async function loadPrograms(){
   render();
 }
 $('#program-retry').addEventListener('click',loadPrograms);
-document.querySelectorAll('[data-grade]').forEach(button=>button.addEventListener('click',()=>{grade=Number(button.dataset.grade);render();}));
-document.querySelectorAll('input[name=level]').forEach(input=>input.addEventListener('change',()=>{level=input.value;render();}));
-$('#specialist-goal').addEventListener('change',event=>{specialist=event.target.checked;render();});
+document.querySelectorAll('[data-grade]').forEach(button=>button.addEventListener('click',()=>{grade=Number(button.dataset.grade);render(true);}));
+document.querySelectorAll('input[name=level]').forEach(input=>input.addEventListener('change',()=>{level=input.value;render(true);}));
+$('#specialist-goal').addEventListener('change',event=>{specialist=event.target.checked;render(true);});
+document.querySelectorAll('[data-start-grade]').forEach(link=>link.addEventListener('click',()=>{grade=Number(link.dataset.startGrade);render(true);}));
 form.elements.grade.addEventListener('change',event=>{grade=Number(event.target.value);render();});
 form.elements.level.addEventListener('change',event=>{level=event.target.value;render();});
 form.elements.specialist_goal.addEventListener('change',event=>{specialist=event.target.checked;render();});

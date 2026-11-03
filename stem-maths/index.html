@@ -14,36 +14,82 @@
     <nav id="main-nav" aria-label="Điều hướng"><a href="#chuong-trinh">Chương trình</a><a href="#lo-trinh">Cá nhân hóa</a><a href="#hoc-truc-tiep">Học trực tiếp</a><a href="https://le-nga-books.pages.dev/">Sách &amp; tài liệu ↗</a><a class="button gold" href="#tu-van">Đăng ký tư vấn</a></nav>
   </div></header>
   <main id="dau-trang">
-    <section class="hero"><div class="wrap hero-grid">
-      <div class="hero-copy"><p class="eyebrow">HỌC TRỰC TIẾP · LỚP 3–9</p><h1>Mỗi học sinh,<br />một lộ trình <span>riêng.</span></h1>
-        <p class="hero-intro">Bắt đầu từ điều con đang cần. Cùng CLB chọn hướng học để củng cố kiến thức, học nâng cao hoặc bồi dưỡng học sinh giỏi.</p>
-        <div class="hero-actions"><a class="button gold" href="#chuong-trinh">Tìm chương trình cho con <span aria-hidden="true">↗</span></a><a class="text-link" href="#lo-trinh">Cách CLB tư vấn xếp lớp</a></div>
-        <p class="hero-note">Từ lớp 6–9, phụ huynh có thể trao đổi thêm về định hướng thi chuyên.</p>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">TOÁN TRỰC TIẾP · LỚP 3–9</p>
+          <h1 id="hero-title">Vững nền tảng.<br /><span>Mở hướng đi <em>riêng.</em></span></h1>
+          <p class="hero-intro">Cùng cô Nga chọn hướng học phù hợp với nền tảng và mục tiêu của con.</p>
+          <div class="hero-actions">
+            <a class="button gold" href="#chuong-trinh">Tìm lớp phù hợp cho con <span aria-hidden="true">↗</span></a>
+            <a class="text-link" href="#lo-trinh">Tìm hiểu lộ trình</a>
+          </div>
+          <div class="hero-note"><span class="hero-note-line" aria-hidden="true"></span><p>Củng cố, cơ bản, nâng cao và bồi dưỡng học sinh giỏi.<br />Định hướng thi chuyên từ lớp 6–9.</p></div>
+        </div>
+        <div class="hero-visual">
+          <div class="hero-orbit" aria-hidden="true"></div>
+          <figure class="hero-portrait">
+            <div class="portrait-frame"><img src="/assets/teacher-le-nga.jpg" alt="Cô Lê Nga tại CLB Toán Cô Lê Nga" width="960" height="960" fetchpriority="high" /></div>
+            <figcaption><div><span>Đồng hành cùng con tại CLB</span><strong>Cô Lê Nga</strong></div><span class="portrait-monogram" aria-hidden="true">N</span></figcaption>
+          </figure>
+        </div>
       </div>
-      <figure class="hero-portrait"><div class="portrait-frame"><img src="/assets/teacher-le-nga.jpg" alt="Cô Lê Nga tại CLB Toán Cô Lê Nga" width="540" height="590" fetchpriority="high" /></div><figcaption><span>Đồng hành cùng con</span><strong>Cô Lê Nga</strong></figcaption></figure>
-    </div></section>
-    <section class="program-section section" id="chuong-trinh"><div class="wrap">
-      <div class="section-heading"><p class="eyebrow">CHỌN ĐIỂM BẮT ĐẦU</p><h2>Con đang cần gì<br />trong môn Toán?</h2><p>Chọn lớp và nhu cầu để tìm hiểu chương trình. CLB sẽ trao đổi với gia đình trước khi tư vấn xếp lớp.</p></div>
-      <div class="program-grid">
-        <div class="program-picker"><fieldset><legend>Con đang học lớp</legend><div class="grades" id="grade-options">
-          <button type="button" data-grade="3" aria-pressed="false">3</button><button type="button" data-grade="4" aria-pressed="false">4</button><button type="button" data-grade="5" aria-pressed="false">5</button><button type="button" data-grade="6" aria-pressed="true">6</button><button type="button" data-grade="7" aria-pressed="false">7</button><button type="button" data-grade="8" aria-pressed="false">8</button><button type="button" data-grade="9" aria-pressed="false">9</button>
-        </div></fieldset>
-        <fieldset class="levels"><legend>Nhu cầu học của con</legend>
-          <label><input type="radio" name="level" value="consolidation" /><span><strong>Củng cố kiến thức</strong><small>Ôn lại phần chưa vững</small></span></label>
-          <label><input type="radio" name="level" value="basic" checked /><span><strong>Cơ bản</strong><small>Hiểu kiến thức, luyện tập theo lớp</small></span></label>
-          <label><input type="radio" name="level" value="advanced" /><span><strong>Nâng cao</strong><small>Mở rộng từ nền tảng đã có</small></span></label>
-          <label><input type="radio" name="level" value="olympiad" /><span><strong>Bồi dưỡng học sinh giỏi</strong><small>Trao đổi hướng học chuyên sâu</small></span></label>
-        </fieldset>
-        <label class="specialist-choice" id="specialist-choice"><input type="checkbox" id="specialist-goal" /><span>Con có định hướng thi chuyên<small>Dành cho học sinh lớp 6–9</small></span></label></div>
-        <article class="program-result" aria-labelledby="program-title"><p class="eyebrow">CHƯƠNG TRÌNH BẠN QUAN TÂM</p><p class="program-grade" id="program-grade">Lớp 6 · Học trực tiếp</p><h3 id="program-title">Đang tải chương trình…</h3><p id="program-description" role="status"></p><p class="specialist-note" id="specialist-note" hidden>CLB sẽ tư vấn thêm định hướng thi chuyên phù hợp với khối lớp và nền tảng của con.</p><div class="program-result-footer"><p>Nội dung, lịch học và học phí được CLB xác nhận khi tư vấn.</p><a class="button gold" id="choose-program" href="#tu-van" aria-disabled="true">Nhận tư vấn chương trình này</a><button type="button" id="program-retry" hidden>Tải lại chương trình</button></div></article>
+    </section>
+
+    <section class="section program-section" id="chuong-trinh" aria-labelledby="program-heading">
+      <div class="wrap">
+        <div class="section-heading"><h2 id="program-heading">Bắt đầu từ điều<br /><span>con đang cần.</span></h2><p>Chọn lớp và mục tiêu học. Cùng CLB tìm hướng đi phù hợp trước khi xếp lớp.</p></div>
+        <div class="program-grid">
+          <div class="program-picker">
+            <fieldset><legend><span class="step-index" aria-hidden="true">01</span> Con đang học lớp mấy?</legend>
+              <div class="grades" id="grade-options">
+                <button type="button" data-grade="3" aria-pressed="false">3</button><button type="button" data-grade="4" aria-pressed="false">4</button><button type="button" data-grade="5" aria-pressed="false">5</button><button type="button" data-grade="6" aria-pressed="true">6</button><button type="button" data-grade="7" aria-pressed="false">7</button><button type="button" data-grade="8" aria-pressed="false">8</button><button type="button" data-grade="9" aria-pressed="false">9</button>
+              </div>
+            </fieldset>
+            <fieldset class="levels"><legend><span class="step-index" aria-hidden="true">02</span> Mục tiêu học của con</legend>
+              <div class="level-options">
+                <label><input type="radio" name="level" value="consolidation" /><span><strong>Củng cố kiến thức</strong><small>Ôn lại phần chưa vững</small></span></label>
+                <label><input type="radio" name="level" value="basic" checked /><span><strong>Cơ bản</strong><small>Nắm chắc kiến thức theo lớp</small></span></label>
+                <label><input type="radio" name="level" value="advanced" /><span><strong>Nâng cao</strong><small>Mở rộng từ nền tảng đã có</small></span></label>
+                <label><input type="radio" name="level" value="olympiad" /><span><strong>Học sinh giỏi</strong><small>Bồi dưỡng tư duy chuyên sâu</small></span></label>
+              </div>
+            </fieldset>
+            <label class="specialist-choice" id="specialist-choice"><input type="checkbox" id="specialist-goal" /><span>Con có định hướng thi chuyên<small>Dành cho học sinh lớp 6–9</small></span></label>
+          </div>
+          <article class="program-result" aria-labelledby="program-title">
+            <div class="program-result-top"><p>Hướng học dành cho con</p><span class="program-class"><small>Lớp</small><strong id="program-number" aria-hidden="true">6</strong></span></div>
+            <div id="program-result-content" aria-live="polite" aria-atomic="true">
+              <p class="program-grade" id="program-grade">Lớp 6 · Học trực tiếp</p>
+              <h3 id="program-title">Đang tải chương trình…</h3>
+              <p id="program-description"></p>
+              <p class="specialist-note" id="specialist-note" hidden>CLB sẽ tư vấn thêm định hướng thi chuyên phù hợp với khối lớp và nền tảng của con.</p>
+            </div>
+            <div class="program-result-footer"><p>Nội dung, lịch học và học phí được CLB xác nhận khi tư vấn.</p><a class="button gold" id="choose-program" href="#tu-van" aria-disabled="true">Trao đổi với CLB <span aria-hidden="true">↗</span></a><button type="button" id="program-retry" hidden>Tải lại chương trình</button></div>
+          </article>
+        </div>
       </div>
-    </div></section>
-    <section class="section personalization" id="lo-trinh"><div class="wrap personalization-grid"><div><p class="eyebrow">MỘT LỘ TRÌNH CÓ ĐIỂM BẮT ĐẦU</p><h2>Cá nhân hóa từ<br />nhu cầu của con.</h2><p>Khối lớp là thông tin đầu tiên. Những phần con chưa vững và mục tiêu của gia đình giúp CLB tư vấn hướng học phù hợp hơn.</p></div>
-      <ol class="steps"><li><span>01</span><div><h3>Chia sẻ cùng CLB</h3><p>Cho CLB biết lớp đang học, khó khăn và điều gia đình mong muốn.</p></div></li><li><span>02</span><div><h3>Trao đổi hướng học</h3><p>Cùng tìm hiểu chương trình củng cố, cơ bản, nâng cao hoặc bồi dưỡng học sinh giỏi.</p></div></li><li><span>03</span><div><h3>Xác nhận trước khi xếp lớp</h3><p>Thống nhất nội dung, hình thức lớp, địa điểm, lịch học và học phí với CLB.</p></div></li></ol>
-    </div></section>
-    <section class="section specialist-section"><div class="wrap"><p class="eyebrow">DÀNH CHO KHỐI THCS</p><h2>Từ nền tảng hôm nay,<br />trao đổi định hướng thi chuyên.</h2><div class="specialist-content"><p>Với học sinh lớp 6–9, mục tiêu thi chuyên được cân nhắc cùng nền tảng hiện tại, nhu cầu học nâng cao và kỳ thi gia đình hướng tới.</p><p>Chọn mục tiêu này trong bộ chọn chương trình hoặc ghi rõ trong form. CLB sẽ tư vấn nội dung cụ thể; đăng ký tư vấn chưa phải xác nhận nhập học.</p></div><a class="text-link" href="#chuong-trinh">Chọn chương trình theo lớp</a></div></section>
-    <section class="section offline-section" id="hoc-truc-tiep"><div class="wrap offline-grid"><div><p class="eyebrow">GẶP NHAU TẠI LỚP HỌC</p><h2>Học trực tiếp<br />cùng CLB Cô Lê Nga.</h2><p>Phụ huynh liên hệ CLB để xác nhận địa điểm học và khung giờ phù hợp trước khi đến.</p></div><div class="contact-block"><p>LIÊN HỆ TƯ VẤN</p><a class="phone" href="tel:0989066885">0989 066 885</a><a href="mailto:clbtoanconga@gmail.com">clbtoanconga@gmail.com</a><p>Lịch học, sĩ số và học phí được trao đổi theo từng chương trình.</p></div></div></section>
-    <section class="section enquiry-section" id="tu-van"><div class="wrap enquiry-grid"><div><p class="eyebrow">BẮT ĐẦU TỪ MỘT CUỘC TRAO ĐỔI</p><h2>Kể CLB nghe<br />về nhu cầu của con.</h2><p>Để lại thông tin để CLB liên hệ tư vấn chương trình học trực tiếp. Gia đình có thể trao đổi thêm trước khi quyết định đăng ký học.</p><a href="tel:0989066885">Hoặc gọi 0989 066 885</a></div>
+    </section>
+
+    <section class="section personalization" id="lo-trinh" aria-labelledby="pathway-heading">
+      <div class="wrap">
+        <div class="section-heading"><h2 id="pathway-heading">Mỗi chặng học,<br /><span>một mục tiêu phù hợp.</span></h2><p>Củng cố, cơ bản, nâng cao và bồi dưỡng học sinh giỏi đều có từ lớp 3 đến lớp 9.</p></div>
+        <div class="learning-stages">
+          <article class="learning-stage primary-stage"><div class="stage-heading"><span>Tiểu học</span><p>Lớp <strong>3–5</strong></p></div><div class="stage-content"><h3>Xây nền tảng.<br />Nuôi dưỡng tư duy.</h3><p>Chọn hướng củng cố kiến thức, học cơ bản, nâng cao hoặc bồi dưỡng học sinh giỏi theo nhu cầu của con.</p><a class="text-link" data-start-grade="3" href="#chuong-trinh">Tìm chương trình lớp 3–5 <span aria-hidden="true">↗</span></a></div></article>
+          <article class="learning-stage secondary-stage"><div class="stage-heading"><span>Trung học cơ sở</span><p>Lớp <strong>6–9</strong></p></div><div class="stage-content"><h3>Phát triển năng lực.<br />Mở hướng thi chuyên.</h3><p>Tiếp tục chọn mức học phù hợp. Gia đình có thể trao đổi thêm mục tiêu thi chuyên từ lớp 6 đến lớp 9.</p><a class="text-link" data-start-grade="6" href="#chuong-trinh">Tìm chương trình lớp 6–9 <span aria-hidden="true">↗</span></a></div></article>
+        </div>
+        <div class="placement-process"><h3>CLB cùng gia đình<br /> chọn lớp như thế nào?</h3><ol class="steps">
+          <li><span aria-hidden="true">01</span><div><h4>Chia sẻ nhu cầu</h4><p>Lớp đang học, phần con chưa vững và mục tiêu của gia đình.</p></div></li>
+          <li><span aria-hidden="true">02</span><div><h4>Trao đổi hướng học</h4><p>Cùng tìm hiểu nội dung và mức học phù hợp với con.</p></div></li>
+          <li><span aria-hidden="true">03</span><div><h4>Xác nhận trước khi học</h4><p>Thống nhất lớp, địa điểm, lịch học và học phí với CLB.</p></div></li>
+        </ol></div>
+      </div>
+    </section>
+
+    <section class="specialist-section"><div class="wrap specialist-inner"><div><p class="eyebrow">ĐỊNH HƯỚNG THI CHUYÊN · LỚP 6–9</p><h2>Có mục tiêu xa hơn?<br />Bắt đầu từ nền tảng hôm nay.</h2><p>Trao đổi cùng CLB về nền tảng hiện tại, hướng học nâng cao và kỳ thi gia đình quan tâm.</p></div><a class="button gold" href="#chuong-trinh">Chọn hướng học cho con <span aria-hidden="true">↗</span></a></div></section>
+
+    <section class="section offline-section" id="hoc-truc-tiep"><div class="wrap offline-grid"><div><h2>Gặp cô, gặp bạn.<br /><span>Học trực tiếp tại CLB.</span></h2><p>Liên hệ để xác nhận địa điểm và khung giờ phù hợp trước khi đến. Lịch học, sĩ số và học phí được trao đổi theo từng chương trình.</p></div><div class="contact-block"><p>Trò chuyện cùng CLB Cô Lê Nga</p><a class="phone" href="tel:0989066885">0989 066 885</a><a href="mailto:clbtoanconga@gmail.com">clbtoanconga@gmail.com</a><a class="text-link" href="#tu-van">Để CLB liên hệ lại <span aria-hidden="true">↗</span></a></div></div></section>
+
+    <section class="section enquiry-section" id="tu-van"><div class="wrap enquiry-grid"><div class="enquiry-copy"><h2>Một cuộc trò chuyện.<br /><span>Một điểm bắt đầu.</span></h2><p>Kể CLB nghe về nhu cầu của con. Gia đình có thể trao đổi thêm trước khi quyết định đăng ký học.</p><a class="text-link" href="tel:0989066885">Hoặc gọi 0989 066 885</a><p class="enquiry-footnote">Gửi form là đăng ký tư vấn, chưa phải xác nhận nhập học.</p></div>
       <form id="enquiry-form" class="enquiry-form"><div class="chosen-program"><span>Chương trình quan tâm</span><strong id="chosen-program">Đang tải…</strong></div>
         <div class="field-pair"><label>Họ tên phụ huynh<input name="name" autocomplete="name" required maxlength="120" /></label><label>Số điện thoại<input name="phone" type="tel" autocomplete="tel" required maxlength="30" /></label></div>
         <div class="field-pair"><label>Lớp của con<select name="grade" required><option value="3">Lớp 3</option><option value="4">Lớp 4</option><option value="5">Lớp 5</option><option value="6" selected>Lớp 6</option><option value="7">Lớp 7</option><option value="8">Lớp 8</option><option value="9">Lớp 9</option></select></label><label>Nhu cầu học<select name="level" required><option value="consolidation">Củng cố kiến thức</option><option value="basic" selected>Cơ bản</option><option value="advanced">Nâng cao</option><option value="olympiad">Bồi dưỡng học sinh giỏi</option></select></label></div>
