@@ -101,17 +101,7 @@ try {
   for(const target of (await cdp('Target.getTargets')).targetInfos)if(!previousTargets.has(target.targetId)&&target.type==='page')await cdp('Target.closeTarget',{targetId:target.targetId});
   assert.equal(await evaluate("[...document.querySelectorAll('[data-product-quantity]')].every(input=>input.value==='0')"),true,'reading a preview must not select a book');
 
-  const pdfBytes=await readFile(resolve('public/assets/trang-mau-toan.pdf'));
-  const pdfRoute=await fetch('http://127.0.0.1:'+port+'/assets/trang-mau-toan.pdf');
-  assert.match(pdfRoute.headers.get('Content-Type'),/^application\/pdf/);
-  assert.deepEqual(Buffer.from(await pdfRoute.arrayBuffer()),pdfBytes);
-  const downloadPath=join(scratch,'downloads');
-  await mkdir(downloadPath,{recursive:true});
-  await cdp('Browser.setDownloadBehavior',{behavior:'allow',downloadPath});
-  await evaluate("document.querySelector('#digital-download').click()");
-  const downloaded=await until(async()=>{const bytes=await readFile(join(downloadPath,'Tai-lieu-mau-Tu-duy-giai-Toan.pdf'));return bytes.length===pdfBytes.length&&bytes;},'free PDF download');
-  assert.deepEqual(downloaded,pdfBytes);
-  assert.equal(await evaluate("document.querySelector('#digital-view').rel.includes('noopener')"),true);
+  assert.equal(await evaluate("document.querySelector('.digital-document')"),null,'free sample block removed');
   await mkdir(output,{recursive:true});
   const documentViewports=[[320,720],[375,812],[430,932],[600,900],[768,1024],[820,1180],[900,1000],[901,1000],[1024,768],[1440,1000],[1920,1080]];
   for(const [width,height] of documentViewports){
@@ -130,8 +120,8 @@ try {
 
     await evaluate("document.querySelector('#tai-lieu-so').scrollIntoView({behavior:'instant',block:'start'})");
     await sleep(100);
-    await until(()=>evaluate("document.querySelector('.document-preview img').complete&&document.querySelector('.document-preview img').naturalWidth>0"),'PDF preview image');
-    const layout=await evaluate("(()=>{const visible=e=>e.getClientRects().length>0;const outside=[...document.querySelectorAll('.digital-document,.document-preview,.document-copy,.document-actions,.document-actions a,.site-header .brand,.menu-toggle')].filter(visible).filter(e=>{const r=e.getBoundingClientRect();return r.left<-.5||r.right>innerWidth+.5;}).map(e=>e.id||e.className);return {inner:innerWidth,document:document.documentElement.scrollWidth,outside};})()");
+    await until(()=>evaluate("document.querySelectorAll('.digital-product').length===14"),'digital catalog');
+    const layout=await evaluate("(()=>{const visible=e=>e.getClientRects().length>0;const outside=[...document.querySelectorAll('.digital-catalog,.digital-product,.digital-store-controls,.site-header .brand,.menu-toggle')].filter(visible).filter(e=>{const r=e.getBoundingClientRect();return r.left<-.5||r.right>innerWidth+.5;}).map(e=>e.id||e.className);return {inner:innerWidth,document:document.documentElement.scrollWidth,outside};})()");
     assert.equal(layout.inner,width,JSON.stringify(layout));
     assert.ok(layout.document<=width,JSON.stringify({width,...layout}));
     assert.deepEqual(layout.outside,[],JSON.stringify({width,...layout}));

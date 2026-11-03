@@ -37,7 +37,7 @@ SQLite cập nhật tự động khi khởi động. Với D1 đã deploy, publi
 
 ## Tài liệu số
 
-Mục #tai-lieu-so có một tài liệu mẫu miễn phí: **Tư duy giải Toán**, PDF 2 trang (74 KB), kèm ảnh xem trước trang đầu, nút mở PDF và tải xuống. Dùng file hiện có tại public/assets/trang-mau-toan.pdf; không yêu cầu tài khoản hay thanh toán. File này là bản minh họa, không phải PDF đầy đủ của các sách giấy. Ảnh xem trước nằm trong public/assets/documents/.
+Mục #tai-lieu-so hiển thị danh mục tài liệu PDF theo lớp và nút Tài liệu của tôi. Luồng đặt mua, duyệt thanh toán và tải riêng tư được mô tả trong DIGITAL-DOCUMENTS.md.
 
 Đây là phần giới thiệu và tải mẫu. Chưa có bán file trả phí, xác nhận chuyển khoản hoặc cấp quyền tải riêng. File trả phí sau này phải đặt trong kho riêng và kiểm tra quyền tải phía server; không đưa file trả phí vào public/assets/.
 

@@ -20,7 +20,6 @@
 .digital-product-bottom strong { color:var(--brand-navy); font-size:20px; }
 .digital-product-bottom .btn { min-height:44px; font-size:13px; padding:10px 14px; }
 .digital-product .btn:disabled { color:var(--ink-soft); background:#e9e8e3; border-color:var(--line); cursor:default; opacity:1; }
-.digital-sample-heading { padding-top:28px; border-top:1px solid var(--line); margin:0 0 24px; font-size:25px; }
 .digital-checkout { width:min(560px,calc(100% - 32px)); max-height:calc(100dvh - 32px); padding:28px; border:1px solid var(--line); border-top:4px solid var(--brand-gold); background:var(--paper); color:var(--brand-navy); overflow-y:auto; }
 .digital-checkout::backdrop { background:#20284f88; }
 .digital-checkout-header { display:flex; align-items:flex-start; gap:20px; justify-content:space-between; }
