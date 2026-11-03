@@ -329,7 +329,7 @@ function bookPreviewLink(product) {
   if (!['https:', 'http:'].includes(url.protocol)) return null;
   // The general digital sample is not a reading sample of an individual book.
   if (url.origin === location.origin && ['/assets/trang-mau-toan.pdf', '/public/assets/trang-mau-toan.pdf'].includes(url.pathname)) return null;
-  const link = element('a', 'Đọc thử PDF ↗', 'book-preview');
+  const link = element('a', 'Đọc thử PDF', 'book-preview');
   link.href = url.href;
   link.target = '_blank';
   link.rel = 'noopener noreferrer';

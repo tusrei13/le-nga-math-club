@@ -126,14 +126,15 @@ h2 em { font-style:normal; color:inherit; }
 .friction .section-intro { align-items:center; }
 .learning-route { margin-top:32px; background:var(--paper); border:1px solid var(--line); }
 .route-labels { display:grid; grid-template-columns:1fr 1fr; gap:32px; padding:16px 28px; background:var(--brand-gold); color:var(--brand-navy); font-size:12px; font-weight:700; letter-spacing:.045em; }
-.route-labels span:last-child { padding-left:46px; }
+.route-labels span:last-child { padding-left:0; }
 .route-row { display:grid; grid-template-columns:1fr 1fr; gap:32px; padding:24px 28px; }
 .route-row+.route-row { border-top:1px solid var(--line); }
-.route-problem,.route-answer { display:grid; grid-template-columns:34px minmax(0,1fr); gap:12px; align-items:start; }
+.route-problem { display:grid; grid-template-columns:34px minmax(0,1fr); gap:12px; align-items:start; }
+.route-answer { min-width:0; }
 .route-number { font-size:13px; font-weight:700; color:var(--ink-muted); padding-top:3px; }
 .route-problem h3 { font-size:21px; line-height:1.4; margin:0 0 6px; }
 .route-row p { font-size:14px; line-height:1.65; margin:0; color:var(--ink-soft); max-width:48ch; }
-.route-direction { display:grid; place-items:center; width:32px; height:32px; background:var(--paper-deep); color:var(--brand-navy); font-size:21px; }
+
 .route-answer h4 { font:700 16px/1.5 var(--sans); margin:0 0 6px; }
 .route-footer { display:flex; align-items:center; justify-content:space-between; gap:24px; padding:24px 28px; background:var(--brand-navy); color:var(--paper); }
 .route-footer p { margin:0; font:400 24px/1.45 var(--serif); }
@@ -143,8 +144,8 @@ h2 em { font-style:normal; color:inherit; }
   .route-row { grid-template-columns:1fr; gap:16px; padding:22px 18px; }
   .route-problem { grid-template-columns:26px minmax(0,1fr); }
   .route-problem h3 { font-size:20px; }
-  .route-answer { margin-left:38px; grid-template-columns:24px minmax(0,1fr); gap:10px; padding:14px; background:var(--paper-deep); }
-  .route-direction { width:24px; height:24px; font-size:18px; }
+  .route-answer { margin-left:38px; padding:14px; background:var(--paper-deep); }
+
   .route-footer { align-items:stretch; flex-direction:column; gap:18px; padding:22px 18px; }
   .route-footer p { font-size:22px; }
 }
