@@ -6,10 +6,14 @@ const labels={pending:'Chờ xác nhận thanh toán',paid:'Đã mở quyền t�
 const node=(tag,text,className)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(className)e.className=className;return e;};
 function session(){return window.customerSession;}
 function openLibrary(){session()?.open('digital');}
+function productDescription(product){
+  const seeded='Tài liệu PDF cho lớp '+product.grade+'. '+product.title+'. Bộ gồm '+product.file_count+' file; xem tên từng file sau khi được cấp quyền tải.';
+  return product.description===seeded?'Gồm '+product.file_count+' file PDF để tải về và luyện tập.':product.description;
+}
 function productCard(product){
   const card=node('article',undefined,'digital-product');
   const top=node('div',undefined,'digital-product-meta');top.append(node('span','Lớp '+product.grade),node('span','PDF · '+product.file_count+' file'));
-  card.append(top,node('h3',product.title),node('p',product.description,'digital-product-description'));
+  card.append(top,node('h3',product.title),node('p',productDescription(product),'digital-product-description'));
   const bottom=node('div',undefined,'digital-product-bottom'),price=node('div');
   price.append(node('small',product.is_draft?'Giá dự kiến':'Giá trọn bộ'),node('strong',money(product.price_vnd)));
   const button=node('button',product.is_draft?'Sắp mở bán':checkoutEnabled?'Chọn bộ này':'Chưa nhận đặt','btn btn-primary');
@@ -23,7 +27,9 @@ function renderCatalog(){
   catalog.replaceChildren(...visible.map(productCard));
   if(!visible.length)catalog.append(node('p','Chưa có tài liệu cho lựa chọn này.','digital-empty'));
   $('#digital-result-count').textContent=visible.length+' bộ tài liệu';
-  $('#digital-sale-note').textContent=checkoutEnabled?'Đăng nhập để đặt mua. CLB xác nhận chuyển khoản trước khi mở quyền tải.':'Danh mục đang chuẩn bị mở bán. Giá dự kiến sẽ được CLB xác nhận trước khi nhận thanh toán.';
+  const saleNote=$('#digital-sale-note');
+  saleNote.hidden=checkoutEnabled||!products.length;
+  saleNote.textContent=products.every(p=>p.is_draft)?'Sắp mở bán':'Tạm ngừng nhận đơn';
 }
 async function loadCatalog(){
   catalog.setAttribute('aria-busy','true');$('#digital-catalog-status').textContent='Đang tải danh mục tài liệu…';

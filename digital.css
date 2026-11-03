@@ -1,14 +1,21 @@
 /* Digital bundles share the books site's navy and gold palette. */
-.digital-store-heading { display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap; margin-bottom:24px; }
-.digital-store-heading h3 { margin:0 0 8px; font-size:27px; }
-.digital-store-heading p { margin:0; color:var(--ink-soft); font-size:14px; max-width:60ch; }
+.digital-section .digital-heading { display:flex; justify-content:space-between; align-items:center; gap:20px 32px; flex-wrap:wrap; margin-bottom:28px; }
+.digital-heading-copy { min-width:0; }
+.digital-title-row { display:flex; align-items:center; flex-wrap:wrap; gap:12px 20px; }
+.digital-title-row h2 { margin:0; }
+.digital-heading .section-subtitle { margin:12px 0 0; }
+.digital-sale-badge { display:inline-flex; align-items:center; min-height:28px; padding:4px 10px; border:1px solid #29315f33; font:600 12px var(--sans); color:var(--brand-navy); background:#ffbf2f22; }
+.digital-sale-badge[hidden] { display:none; }
+#digital-library-open { flex-shrink:0; white-space:nowrap; }
+@media(max-width:650px) { .digital-section .digital-heading { align-items:flex-start; gap:18px; margin-bottom:24px; } .digital-title-row { gap:10px 14px; } }
+
 .digital-store-controls { display:flex; align-items:center; flex-wrap:wrap; gap:16px 24px; margin-bottom:20px; }
 .digital-store-controls label { display:flex; align-items:center; gap:12px; font-size:14px; }
 .digital-store-controls select { min-height:44px; padding:8px 28px 8px 12px; font:inherit; color:var(--brand-navy); background:white; border:1px solid var(--line); max-width:100%; }
 #digital-result-count { font-size:13px; color:var(--ink-soft); }
 #digital-catalog-status { color:var(--ink-soft); font-size:14px; }
 #digital-catalog-status:empty { display:none; }
-.digital-catalog { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; margin-bottom:44px; }
+.digital-catalog { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; margin-bottom:0; }
 .digital-product { min-width:0; display:flex; flex-direction:column; border:1px solid var(--line); border-top:3px solid var(--brand-navy); background:var(--paper); padding:24px; }
 .digital-product-meta { display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:20px; font-size:12px; color:var(--ink-soft); }
 .digital-product-meta>span:first-child { color:var(--brand-navy); font-weight:700; }
