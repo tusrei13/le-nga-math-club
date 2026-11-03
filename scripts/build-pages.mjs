@@ -15,7 +15,7 @@ for (const preview of bookPreviews) {
 }
 await rm(output,{recursive:true,force:true}); await mkdir(output,{recursive:true});
 const logoVersion = createHash('sha256').update(await readFile('public/assets/logo.png')).digest('hex').slice(0,12);
-for (const name of ['index.html','styles.css','app.js','admin.html','admin.css','admin.js','customer.js','customer.css']) {
+for (const name of ['index.html','styles.css','app.js','admin.html','admin.css','admin.js','customer.js','customer.css','digital.js','digital.css','admin-digital.js','admin-digital.css']) {
   const destination = resolve(output,name);
   if (name.endsWith('.html') || name === 'customer.js') {
     const text = await readFile(name,'utf8');
@@ -45,5 +45,6 @@ sql+='\n'+await readFile('database/migrations/004-catalog-corrections.sql','utf8
 sql+='\n'+await readFile('database/migrations/005-stem-maths.sql','utf8');
 sql+='\n'+await readFile('database/migrations/006-retire-geometry-book.sql','utf8');
 sql+='\n'+await readFile('database/migrations/007-book-previews.sql','utf8');
+sql+='\n'+await readFile('database/migrations/008-digital-documents.sql','utf8');
 db.close(); await mkdir('cloudflare',{recursive:true}); await writeFile('cloudflare/init.sql',sql);
 console.log('Pages build ready in dist/. D1 initialization SQL: cloudflare/init.sql');

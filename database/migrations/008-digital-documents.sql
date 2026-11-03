@@ -1,0 +1,75 @@
+CREATE TABLE IF NOT EXISTS digital_products (
+ id TEXT PRIMARY KEY, grade INTEGER NOT NULL CHECK(grade BETWEEN 3 AND 9),
+ title TEXT NOT NULL, description TEXT NOT NULL, price_vnd INTEGER NOT NULL CHECK(price_vnd BETWEEN 1000 AND 100000000),
+ active INTEGER NOT NULL DEFAULT 1 CHECK(active IN (0,1)), is_draft INTEGER NOT NULL DEFAULT 1 CHECK(is_draft IN (0,1)),
+ version INTEGER NOT NULL DEFAULT 1, edit_token TEXT NOT NULL DEFAULT '', sort_order INTEGER NOT NULL DEFAULT 0,
+ created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS digital_files (
+ id TEXT PRIMARY KEY, product_id TEXT NOT NULL REFERENCES digital_products(id),
+ label TEXT NOT NULL, object_key TEXT NOT NULL UNIQUE, sort_order INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS digital_settings (
+ id INTEGER PRIMARY KEY CHECK(id=1), bank_name TEXT NOT NULL DEFAULT '', account_number TEXT NOT NULL DEFAULT '',
+ account_holder TEXT NOT NULL DEFAULT '', instructions TEXT NOT NULL DEFAULT '',
+ accept_orders INTEGER NOT NULL DEFAULT 0 CHECK(accept_orders IN (0,1)), version INTEGER NOT NULL DEFAULT 1
+);
+CREATE TABLE IF NOT EXISTS digital_orders (
+ id TEXT PRIMARY KEY, customer_id TEXT NOT NULL, product_id TEXT NOT NULL REFERENCES digital_products(id),
+ title TEXT NOT NULL, grade INTEGER NOT NULL CHECK(grade BETWEEN 3 AND 9),
+ parent_name TEXT NOT NULL, email TEXT NOT NULL, phone TEXT NOT NULL,
+ amount_vnd INTEGER NOT NULL CHECK(amount_vnd>0), consent INTEGER NOT NULL DEFAULT 1 CHECK(consent=1),
+ status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','paid','cancelled','revoked')),
+ version INTEGER NOT NULL DEFAULT 1, request_key TEXT NOT NULL, request_hash TEXT NOT NULL,
+ created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ UNIQUE(customer_id,request_key)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_digital_one_active_purchase ON digital_orders(customer_id,product_id) WHERE status IN ('pending','paid');
+CREATE INDEX IF NOT EXISTS idx_digital_customer_date ON digital_orders(customer_id,created_at);
+CREATE INDEX IF NOT EXISTS idx_digital_status_date ON digital_orders(status,created_at);
+CREATE TABLE IF NOT EXISTS digital_order_history (
+ id INTEGER PRIMARY KEY, order_id TEXT NOT NULL REFERENCES digital_orders(id),
+ from_status TEXT, to_status TEXT NOT NULL, actor TEXT NOT NULL, note TEXT NOT NULL DEFAULT '',
+ created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+INSERT OR IGNORE INTO digital_settings(id) VALUES(1);
+INSERT INTO digital_products(id,grade,title,description,price_vnd,sort_order) SELECT 'g3-8-de-giua-hk1',3,'8 đề ôn tập giữa học kỳ I · Toán 3','Tài liệu PDF cho lớp 3. 8 đề ôn tập giữa học kỳ I · Toán 3. Bộ gồm 2 file; xem tên từng file sau khi được cấp quyền tải.',49000,0 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g3-8-de-giua-hk1-file-1','g3-8-de-giua-hk1','PDF 1','lop-3/8-de-on-tap-giua-hk1-2026-2027/BoDe_8De_OnTapGKI_Toan3_2026-2027.pdf',0 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g3-8-de-giua-hk1-file-2','g3-8-de-giua-hk1','Bản HS','lop-3/8-de-on-tap-giua-hk1-2026-2027/BoDe_8De_OnTapGKI_Toan3_2026-2027_HS.pdf',1 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_products(id,grade,title,description,price_vnd,sort_order) SELECT 'g4-tong-hieu',4,'Chuyên đề Tổng – Hiệu · Toán 4','Tài liệu PDF cho lớp 4. Chuyên đề Tổng – Hiệu · Toán 4. Bộ gồm 2 file; xem tên từng file sau khi được cấp quyền tải.',39000,1 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g4-tong-hieu-file-1','g4-tong-hieu','Bản GV','lop-4/chuyen-de-tong-hieu/Toan4_TongHieu_GV.pdf',0 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g4-tong-hieu-file-2','g4-tong-hieu','Bản HS','lop-4/chuyen-de-tong-hieu/Toan4_TongHieu_HS.pdf',1 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_products(id,grade,title,description,price_vnd,sort_order) SELECT 'g4-5-de-giua-hk1',4,'5 đề ôn tập giữa học kỳ I · Toán 4','Tài liệu PDF cho lớp 4. 5 đề ôn tập giữa học kỳ I · Toán 4. Bộ gồm 2 file; xem tên từng file sau khi được cấp quyền tải.',49000,2 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g4-5-de-giua-hk1-file-1','g4-5-de-giua-hk1','PDF 1','lop-4/5-de-on-tap-giua-hk1-2026-2027/TuyenTap_5De_OnTapGiuaHK1_Toan4_2026-2027.pdf',0 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g4-5-de-giua-hk1-file-2','g4-5-de-giua-hk1','Bản HS','lop-4/5-de-on-tap-giua-hk1-2026-2027/TuyenTap_5De_OnTapGiuaHK1_Toan4_2026-2027_HS.pdf',1 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_products(id,grade,title,description,price_vnd,sort_order) SELECT 'g5-so-thap-phan',5,'2 đề Số thập phân · Toán 5','Tài liệu PDF cho lớp 5. 2 đề Số thập phân · Toán 5. Bộ gồm 2 file; xem tên từng file sau khi được cấp quyền tải.',29000,3 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g5-so-thap-phan-file-1','g5-so-thap-phan','PDF 1','lop-5/2-de-so-thap-phan/Toan5_2_de_So_thap_phan.pdf',0 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g5-so-thap-phan-file-2','g5-so-thap-phan','PDF 2','lop-5/2-de-so-thap-phan/Toan5_Dap_an_2_de_So_thap_phan.pdf',1 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_products(id,grade,title,description,price_vnd,sort_order) SELECT 'g5-bo-de-giua-hk1',5,'Bộ đề ôn tập giữa học kỳ I · Toán 5','Tài liệu PDF cho lớp 5. Bộ đề ôn tập giữa học kỳ I · Toán 5. Bộ gồm 2 file; xem tên từng file sau khi được cấp quyền tải.',49000,4 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g5-bo-de-giua-hk1-file-1','g5-bo-de-giua-hk1','Bản GV','lop-5/bo-de-on-tap-giua-hk1-2026-2027/BoDe_OnTapGiuaKiI_Toan5_2026-2027_GV.pdf',0 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g5-bo-de-giua-hk1-file-2','g5-bo-de-giua-hk1','Bản HS','lop-5/bo-de-on-tap-giua-hk1-2026-2027/BoDe_OnTapGiuaKiI_Toan5_2026-2027_HS.pdf',1 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_products(id,grade,title,description,price_vnd,sort_order) SELECT 'g5-5-de-giua-hk1',5,'Tuyển tập 5 đề giữa học kỳ I · Toán 5','Tài liệu PDF cho lớp 5. Tuyển tập 5 đề giữa học kỳ I · Toán 5. Bộ gồm 1 file; xem tên từng file sau khi được cấp quyền tải.',49000,5 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g5-5-de-giua-hk1-file-1','g5-5-de-giua-hk1','Tài liệu PDF','lop-5/5-de-on-tap-giua-hk1-2026-2027/TuyenTap_5De_OnTapGiuaHK1_Toan5_2026-2027_TheoFileGoc.pdf',0 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_products(id,grade,title,description,price_vnd,sort_order) SELECT 'g6-7-de-hk1',6,'7 đề kiểm tra học kỳ I · Toán 6','Tài liệu PDF cho lớp 6. 7 đề kiểm tra học kỳ I · Toán 6. Bộ gồm 2 file; xem tên từng file sau khi được cấp quyền tải.',59000,6 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g6-7-de-hk1-file-1','g6-7-de-hk1','PDF 1','lop-6/7-de-kiem-tra-hk1-2023-2024/TuyenTap_7De_KTHK1_Toan6_2023-2024.pdf',0 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g6-7-de-hk1-file-2','g6-7-de-hk1','Bản HS','lop-6/7-de-kiem-tra-hk1-2023-2024/TuyenTap_7De_KTHK1_Toan6_2023-2024_HS.pdf',1 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_products(id,grade,title,description,price_vnd,sort_order) SELECT 'g7-10-de-giua-hk1',7,'10 đề giữa kỳ I, đề và đáp án · Toán 7','Tài liệu PDF cho lớp 7. 10 đề giữa kỳ I, đề và đáp án · Toán 7. Bộ gồm 1 file; xem tên từng file sau khi được cấp quyền tải.',69000,7 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g7-10-de-giua-hk1-file-1','g7-10-de-giua-hk1','Tài liệu PDF','lop-7/10-de-kiem-tra-giua-hk1/Toan7_10De_GiuaHK1_DeVaDapAn.pdf',0 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_products(id,grade,title,description,price_vnd,sort_order) SELECT 'g8-5-de-hk1-kntt',8,'5 đề cuối kỳ I · Toán 8 Kết nối tri thức','Tài liệu PDF cho lớp 8. 5 đề cuối kỳ I · Toán 8 Kết nối tri thức. Bộ gồm 2 file; xem tên từng file sau khi được cấp quyền tải.',59000,8 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g8-5-de-hk1-kntt-file-1','g8-5-de-hk1-kntt','PDF 1','lop-8/5-de-cuoi-hk1-kntt/TuyenTap_5De_CKI_Toan8_KNTT.pdf',0 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g8-5-de-hk1-kntt-file-2','g8-5-de-hk1-kntt','Bản HS','lop-8/5-de-cuoi-hk1-kntt/TuyenTap_5De_CKI_Toan8_KNTT_HS.pdf',1 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_products(id,grade,title,description,price_vnd,sort_order) SELECT 'g9-duong-tron',9,'42 bài hình Đường tròn · Toán 9','Tài liệu PDF cho lớp 9. 42 bài hình Đường tròn · Toán 9. Bộ gồm 2 file; xem tên từng file sau khi được cấp quyền tải.',79000,9 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g9-duong-tron-file-1','g9-duong-tron','Bản GV','lop-9/42-bai-hinh-duong-tron-hk1/TuyenTap_42BaiHinh_DuongTron_HKI_Toan9_GV.pdf',0 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g9-duong-tron-file-2','g9-duong-tron','Bản HS','lop-9/42-bai-hinh-duong-tron-hk1/TuyenTap_42BaiHinh_DuongTron_HKI_Toan9_HS.pdf',1 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_products(id,grade,title,description,price_vnd,sort_order) SELECT 'g9-7-de-thang-11',9,'7 đề khảo sát tháng 11 · Toán 9','Tài liệu PDF cho lớp 9. 7 đề khảo sát tháng 11 · Toán 9. Bộ gồm 2 file; xem tên từng file sau khi được cấp quyền tải.',59000,10 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g9-7-de-thang-11-file-1','g9-7-de-thang-11','PDF 1','lop-9/7-de-khao-sat-thang-11-2025-2026/TuyenTap_7De_KSCL_Thang11_Toan9_2025-2026.pdf',0 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g9-7-de-thang-11-file-2','g9-7-de-thang-11','Bản HS','lop-9/7-de-khao-sat-thang-11-2025-2026/TuyenTap_7De_KSCL_Thang11_Toan9_2025-2026_HS.pdf',1 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_products(id,grade,title,description,price_vnd,sort_order) SELECT 'g9-8-de-thang-10',9,'8 đề khảo sát tháng 10 · Toán 9','Tài liệu PDF cho lớp 9. 8 đề khảo sát tháng 10 · Toán 9. Bộ gồm 2 file; xem tên từng file sau khi được cấp quyền tải.',59000,11 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g9-8-de-thang-10-file-1','g9-8-de-thang-10','PDF 1','lop-9/8-de-khao-sat-thang-10/TuyenTap_8De_KSCL_Thang10_Toan9.pdf',0 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g9-8-de-thang-10-file-2','g9-8-de-thang-10','Bản HS','lop-9/8-de-khao-sat-thang-10/TuyenTap_8De_KSCL_Thang10_Toan9_HS.pdf',1 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_products(id,grade,title,description,price_vnd,sort_order) SELECT 'g9-de-thang-11',9,'Đề khảo sát tháng 11 · Toán 9','Tài liệu PDF cho lớp 9. Đề khảo sát tháng 11 · Toán 9. Bộ gồm 1 file; xem tên từng file sau khi được cấp quyền tải.',29000,12 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g9-de-thang-11-file-1','g9-de-thang-11','Bản HS','lop-9/de-khao-sat-thang-11-2025-2026/Toan9_KhaoSat_Thang11_2025-2026_HS.pdf',0 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_products(id,grade,title,description,price_vnd,sort_order) SELECT 'g9-toi-uu',9,'Phiếu bài Tối ưu, GTLN – GTNN · Toán 9','Tài liệu PDF cho lớp 9. Phiếu bài Tối ưu, GTLN – GTNN · Toán 9. Bộ gồm 2 file; xem tên từng file sau khi được cấp quyền tải.',49000,13 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g9-toi-uu-file-1','g9-toi-uu','Bản GV','lop-9/toi-uu-gtln-gtnn/PhieuBai_ToiUu_GTLN_GTNN_Toan9_GV.pdf',0 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT INTO digital_files(id,product_id,label,object_key,sort_order) SELECT 'g9-toi-uu-file-2','g9-toi-uu','Bản HS','lop-9/toi-uu-gtln-gtnn/PhieuBai_ToiUu_GTLN_GTNN_Toan9_HS.pdf',1 WHERE NOT EXISTS(SELECT 1 FROM schema_versions WHERE version=8) ON CONFLICT(id) DO NOTHING;
+INSERT OR IGNORE INTO schema_versions(version) VALUES(8);

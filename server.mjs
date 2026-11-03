@@ -38,7 +38,7 @@ const server = createServer(async (request, response) => {
     const pathname = decodeURIComponent(url.pathname);
     if(pathname==='/stem'){response.writeHead(302,{Location:'/stem/'});response.end();return;}
     const relative = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
-    const adminFiles = { admin:'admin.html', 'admin/':'admin.html', 'admin.html':'admin.html', 'admin.js':'admin.js', 'admin.css':'admin.css' };
+    const adminFiles = { admin:'admin.html', 'admin/':'admin.html', 'admin.html':'admin.html', 'admin.js':'admin.js', 'admin.css':'admin.css', 'admin-digital.js':'admin-digital.js', 'admin-digital.css':'admin-digital.css' };
     const stemFiles={'stem/':'index.html','stem/index.html':'index.html','stem/styles.css':'styles.css','stem/app.js':'app.js'};
     const publicRoot = resolve(root, 'public');
     let file;
@@ -53,13 +53,13 @@ const server = createServer(async (request, response) => {
       response.setHeader('Referrer-Policy','same-origin');
       response.setHeader('Content-Security-Policy',policies.admin);
     }
-    else if (['index.html', 'styles.css', 'app.js', 'customer.js', 'customer.css'].includes(relative)) {
+    else if (['index.html', 'styles.css', 'app.js', 'customer.js', 'customer.css', 'digital.js', 'digital.css'].includes(relative)) {
       file = join(root, relative);
       response.setHeader('Content-Security-Policy', policies.books);
     }
     else if (relative === 'manus-routes.json' || relative.startsWith('assets/')) file = resolve(publicRoot, relative);
     else if (relative.startsWith('public/assets/')) file = resolve(publicRoot, relative.slice(7));
-    if (!file || (!Object.hasOwn(stemFiles,relative) && !Object.hasOwn(adminFiles,relative) && !['index.html', 'styles.css', 'app.js', 'customer.js', 'customer.css'].includes(relative) && !file.startsWith(publicRoot + sep))) {
+    if (!file || (!Object.hasOwn(stemFiles,relative) && !Object.hasOwn(adminFiles,relative) && !['index.html', 'styles.css', 'app.js', 'customer.js', 'customer.css', 'digital.js', 'digital.css'].includes(relative) && !file.startsWith(publicRoot + sep))) {
       response.writeHead(404); response.end('Not found'); return;
     }
     const data = await readFile(file);

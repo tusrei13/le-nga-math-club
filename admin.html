@@ -8,6 +8,7 @@
   <title>Quản trị đơn sách · CLB Toán Cô Lê Nga</title>
   <link rel="icon" href="/assets/logo.png" type="image/png" />
   <link rel="stylesheet" href="/admin.css" />
+  <link rel="stylesheet" href="/admin-digital.css" />
   <script src="/admin.js" type="module"></script>
 </head>
 <body>
@@ -34,6 +35,7 @@
       <nav class="inbox-tabs" aria-label="Loại yêu cầu">
         <button type="button" data-inbox="orders" aria-pressed="true">Đơn sách <span id="order-badge" class="count-badge">0</span></button>
         <button type="button" data-inbox="consultations" aria-pressed="false">Tư vấn <span id="consultation-badge" class="count-badge">0</span></button>
+        <button type="button" data-inbox="digital-orders" aria-pressed="false">Tài liệu số <span id="digital-badge" class="count-badge">0</span></button>
         <button type="button" data-inbox="stem-enquiries" aria-pressed="false">STEM Maths <span id="stem-badge" class="count-badge">0</span></button>
       </nav>
       <div class="account-menu"><a href="/" target="_blank" rel="noopener">Xem trang bán sách ↗</a><div class="account-identity"><span id="user-initial" class="account-avatar" aria-hidden="true"></span><span id="current-user"></span></div><button id="logout-button" type="button">Đăng xuất</button></div>
@@ -48,6 +50,7 @@
           <button type="button" data-summary="consultations" aria-pressed="false"><strong id="summary-consultations">00</strong><span>Tư vấn mới</span></button>
         </div>
       </section>
+      <details id="digital-management" class="digital-management" hidden><summary>Quản lý tài liệu và thông tin thanh toán</summary><div id="digital-management-content" class="digital-management-content"></div></details>
       <div class="work-desk">
         <section class="inbox-panel" aria-labelledby="list-heading">
           <div class="inbox-heading"><h2 id="list-heading">Hộp thư yêu cầu</h2><span>Chọn một phiếu để xử lý</span></div>
@@ -66,7 +69,7 @@
             <header class="detail-header"><div><p class="overline" id="detail-kind">PHIẾU ĐẶT SÁCH</p><h2 id="detail-title">Thông tin yêu cầu</h2></div><button type="button" id="close-detail" class="secondary-button" aria-label="Đóng chi tiết">Đóng ×</button></header>
             <div id="detail-content"></div>
             <p class="message" id="detail-message" role="status" aria-live="polite"></p>
-            <form class="status-actions" id="status-form"><label>Bước xử lý tiếp theo<select id="next-status" required></select></label><button type="submit" class="primary-button" id="save-status">Cập nhật trạng thái</button></form>
+            <form class="status-actions" id="status-form"><div id="digital-payment-confirm" class="digital-payment-confirm" hidden><label id="digital-payment-verified-label"><input type="checkbox" id="digital-payment-verified" /><span>Tôi đã kiểm tra tiền thực nhận cho đúng mã đơn và đủ số tiền.</span></label><label>Ghi chú xử lý</label><textarea id="digital-action-note" maxlength="1000" rows="2"></textarea></div><label>Bước xử lý tiếp theo<select id="next-status" required></select></label><button type="submit" class="primary-button" id="save-status">Cập nhật trạng thái</button></form>
           </dialog>
         </section>
       </div>

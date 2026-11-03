@@ -34,7 +34,7 @@ export function staticSecurityHeaders(policy){
 export function protectPagesPreview(request){
   const {hostname,pathname}=new URL(request.url);
   const preview=hostname.endsWith('.pages.dev')&&hostname.split('.').length>3;
-  const publicRead=['GET','HEAD'].includes(request.method)&&['/api/stem/programs','/api/products','/api/landing','/api/customer/config'].includes(pathname);
+  const publicRead=['GET','HEAD'].includes(request.method)&&['/api/stem/programs','/api/digital/products','/api/products','/api/landing','/api/customer/config'].includes(pathname);
   if(preview&&pathname.startsWith('/api/')&&!publicRead)throw new SecurityError(403,'Bản xem thử không nhận dữ liệu thật. Vui lòng dùng website chính thức.');
 }
 export function isJsonType(value){return typeof value==='string'&&value.split(';',1)[0].trim().toLowerCase()==='application/json';}

@@ -143,3 +143,7 @@ Cloudflare Pages dùng D1, hướng dẫn trong [CLOUDFLARE.md](CLOUDFLARE.md). 
 Sao lưu SQLite bằng công cụ hỗ trợ online backup, hoặc dừng server trước khi sao lưu thư mục `data/`; SQLite đang dùng WAL nên không chỉ chép riêng file `.sqlite` khi server đang ghi. Database này hướng tới một server ứng dụng; khi cần nhiều server ghi cùng lúc, nên chuyển sang PostgreSQL. Chạy init/seed lại không ghi đè giá, nội dung, media hay trạng thái đã chỉnh sửa. Schema v2 bổ sung hai bảng quản trị qua `database/admin-schema.sql`; các thay đổi schema sau này cần migration riêng.
 
 Schema v3 bổ sung customer_orders để liên kết đơn với Firebase UID đã được server xác minh. Firebase quản lý tài khoản khách hàng; database chỉ lưu ID liên kết, không lưu mật khẩu khách. Xem FIREBASE.md để cấu hình đăng nhập email và Google.
+
+## Migration 008: tài liệu số
+
+Bổ sung danh mục, file riêng tư, cấu hình chuyển khoản, đơn và lịch sử tài liệu. Chạy riêng `database/migrations/008-digital-documents.sql` cho D1 đã có. Không đưa PDF bán vào `public/`. Chi tiết: [DIGITAL-DOCUMENTS.md](DIGITAL-DOCUMENTS.md).

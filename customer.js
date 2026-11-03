@@ -17,6 +17,7 @@ function waitFor(promise, milliseconds = 20000) {
 }
 window.customerSession = {
   get id() { return user?.uid || null; },
+  open: next => { if(user)openAccount(next||'orders');else entry.click(); },
   getToken: () => user ? waitFor(user.getIdToken(), 10000) : Promise.resolve(null)
 };
 const message = text => { $('#customer-status').textContent = text; };
@@ -117,11 +118,13 @@ function setProfileEditing(value) {
 function showSection(next) {
   section = next;
   $('#customer-orders-view').hidden = next !== 'orders';
+  $('#customer-digital-view').hidden = next !== 'digital';
   $('#customer-profile-view').hidden = next !== 'profile';
   for (const button of dialog.querySelectorAll('[data-customer-section]')) button.setAttribute('aria-pressed', String(button.dataset.customerSection === next));
   message('');
   if (next === 'orders') loadOrders();
-  else { generation++; ordersController?.abort(); setProfileEditing(false); }
+  else { generation++; ordersController?.abort(); if(next==='profile')setProfileEditing(false); }
+  window.dispatchEvent(new CustomEvent('customer:section',{detail:{section:next}}));
 }
 function openAccount(next) {
   if (!user) return;
@@ -182,6 +185,7 @@ function renderAccount(current) {
     $('#customer-panel-avatar').replaceChildren();
     if (previousId) { $('#customer-form').reset(); if (dialog.open) dialog.close(); }
   }
+  window.dispatchEvent(new CustomEvent('customer:changed',{detail:{id:user?.uid||null}}));
 }
 function element(tag, text, className) {
   const node = document.createElement(tag);

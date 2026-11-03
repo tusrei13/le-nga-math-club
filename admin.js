@@ -1,6 +1,7 @@
+import {setupDigitalManagement} from './admin-digital.js';
 const $ = selector => document.querySelector(selector);
-const labels = { pending:'Mới nhận', confirmed:'Chờ giao', shipping:'Đang giao', completed:'Hoàn tất', cancelled:'Đã hủy', new:'Chưa liên hệ', contacted:'Đã liên hệ', resolved:'Đã tư vấn',advising:'Đang tư vấn',enrolled:'Đã xếp lớp' };
-const states = { orders:['pending','confirmed','shipping','completed','cancelled'], consultations:['new','contacted','resolved','cancelled'],'stem-enquiries':['new','contacted','advising','enrolled','cancelled'] };
+const labels = { pending:'Mới nhận', confirmed:'Chờ giao', shipping:'Đang giao', completed:'Hoàn tất', cancelled:'Đã hủy', new:'Chưa liên hệ', contacted:'Đã liên hệ', resolved:'Đã tư vấn',advising:'Đang tư vấn',enrolled:'Đã xếp lớp',paid:'Đã thanh toán',revoked:'Đã thu hồi quyền tải' };
+const states = { orders:['pending','confirmed','shipping','completed','cancelled'], consultations:['new','contacted','resolved','cancelled'],'stem-enquiries':['new','contacted','advising','enrolled','cancelled'],'digital-orders':['pending','paid','cancelled','revoked'] };
 const currency = value => `${new Intl.NumberFormat('vi-VN').format(value)}đ`;
 const dateFormat = new Intl.DateTimeFormat('vi-VN', { dateStyle:'short', timeStyle:'short', timeZone:'Asia/Bangkok' });
 const date = value => dateFormat.format(new Date(value.replace(' ','T') + 'Z'));
@@ -8,6 +9,7 @@ let auth, inbox = 'orders', offset = 0, total = 0, sequence = 0, detail;
 let detailSequence = 0, selectedId, covers = new Map();
 const mobileDetail = matchMedia('(max-width: 850px)');
 const pageSize = 20;
+const digitalManagement=setupDigitalManagement({request,element,currency,isAuthenticated:()=>Boolean(auth)});
 
 function element(tag, text, className) {
   const node = document.createElement(tag);
@@ -16,7 +18,7 @@ function element(tag, text, className) {
   return node;
 }
 function showLogin(message = '', setup = false) {
-  auth = undefined; sequence++;
+  auth = undefined; sequence++;digitalManagement.clear();
   $('#dashboard-view').hidden = true; $('#login-view').hidden = false; $('#boot-status').hidden = true;
   closeDetail();
   $('#request-list').replaceChildren(); $('#detail-content').replaceChildren(); detail = undefined;
@@ -62,6 +64,7 @@ async function loadSummary() {
   $('#order-badge').textContent = data.orders.pending || 0;
   $('#consultation-badge').textContent = data.consultations.new || 0;
   $('#stem-badge').textContent = data.stem_enquiries?.new || 0;
+  $('#digital-badge').textContent = data.digital_orders?.pending || 0;
 }
 async function loadList() {
   syncSummaryFilter();
@@ -91,7 +94,8 @@ async function loadList() {
         const copy=element('div');
         copy.append(element('span',row.items.map(item=>item.title).join(' · '),'cell-title'),element('span',`${books} cuốn · Thanh toán COD`,'cell-meta'));
         content.append(thumbnails,copy,element('strong',currency(row.total_vnd),'request-total'));
-      } else content.append(element('span',table==='stem-enquiries'?row.program_title+(row.specialist_goal?' · Định hướng thi chuyên':''):`Tư vấn sách cho lớp ${row.grade}`,'cell-title'),element('span',row.note ? row.note.slice(0,65) + (row.note.length>65?'…':'') : 'Chưa có ghi chú','cell-meta'));
+      } else if(table==='digital-orders'){content.append(element('span',row.title,'cell-title'),element('strong',currency(row.amount_vnd),'request-total'));}
+      else content.append(element('span',table==='stem-enquiries'?row.program_title+(row.specialist_goal?' · Định hướng thi chuyên':''):`Tư vấn sách cho lớp ${row.grade}`,'cell-title'),element('span',row.note ? row.note.slice(0,65) + (row.note.length>65?'…':'') : 'Chưa có ghi chú','cell-meta'));
       const action = element('div',undefined,'request-footer'), button = element('button','Mở phiếu →','detail-button'); button.type='button';
       button.setAttribute('aria-label',`Xem ${table==='orders'?'đơn sách':'tư vấn'} của ${row.parent_name}`);
       button.addEventListener('click',()=>openDetail(table,row.id)); action.append(element('time',date(row.created_at)),button);
@@ -117,9 +121,10 @@ async function refresh() {
 function selectInbox(table, status = '') {
   closeDetail();
   inbox = table; offset = 0;
+  $('#digital-management').hidden=table!=='digital-orders';if(table!=='digital-orders')$('#digital-management').open=false;
   document.querySelectorAll('[data-inbox]').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.inbox === table)));
-  $('#inbox-title').textContent = table === 'orders' ? 'Đơn sách' : table==='stem-enquiries'?'Tư vấn STEM Maths':'Yêu cầu tư vấn';
-  $('#inbox-description').textContent = table === 'orders' ? 'Nhận đơn, xác nhận với phụ huynh và theo dõi giao sách.' : table==='stem-enquiries'?'Trao đổi chương trình Toán offline, ghi chú và xác nhận xếp lớp.':'Liên hệ phụ huynh và tìm sách phù hợp với con.';
+  $('#inbox-title').textContent = table === 'orders' ? 'Đơn sách' : table==='digital-orders'?'Đơn tài liệu số':table==='stem-enquiries'?'Tư vấn STEM Maths':'Yêu cầu tư vấn';
+  $('#inbox-description').textContent = table === 'orders' ? 'Nhận đơn, xác nhận với phụ huynh và theo dõi giao sách.' : table==='digital-orders'?'Kiểm tra chuyển khoản, mở hoặc thu hồi quyền tải PDF.':table==='stem-enquiries'?'Trao đổi chương trình Toán offline, ghi chú và xác nhận xếp lớp.':'Liên hệ phụ huynh và tìm sách phù hợp với con.';
   $('#search-input').value=''; populateFilter(); $('#status-filter').value=status; loadList();
 }
 function syncSummaryFilter() {
@@ -154,6 +159,7 @@ function renderDetail(row,table) {
   addField(fields,'Số điện thoại',phone);addField(fields,'Lớp của con',`Lớp ${row.grade}`);
   addField(fields,'Ngày nhận',date(row.created_at));addField(fields,'Cập nhật gần nhất',date(row.updated_at));
   if(table==='orders') addField(fields,'Địa chỉ nhận sách',row.address,true);
+  if(table==='digital-orders'){addField(fields,'Email tài khoản',row.email,true);addField(fields,'Bộ tài liệu',row.title,true);addField(fields,'Số tiền cần xác nhận',currency(row.amount_vnd));addField(fields,'Nội dung chuyển khoản',row.id,true);}
   if(table==='stem-enquiries'){addField(fields,'Chương trình',row.program_title,true);addField(fields,'Định hướng thi chuyên',row.specialist_goal?'Có':'Chưa chọn');addField(fields,'Hình thức','Học trực tiếp tại CLB');}
   addField(fields,'Ghi chú',row.note || 'Không có ghi chú.',true);container.append(fields);
   if(table==='orders') {
@@ -183,9 +189,10 @@ function renderDetail(row,table) {
   const history=element('section',undefined,'detail-section');history.append(element('h3','Lịch sử xử lý'));
   const list=element('ol',undefined,'history');
   for(const item of row.history) {
-    const line=element('li');line.append(element('span',item.event_type==='note'?'Cập nhật ghi chú nội bộ':`${item.from_status ? `${labels[item.from_status]} → ` : ''}${labels[item.to_status]}`),element('time',date(item.created_at)));list.append(line);
+    const line=element('li');line.append(element('span',item.event_type==='note'?'Cập nhật ghi chú nội bộ':`${item.from_status ? `${labels[item.from_status]} → ` : ''}${labels[item.to_status]}`),element('time',date(item.created_at)));if(inbox==='digital-orders'){if(item.actor)line.append(element('small','Người xử lý: '+item.actor));if(item.note)line.append(element('p',item.note));}list.append(line);
   }
   history.append(list);container.append(history);
+  $('#digital-payment-verified').checked=false;$('#digital-action-note').value='';
   const select=$('#next-status');select.replaceChildren();
   for(const status of row.allowed_statuses) select.add(new Option(labels[status],status));
   $('#status-form').hidden=!row.allowed_statuses.length;
@@ -209,7 +216,10 @@ function closeDetail() {
   document.querySelectorAll('.request-card').forEach(card=>card.classList.remove('is-selected'));
 }
 function updateActionLabel() {
-  const actions={confirmed:'Xác nhận đơn',shipping:'Bắt đầu giao sách',completed:'Hoàn tất đơn',cancelled:'Hủy yêu cầu',contacted:'Đánh dấu đã liên hệ',resolved:'Hoàn tất tư vấn',advising:'Bắt đầu tư vấn',enrolled:'Xác nhận đã xếp lớp'};
+  const digital=detail?.table==='digital-orders',paid=digital&&$('#next-status').value==='paid';
+  $('#digital-payment-confirm').hidden=!digital;
+  $('#digital-payment-verified-label').hidden=!paid;$('#digital-payment-verified').required=paid;
+  const actions={paid:'Xác nhận đã nhận tiền và mở tải',revoked:'Thu hồi quyền tải',confirmed:'Xác nhận đơn',shipping:'Bắt đầu giao sách',completed:'Hoàn tất đơn',cancelled:'Hủy yêu cầu',contacted:'Đánh dấu đã liên hệ',resolved:'Hoàn tất tư vấn',advising:'Bắt đầu tư vấn',enrolled:'Xác nhận đã xếp lớp'};
   $('#save-status').textContent=actions[$('#next-status').value] || 'Cập nhật trạng thái';
 }
 mobileDetail.addEventListener('change',()=>{
@@ -246,7 +256,7 @@ $('#status-form').addEventListener('submit',async event=>{
   const {table,row}=detail,button=$('#save-status');button.disabled=true;$('#detail-message').textContent='Đang lưu…';
   const version=detailSequence;
   try {
-    await request(`/api/admin/${table}/${row.id}/status`,{method:'PATCH',data:{status:$('#next-status').value,expected_status:row.status}});
+    await request(`/api/admin/${table}/${row.id}/status`,{method:'PATCH',data:{status:$('#next-status').value,expected_status:row.status,...(table==='digital-orders'?{expected_version:row.version,payment_verified:$('#digital-payment-verified').checked,note:$('#digital-action-note').value}:{})}});
     const updated=await request(`/api/admin/${table}/${row.id}`);if(version===detailSequence && auth){renderDetail(updated,table);$('#detail-message').textContent='Đã cập nhật trạng thái.';}if(auth)await refresh();
   } catch(error) {if(version===detailSequence)$('#detail-message').textContent=error.message;}
   finally {button.disabled=false;}

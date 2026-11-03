@@ -1,0 +1,25 @@
+.digital-management { border:1px solid var(--line); background:white; padding:18px 22px; margin:0 0 24px; border-radius:8px; }
+.digital-management>summary { cursor:pointer; font-weight:650; min-height:44px; padding-block:10px; }
+.digital-management-content { display:grid; gap:20px; padding-top:18px; }
+.digital-admin-form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; padding:20px; background:#f8f8fb; border:1px solid var(--line); border-radius:6px; min-width:0; }
+.digital-admin-form>h3,.digital-admin-form>p,.digital-admin-form>fieldset { grid-column:1/-1; }
+.digital-admin-form>label { display:flex; flex-direction:column; align-items:flex-start; gap:8px; font-size:14px; min-width:0; }
+.digital-admin-form label:has(input[type=checkbox]) { flex-direction:row; align-items:center; min-height:44px; }
+.digital-admin-form input:not([type=checkbox]),.digital-admin-form textarea { width:100%; min-width:0; padding:10px 12px; min-height:46px; border:1px solid var(--line); background:white; color:var(--brand-navy); font:16px/1.5 var(--sans); }
+.digital-admin-form input[type=checkbox] { width:18px; height:18px; accent-color:var(--brand-navy); flex-shrink:0; }
+.digital-admin-form textarea { resize:vertical; }
+.digital-admin-form fieldset { min-width:0; border:1px solid var(--line); padding:14px; display:grid; gap:14px; }
+.digital-admin-form fieldset label { display:grid; gap:7px; min-width:0; font-size:13px; }
+.digital-admin-form fieldset legend { font-size:13px; font-weight:600; }
+.digital-admin-form button { justify-self:start; }
+.digital-admin-note { color:var(--muted); font-size:13px; line-height:1.7; margin:0; }
+.digital-admin-product>summary { min-height:44px; padding:12px; cursor:pointer; font-size:14px; background:#fff8e6; overflow-wrap:anywhere; }
+.digital-admin-product { min-width:0; }
+.digital-payment-confirm { display:grid; gap:12px; grid-column:1/-1; }
+.digital-payment-confirm label { display:flex; gap:10px; align-items:flex-start; font-size:13px; line-height:1.6; }
+.digital-payment-confirm input { width:18px; height:18px; flex-shrink:0; accent-color:var(--brand-navy); }
+.digital-payment-confirm textarea { width:100%; min-height:76px; font:16px var(--sans); padding:10px; border:1px solid var(--line); }
+.status-paid { background:#e6f2e8; color:#245032; }
+.status-revoked { background:#f9e7e4; color:#87372c; }
+@media(max-width:1199px) { .admin-topbar { flex-wrap:wrap; } .inbox-tabs { flex-wrap:wrap; } }
+@media(max-width:650px) { .digital-management { padding:14px; } .digital-admin-form { grid-template-columns:1fr; padding:14px; } }

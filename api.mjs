@@ -7,6 +7,7 @@ const publicLimit = createRateLimiter();
 import { customer, firebaseConfig, CustomerError } from './customer-auth.mjs';
 import { handleStemApi,stemSummary,StemError } from './stem-api.mjs';
 import { sqliteD1 } from './database/d1-adapter.mjs';
+import {handleDigitalApi,digitalSummary,DigitalError} from './digital-api.mjs';
 
 class ApiError extends Error { constructor(status,message) { super(message); this.status=status; } }
 function check(condition,message) { if (!condition) throw new ApiError(400,message); }
@@ -61,6 +62,15 @@ const transitions={orders:{pending:['confirmed','cancelled'],confirmed:['shippin
 export async function handleApi(request,response,url) {
   try {
     const path=url.pathname, method=request.method;
+    if(path.startsWith('/api/digital/')||path.startsWith('/api/customer/digital-orders')||path.startsWith('/api/admin/digital-')){
+      const admin=path.startsWith('/api/admin/')?authorizeAdmin(request):undefined;
+      const headers=new Headers();for(const [name,value] of Object.entries(request.headers))if(value!==undefined)headers.set(name,Array.isArray(value)?value.join(','):value);
+      headers.delete('Content-Length');headers.set('CF-Connecting-IP',clientAddress(request));
+      const payload=['POST','PATCH'].includes(method)?await body(request):undefined;
+      const webRequest=new Request(new URL(request.url,publicOrigin||'http://'+request.headers.host),{method,headers,body:payload===undefined?undefined:JSON.stringify(payload)});
+      const result=await handleDigitalApi(webRequest,sqliteD1(db),process.env,admin);
+      response.writeHead(result.status,Object.fromEntries(result.headers));response.end(await result.text());return;
+    }
     if(path.startsWith('/api/stem/')||path.startsWith('/api/admin/stem-enquiries')){
       const admin=path.startsWith('/api/admin/')?authorizeAdmin(request):undefined;
       const headers=new Headers();for(const [name,value] of Object.entries(request.headers))if(value!==undefined)headers.set(name,Array.isArray(value)?value.join(','):value);
@@ -133,7 +143,7 @@ export async function handleApi(request,response,url) {
       if(path==='/api/admin/summary' && method==='GET') {
         const orderCounts=db.prepare('SELECT status,count(*) AS count FROM orders GROUP BY status').all();
         const consultationCounts=db.prepare('SELECT status,count(*) AS count FROM consultations GROUP BY status').all();
-        return json(response,200,{orders:Object.fromEntries(orderCounts.map(row=>[row.status,row.count])),consultations:Object.fromEntries(consultationCounts.map(row=>[row.status,row.count])),stem_enquiries:await stemSummary(sqliteD1(db))});
+        return json(response,200,{orders:Object.fromEntries(orderCounts.map(row=>[row.status,row.count])),consultations:Object.fromEntries(consultationCounts.map(row=>[row.status,row.count])),stem_enquiries:await stemSummary(sqliteD1(db)),digital_orders:await digitalSummary(sqliteD1(db))});
       }
       if(path==='/api/admin/content' && method==='GET') {
         const result={content:landing().content};
@@ -238,7 +248,7 @@ export async function handleApi(request,response,url) {
     }
     throw new ApiError(404,'API không tồn tại.');
   } catch(error) {
-    if(!(error instanceof ApiError) && !(error instanceof AuthError) && !(error instanceof CustomerError) && !(error instanceof StemError) && !(error instanceof SecurityError)) console.error('API failure',error.name);
+    if(!(error instanceof ApiError) && !(error instanceof AuthError) && !(error instanceof CustomerError) && !(error instanceof StemError)&&!(error instanceof DigitalError) && !(error instanceof SecurityError)) console.error('API failure',error.name);
     json(response,error.status || 500,{error:error.status?error.message:'Không thể xử lý yêu cầu. Vui lòng thử lại.'});
   }
 }

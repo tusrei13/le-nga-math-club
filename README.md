@@ -83,3 +83,7 @@ Dùng **Pages Functions + D1**, không upload database SQLite hoặc chạy `ser
 Chạy `npm run check:pages` để biết cấu hình còn thiếu. Với hai yêu cầu deploy và đăng nhập Google/email, cần UUID D1 thật cùng ba giá trị Firebase trong `[vars]` của `wrangler.toml`. Lệnh `npm run pages:deploy` tự kiểm tra trước khi build/publish. Việc bật provider, authorized domain và khởi tạo D1 phải thực hiện trên dịch vụ tương ứng.
 
 Bản Node có `/healthz`, giới hạn gửi đơn/tư vấn, timeout HTTP, graceful shutdown và CSP. Sao lưu SQLite đang chạy bằng `npm run db:backup`; file tạo trong `data/backups/`. Trên Cloudflare, dùng D1 export/Time Travel theo hướng dẫn riêng.
+
+## Bán tài liệu PDF riêng tư
+
+Danh mục 14 bộ, duyệt chuyển khoản và quyền tải theo tài khoản: [DIGITAL-DOCUMENTS.md](DIGITAL-DOCUMENTS.md). Giá khởi tạo là giá tạm; xác nhận giá, file và thông tin nhận tiền trong admin trước khi mở bán.

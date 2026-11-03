@@ -35,7 +35,7 @@
             <div class="customer-menu" id="customer-menu" aria-label="Góc phụ huynh" hidden>
               <div class="customer-menu-identity"><span class="customer-avatar" id="customer-menu-avatar" aria-hidden="true"></span><div><p>Góc phụ huynh</p><strong id="customer-menu-name"></strong></div></div>
               <button type="button" data-customer-section="orders">Đơn sách của tôi</button>
-              <button type="button" data-customer-section="profile">Hồ sơ cá nhân</button>
+              <button type="button" data-customer-section="digital" aria-pressed="false">Tài liệu của tôi</button><button type="button" data-customer-section="profile">Hồ sơ cá nhân</button>
               <button type="button" id="customer-menu-logout">Đăng xuất</button>
               <p id="customer-menu-status" role="status"></p>
             </div>
@@ -128,8 +128,12 @@
         <div class="container">
           <div class="digital-heading">
             <h2 id="digital-title">Tài liệu số</h2>
-            <p class="section-subtitle">Một trang tài liệu, thêm một cách cùng con học Toán. Xem thử bản PDF trước khi chọn tài liệu phù hợp.</p>
+            <p class="section-subtitle">Bài tập theo lớp, chuyên đề và bộ đề ôn luyện. Chọn PDF phù hợp để cùng con học chủ động hơn.</p>
           </div>
+          <div class="digital-store-heading"><div><h3>Chọn tài liệu theo lớp</h3><p id="digital-sale-note">Danh mục tài liệu PDF của CLB.</p></div><button type="button" class="btn btn-outline" id="digital-library-open">Tài liệu của tôi</button></div>
+          <div class="digital-store-controls"><label for="digital-grade">Lớp của con <select id="digital-grade"><option value="">Tất cả lớp</option><option value="3">Lớp 3</option><option value="4">Lớp 4</option><option value="5">Lớp 5</option><option value="6">Lớp 6</option><option value="7">Lớp 7</option><option value="8">Lớp 8</option><option value="9">Lớp 9</option></select></label><span id="digital-result-count" role="status"></span></div>
+          <p id="digital-catalog-status" role="status" aria-live="polite"></p><div id="digital-catalog" class="digital-catalog" aria-busy="true"></div>
+          <h3 class="digital-sample-heading">Một bản mẫu để cùng con thử sức</h3>
           <article class="digital-document" aria-labelledby="digital-sample-title">
             <a class="document-preview" id="digital-preview" href="/assets/trang-mau-toan.pdf" target="_blank" rel="noopener noreferrer" aria-label="Xem PDF mẫu Tư duy giải Toán, mở trong tab mới">
               <img src="/assets/documents/tu-duy-giai-toan-preview.png" alt="Trang đầu của tài liệu mẫu Tư duy giải Toán" width="745" height="1053" loading="lazy" />
@@ -319,6 +323,11 @@
       <button class="floating-toggle" type="button" aria-label="Thu gọn thanh mua sách" aria-expanded="true" aria-controls="floating-body"><span aria-hidden="true">−</span></button>
     </div>
 
+    <dialog id="digital-checkout" class="digital-checkout" aria-labelledby="digital-checkout-title">
+      <header class="digital-checkout-header"><h2 id="digital-checkout-title">Đặt tài liệu PDF</h2><button type="button" id="digital-checkout-close" class="digital-checkout-close" aria-label="Đóng đơn tài liệu">×</button></header>
+      <p id="digital-checkout-price" class="digital-checkout-price"></p><p class="digital-checkout-note">Mỗi đơn gồm một bộ PDF. CLB mở quyền tải sau khi xác nhận thanh toán; tài liệu được lưu trong tài khoản đã đặt.</p>
+      <form id="digital-order-form" class="digital-order-form"><label>Họ tên phụ huynh<input name="name" autocomplete="name" required maxlength="120" /></label><label>Số điện thoại<input name="phone" type="tel" autocomplete="tel" required maxlength="30" /></label><label class="digital-consent"><input type="checkbox" name="consent" required /><span>Tôi đồng ý để CLB sử dụng thông tin này nhằm xử lý đơn và cấp quyền tải tài liệu.</span></label><button class="btn btn-primary" id="digital-order-submit" type="submit">Tạo đơn và xem chuyển khoản</button><p id="digital-checkout-status" role="status" aria-live="polite"></p></form>
+    </dialog>
     <dialog class="customer-dialog" id="customer-dialog" aria-labelledby="customer-title">
       <div class="customer-dialog-heading"><div class="customer-heading-identity"><span class="customer-avatar" id="customer-panel-avatar" aria-hidden="true" hidden></span><div><p class="customer-kicker" id="customer-kicker">CLB TOÁN CÔ LÊ NGA</p><h2 id="customer-title">Chào mừng bạn.</h2><p id="customer-welcome-note" hidden></p></div></div><button type="button" id="customer-close" aria-label="Đóng cửa sổ">×</button></div>
       <div class="customer-dialog-body">
@@ -338,12 +347,13 @@
         <p class="customer-note">Bạn vẫn có thể đặt sách mà không cần tài khoản.</p>
       </div>
       <div id="customer-account-view" hidden>
-        <nav class="customer-account-tabs" aria-label="Góc phụ huynh"><button type="button" data-customer-section="orders" aria-pressed="true">Đơn sách của tôi</button><button type="button" data-customer-section="profile" aria-pressed="false">Hồ sơ cá nhân</button></nav>
+        <nav class="customer-account-tabs" aria-label="Góc phụ huynh"><button type="button" data-customer-section="orders" aria-pressed="true">Đơn sách của tôi</button><button type="button" data-customer-section="digital" aria-pressed="false">Tài liệu của tôi</button><button type="button" data-customer-section="profile" aria-pressed="false">Hồ sơ cá nhân</button></nav>
         <section id="customer-orders-view" aria-labelledby="customer-orders-title">
           <div class="customer-orders-heading"><div><h3 id="customer-orders-title">Những cuốn sách dành cho con</h3><p>Đơn đặt khi đăng nhập sẽ được lưu tại đây.</p></div><button type="button" id="customer-refresh" aria-label="Tải lại đơn sách">↻</button></div>
           <div id="customer-orders" aria-live="polite"></div>
           <p class="customer-note" id="customer-orders-limit" hidden>Hiển thị 50 đơn mới nhất.</p>
         </section>
+        <section id="customer-digital-view" aria-labelledby="customer-digital-title" hidden><div class="customer-orders-heading"><div><h3 id="customer-digital-title">Tài liệu của tôi</h3><p>Theo dõi thanh toán và tải những bộ PDF đã mua.</p></div><button type="button" id="customer-digital-refresh" aria-label="Tải lại tài liệu">↻</button></div><div id="customer-digital-orders" aria-live="polite"></div></section>
         <section id="customer-profile-view" aria-labelledby="customer-profile-title" hidden>
           <div class="customer-profile-card">
             <header class="customer-profile-brand"><img src="/assets/logo.png" alt="" width="40" height="40" /><div><p>CLB TOÁN CÔ LÊ NGA</p><h3 id="customer-profile-title">Hồ sơ phụ huynh</h3></div></header>
@@ -359,6 +369,8 @@
       </div>
     </dialog>
     <link rel="stylesheet" href="/customer.css" />
+    <link rel="stylesheet" href="/digital.css" />
+    <script src="/digital.js" type="module"></script>
     <script src="/customer.js" type="module"></script>
     <script src="/app.js" defer></script>
   </body>
