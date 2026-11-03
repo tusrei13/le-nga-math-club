@@ -1,4 +1,5 @@
 const $=selector=>document.querySelector(selector);
+$('#year').textContent=String(new Date().getFullYear());
 const form=$('#enquiry-form');
 let programs=[],grade=6,level='basic',specialist=false,busy=false,pending;
 const menu=$('#main-nav'),toggle=$('.menu-toggle');
