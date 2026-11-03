@@ -1,4 +1,5 @@
 import {staticSecurityHeaders,policies} from '../security.mjs';
+import {createHash} from 'node:crypto';
 import {cp,mkdir,writeFile,rm,readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {resolve} from 'node:path';
@@ -8,7 +9,11 @@ const site=resolve(root,'stem-maths'),output=resolve(site,'dist-stem');
 if(output!==resolve(root,'stem-maths','dist-stem'))throw new Error('Invalid output path');
 const {build}=createRequire(new URL('../stem-maths/package.json',import.meta.url))('esbuild');
 await rm(output,{recursive:true,force:true});await mkdir(resolve(output,'assets'),{recursive:true});
-for(const file of ['index.html','styles.css','app.js'])await cp(resolve(site,file),resolve(output,file));
+const logoVersion=createHash('sha256').update(await readFile(resolve(root,'public/assets/logo.png'))).digest('hex').slice(0,12);
+for(const file of ['index.html','styles.css','app.js']){
+  if(file==='index.html')await writeFile(resolve(output,file),(await readFile(resolve(site,file),'utf8')).replace(/\/assets\/logo\.png(?:\?v=[a-f0-9]+)?/g,'/assets/logo.png?v='+logoVersion));
+  else await cp(resolve(site,file),resolve(output,file));
+}
 for(const file of ['logo.png','teacher-le-nga.jpg'])await cp(resolve(root,'public/assets',file),resolve(output,'assets',file));
 await build({entryPoints:[resolve(site,'worker.mjs')],outfile:resolve(output,'_worker.js'),bundle:true,platform:'neutral',format:'esm',external:['node:crypto']});
 await writeFile(resolve(output,'_routes.json'),JSON.stringify({version:1,include:['/api/*','/healthz','/robots.txt','/sitemap.xml','/admin'],exclude:[]}));

@@ -1,4 +1,5 @@
 import {staticSecurityHeaders,policies} from '../security.mjs';
+import { createHash } from 'node:crypto';
 import { cp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
@@ -13,7 +14,14 @@ for (const preview of bookPreviews) {
   if (pdf.subarray(0,5).toString('ascii') !== '%PDF-') throw new Error('Invalid reading sample: '+preview.file);
 }
 await rm(output,{recursive:true,force:true}); await mkdir(output,{recursive:true});
-for (const name of ['index.html','styles.css','app.js','admin.html','admin.css','admin.js','customer.js','customer.css']) await cp(name,`${output}/${name}`);
+const logoVersion = createHash('sha256').update(await readFile('public/assets/logo.png')).digest('hex').slice(0,12);
+for (const name of ['index.html','styles.css','app.js','admin.html','admin.css','admin.js','customer.js','customer.css']) {
+  const destination = resolve(output,name);
+  if (name.endsWith('.html') || name === 'customer.js') {
+    const text = await readFile(name,'utf8');
+    await writeFile(destination,text.replace(/\/assets\/logo\.png(?:\?v=[a-f0-9]+)?/g,'/assets/logo.png?v='+logoVersion));
+  } else await cp(name,destination);
+}
 await cp('public/assets',`${output}/assets`,{recursive:true});
 // Retain old relative asset links without uploading any backend source or database.
 await cp('public/assets',`${output}/public/assets`,{recursive:true});

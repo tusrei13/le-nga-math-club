@@ -19,6 +19,10 @@ Mở `http://localhost:3000`. Không mở trực tiếp `index.html` bằng `fil
 
 Database tự tạo ở `data/landing.sqlite`, gồm 16 bảng và dữ liệu mẫu 9 sách với ảnh bìa trong `public/assets/books`. `npm start` cũng tự khởi tạo nếu chưa có database.
 
+## Logo
+
+Logo dùng chung cho trang sách, STEM Maths và quản trị tại public/assets/logo.png. Thay file này rồi build/deploy cả hai project. Build tự thêm phiên bản theo SHA-256 vào URL logo, favicon và ảnh dự phòng để trình duyệt tải ảnh mới. Giao diện hiển thị toàn bộ logo, không cắt trong khung tròn.
+
 ## Ảnh bìa tách nền
 
 Cụm sách đầu trang và minh họa tủ sách dùng ba PNG riêng ở public/assets/books/cutouts/, xếp chồng bằng CSS. Chữ và hình trên bìa lấy nguyên điểm ảnh từ ba ảnh gốc, chỉ thêm alpha ở nền; không dùng ảnh dựng lại bằng AI.

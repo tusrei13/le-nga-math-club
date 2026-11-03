@@ -21,7 +21,7 @@ export function seed(db) {
     if (product) media.run(preview.id,preview.url,'Bản đọc thử '+product.title);
   }
   const content = {
-    contact: {phone:'0989066885',phone_display:'0989 066 885',email:'clbtoanconga@gmail.com',address:'Số 02, Lô A7, Khu A, Geleximco, Lê Trọng Tấn, An Khánh, Hà Nội.',facebook:'https://www.facebook.com/daytoanclc',youtube:'https://www.youtube.com/@vuihoactoan382'},
+    contact: {phone:'0989066885',phone_display:'0989 066 885',email:'clbtoanconga@gmail.com',address:'Số 02, Lô A7, Khu A, Geleximco, Lê Trọng Tấn, An Khánh, Hà Nội.',facebook:'https://www.facebook.com/daytoanclc',youtube:'https://www.youtube.com/@TOANCONGA-885'},
     author: {name:'Cô Lê Nga',photo_url:'/assets/teacher-le-nga.jpg',qualification:'',experience_years:0,quote:''},
     hero: {title:'Đồng hành cùng con bứt phá môn Toán.',description:'Giúp con lấy lại gốc, rèn tư duy và tự tin ôn thi HSG, trường Chất lượng cao, trường Chuyên.',illustration_url:'/assets/book-stack.png'},
     sales_policy: {shipping_vnd:0,payment_method:'cod',delivery_days:'',return_days:0,gifts_with_order:false,price_note:'299.000đ/cuốn. Phí vận chuyển được CLB xác nhận riêng.'}
