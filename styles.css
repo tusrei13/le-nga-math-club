@@ -190,8 +190,8 @@ h3 em { font-style:normal; }
 .catalog-facts span { font-size:14px; color:var(--ink-soft); }
 .book-catalog { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:32px; margin:32px 0; }
 .book-card { min-width:0; }
-.product-cover { aspect-ratio: .74; display:flex; align-items:center; justify-content:center; background:var(--paper); }
-.product-cover img { width:100%; height:100%; object-fit:contain; }
+.product-cover { position:relative; width:100%; aspect-ratio:4 / 5; overflow:hidden; background:var(--paper); }
+.product-cover img { position:absolute; inset:0; display:block; width:100%; height:100%; object-fit:cover; object-position:center; }
 .product-price { display:block; margin-bottom:12px; color:var(--brand-navy); font-size:22px; }
 .book-selection { border:1px solid var(--line); padding:14px; min-width:0; }
 .book-selection legend { padding:0 6px; font-weight:600; }
