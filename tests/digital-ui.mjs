@@ -48,7 +48,7 @@ async function screenshot(name) {
   await writeFile(join(output, name), Buffer.from(result.data, 'base64'));
 }
 try {
-  server = spawn(process.execPath, ['tests/digital-server.mjs'], {
+  server = spawn(process.execPath, ['server.mjs'], {
     env: { ...process.env, PORT: '0', DATABASE_PATH: join(scratch, 'test.sqlite') },
     windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -73,133 +73,67 @@ try {
   await cdp('Runtime.enable'); await cdp('Page.enable');
   await cdp('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
 
-  const authModule = "let current=null,listener;\nconst token=uid=>btoa('{\"alg\":\"RS256\"}').replaceAll('=','')+'.'+btoa(JSON.stringify({aud:'digital-ui',iss:'https://securetoken.google.com/digital-ui',sub:uid,exp:Math.floor(Date.now()/1000)+3600})).replaceAll('=','')+'.signature';\nexport const getAuth=()=>({currentUser:current});\nexport const onAuthStateChanged=(_,callback)=>{listener=callback;window.__switchDigitalUser=uid=>{current=uid?{uid,email:uid+'@example.test',displayName:'Test '+uid,emailVerified:true,getIdToken:async()=>token(uid)}:null;listener(current);};queueMicrotask(()=>callback(current));};\nexport const signOut=async()=>window.__switchDigitalUser(null);\n";
-
-  const downloads=[];
-  customerFixture=async({requestId,request:paused})=>{
-    if(paused.url.startsWith('https://www.gstatic.com/firebasejs/')){
-      const body=paused.url.endsWith('/firebase-auth.js')?authModule:'export const initializeApp=config=>config;';
-      await cdp('Fetch.fulfillRequest',{requestId,responseCode:200,responseHeaders:[{name:'Content-Type',value:'text/javascript'},{name:'Access-Control-Allow-Origin',value:'*'}],body:Buffer.from(body).toString('base64')});return;
-    }
-    if(paused.url.startsWith('https://qyyhdfmlvmuqqcihoejg.supabase.co/')){
-      downloads.push(paused.url);
-      await cdp('Fetch.fulfillRequest',{requestId,responseCode:200,responseHeaders:[{name:'Content-Type',value:'application/pdf'},{name:'Content-Disposition',value:'attachment; filename="ui-test.pdf"'}],body:Buffer.from('%PDF-1.4\n% UI test only\n').toString('base64')});return;
-    }
-    await cdp('Fetch.continueRequest',{requestId});
-  };
-  await cdp('Fetch.enable',{patterns:[{urlPattern:'https://www.gstatic.com/firebasejs/*'},{urlPattern:'https://qyyhdfmlvmuqqcihoejg.supabase.co/*'}]});
-  await cdp('Browser.setDownloadBehavior',{behavior:'deny'});
-  const navigate=async path=>{
-    await cdp('Page.navigate',{url:'http://127.0.0.1:'+port+path});
-    await until(()=>evaluate(path==='/admin'?"Boolean(document.querySelector('#login-view'))":"document.querySelectorAll('.digital-product').length===6 && Boolean(window.__switchDigitalUser)"),'page '+path);
-  };
-  const readRow=(sql,...params)=>{const db=new DatabaseSync(join(scratch,'test.sqlite'));try{return db.prepare(sql).get(...params);}finally{db.close();}};
-  await navigate('/');
-  assert.equal(await evaluate("document.querySelectorAll('.digital-cover').length"),6);
-  const viewportProblems=[];
-  for(const [width,height] of [[320,568],[375,844],[768,1024],[1024,768],[1440,1000],[1920,1080]]){
-    await cdp('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<1100});
-    await evaluate("document.querySelector('#tai-lieu-so').scrollIntoView({behavior:'instant'})");await sleep(120);
-    const overflow=await evaluate("(()=>{const all=[...document.querySelectorAll('.digital-product,.digital-heading,.digital-store-controls,.digital-catalog-footer,#digital-pagination')];return {page:document.documentElement.scrollWidth>innerWidth,offscreen:all.filter(e=>{const r=e.getBoundingClientRect();return r.left<-.5||r.right>innerWidth+.5}).map(e=>e.className)};})()");
-    if(overflow.page||overflow.offscreen.length)viewportProblems.push({width,...overflow});
-    if([375,768,1440].includes(width))await screenshot('digital-catalog-'+width+'.png');
-  }
-  assert.deepEqual(viewportProblems,[]);
-  assert.equal(await evaluate("document.querySelector('#digital-page-summary').textContent"),'Hiển thị 1–6 trong 14 bộ tài liệu');
-  const allTitles=new Set(await evaluate("[...document.querySelectorAll('.digital-product h3')].map(e=>e.textContent)"));
+  await cdp('Page.navigate',{url:'http://127.0.0.1:'+port+'/'});
+  await until(()=>evaluate("document.querySelectorAll('.digital-product').length===6"),'public reading catalog');
+  const data=await(await fetch('http://127.0.0.1:'+port+'/api/digital/products')).json();
+  assert.equal(data.products.length,15);assert.equal(data.checkout_enabled,false);
+  assert.equal(await evaluate("document.querySelector('#digital-checkout')"),null);
+  assert.equal(await evaluate("document.querySelector('[data-customer-section=digital]')"),null);
+  assert.equal(await evaluate("document.querySelector('#digital-sale-note').textContent"),'Đọc thử miễn phí');
+  assert.equal(await evaluate("document.querySelector('.digital-product').textContent.includes('Giá')"),false);
+  const titles=new Set(await evaluate("[...document.querySelectorAll('.digital-product h3')].map(e=>e.textContent)"));
   for(const page of [2,3]){
     await evaluate("document.querySelectorAll('#digital-pagination button')["+page+"].click()");
-    assert.equal(await evaluate("document.querySelectorAll('.digital-product').length"),page===2?6:2);
-    assert.equal(await evaluate("document.querySelector('#digital-pagination [aria-current]').textContent"),String(page));
-    for(const title of await evaluate("[...document.querySelectorAll('.digital-product h3')].map(e=>e.textContent)")){assert.equal(allTitles.has(title),false);allTitles.add(title);}
+    assert.equal(await evaluate("document.querySelectorAll('.digital-product').length"),page===2?6:3);
+    for(const title of await evaluate("[...document.querySelectorAll('.digital-product h3')].map(e=>e.textContent)")){assert.equal(titles.has(title),false);titles.add(title);}
   }
-  assert.equal(allTitles.size,14);
-  assert.equal(await evaluate("document.querySelector('#digital-pagination button:last-child').disabled"),true);
-  assert.equal(await evaluate("document.querySelector('#digital-page-summary').textContent"),'Hiển thị 13–14 trong 14 bộ tài liệu');
-
-  await evaluate("document.querySelector('[data-digital-grade]').parentElement.children[2].click()");
+  assert.equal(titles.size,15);
+  assert.equal(await evaluate("document.querySelector('#digital-page-summary').textContent"),'Hiển thị 13–15 trong 15 bộ tài liệu');
+  await evaluate("document.querySelectorAll('[data-digital-grade]')[1].click()");
   assert.equal(await evaluate("document.querySelectorAll('.digital-product').length"),2);
   assert.equal(await evaluate("document.querySelector('#digital-pagination').hidden"),true);
-  assert.equal(await evaluate("document.querySelector('#digital-page-summary').textContent"),'Hiển thị 1–2 trong 2 bộ tài liệu');
+  await evaluate("document.querySelector('[data-digital-preview=g3-quyen-1-4-preview]').click()");
+  assert.equal(await evaluate("document.querySelector('#digital-preview-dialog').open"),true);
+  assert.equal(await evaluate("document.querySelectorAll('#digital-preview-files a').length"),4);
+  const dialogLinks=await evaluate("[...document.querySelectorAll('#digital-preview-files a')].map(a=>({href:a.href,target:a.target,rel:a.rel}))");
+  for(let i=0;i<4;i++){assert.ok(dialogLinks[i].href.endsWith('Toan3_Q'+(i+1)+'_BanDocThu.pdf'));assert.equal(dialogLinks[i].target,'_blank');assert.ok(dialogLinks[i].rel.includes('noopener'));}
+  await evaluate("document.querySelector('#digital-preview-close').click()");
+  assert.equal(await evaluate("document.querySelector('#customer-dialog').open"),false,'reading previews never requires login');
+  await evaluate("document.querySelector('[data-digital-grade]').click()");
+  for(const [width,height] of [[320,568],[375,844],[768,1024],[1024,768],[1440,1000],[1920,1080]]){
+    await cdp('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<1100});
+    await evaluate("document.querySelector('#tai-lieu-so').scrollIntoView({behavior:'instant'})");await sleep(100);
+    assert.equal(await evaluate("document.documentElement.scrollWidth<=innerWidth"),true,'catalog overflow '+width);
+    if([375,768,1440].includes(width))await screenshot('digital-public-'+width+'.png');
+    await evaluate("document.querySelector('[data-digital-preview=g3-8-de-giua-hk1]').click()");
+    const fits=await evaluate("(()=>{const r=document.querySelector('#digital-preview-dialog').getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight;})()");
+    assert.equal(fits,true,'preview picker fits '+width);
+    if(width===375)await screenshot('digital-public-picker-mobile.png');
+    await evaluate("document.querySelector('#digital-preview-close').click()");
+  }
+  // Every public PDF is served without a login cookie and preserves the original bytes.
+  for(const p of data.products)for(const file of p.files){
+    const response=await fetch('http://127.0.0.1:'+port+file.url);
+    assert.equal(response.status,200,file.url);assert.match(response.headers.get('Content-Type'),/^application\/pdf/);
+    assert.deepEqual(Buffer.from(await response.arrayBuffer()),await readFile(resolve('public'+file.url)));
+  }
+  assert.equal((await fetch('http://127.0.0.1:'+port+'/api/digital/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})).status,410);
 
-  const adminPassword='Digital UI admin only 2026';
-  const adminDb=new DatabaseSync(join(scratch,'test.sqlite'));adminDb.prepare('INSERT INTO admin_users(id,username,password_hash) VALUES(?,?,?)').run('digital-ui-admin','admin',await hashPassword(adminPassword));adminDb.close();
-  await cdp('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});
-  await navigate('/admin');
-  await until(()=>evaluate("!document.querySelector('#login-view').hidden"),'admin login form');
+  const adminPassword='Public preview UI test only 2026';
+  const adminDb=new DatabaseSync(join(scratch,'test.sqlite'));
+  adminDb.prepare('INSERT INTO admin_users(id,username,password_hash) VALUES(?,?,?)').run('preview-admin','admin',await hashPassword(adminPassword));adminDb.close();
+  await cdp('Page.navigate',{url:'http://127.0.0.1:'+port+'/admin'});
+  await until(()=>evaluate("Boolean(document.querySelector('#login-view')&&!document.querySelector('#login-view').hidden)"),'admin login form');
   await evaluate("document.querySelector('#login-username').value='admin';document.querySelector('#login-password').value="+JSON.stringify(adminPassword)+";document.querySelector('#login-form').requestSubmit()");
   await until(()=>evaluate("!document.querySelector('#dashboard-view').hidden"),'admin session');
   await evaluate("document.querySelector('[data-inbox=\"digital-orders\"]').click();document.querySelector('#digital-management').open=true");
-  await until(()=>evaluate("document.querySelectorAll('.digital-admin-product').length===14"),'management forms');
-  await evaluate("(()=>{const f=document.querySelector('#digital-management-content>form');window.settingsForm=f;const inputs=f.querySelectorAll('input:not([type=checkbox])');inputs[0].value='TEST BANK';inputs[1].value='TEST123456';inputs[2].value='TEST ONLY';f.querySelector('input[type=checkbox]').checked=true;f.requestSubmit();})()");
-  await until(()=>readRow('SELECT accept_orders FROM digital_settings WHERE id=1').accept_orders===1,'payment setup saved');
-  await until(()=>evaluate("document.querySelector('#digital-management-content>form')!==window.settingsForm && document.querySelectorAll('.digital-admin-product').length===14"),'settings refreshed');
-  await evaluate("(()=>{const d=[...document.querySelectorAll('.digital-admin-product')].find(e=>e.querySelector('summary').textContent.includes('Tổng'));d.open=true;d.querySelectorAll('input[type=checkbox]')[1].checked=false;d.querySelector('form').requestSubmit();})()");
-  await until(()=>readRow("SELECT is_draft FROM digital_products WHERE id='g4-tong-hieu'").is_draft===0,'product publication and private file verification');
-  await until(()=>evaluate("document.querySelectorAll('.digital-admin-product').length===14"),'catalog refresh');
-  await screenshot('digital-admin-management.png');
+  await until(()=>evaluate("document.querySelectorAll('.digital-admin-product').length===15"),'readonly public preview management');
+  assert.equal(await evaluate("document.querySelector('#digital-management-content form')"),null);
+  assert.equal(await evaluate("document.querySelector('#digital-management-content').textContent.includes('Supabase')"),false);
+  assert.equal(await evaluate("document.querySelectorAll('#digital-management-content a').length"),29);
 
-  await navigate('/');
-  const productSelector='[data-digital-product="g4-tong-hieu"]';
-  await evaluate("document.querySelector("+JSON.stringify(productSelector)+").click()");
-  assert.equal(await evaluate("document.querySelector('#customer-dialog').open"),true);
-  await evaluate("window.__switchDigitalUser('alice')");
-  await until(()=>evaluate("window.customerSession.id==='alice'"),'customer login');
-  await evaluate("document.querySelector('#customer-close').click();document.querySelector("+JSON.stringify(productSelector)+").click()");
-  assert.equal(await evaluate("document.querySelector('#digital-checkout').open"),true);
-  await cdp('Emulation.setDeviceMetricsOverride',{width:375,height:844,deviceScaleFactor:1,mobile:true});
-  await evaluate("(()=>{const f=document.querySelector('#digital-order-form');f.elements.name.value='Test Parent';f.elements.phone.value='0989066885';f.elements.consent.checked=true;})()");
-  assert.equal(await evaluate("document.querySelector('#digital-checkout').scrollWidth<=document.querySelector('#digital-checkout').clientWidth"),true);
-  await screenshot('digital-checkout-mobile.png');
-  await evaluate("document.querySelector('#digital-order-form').requestSubmit()");
-  await until(()=>evaluate("!document.querySelector('#digital-checkout').open && !document.querySelector('#customer-digital-view').hidden && document.querySelector('.digital-payment-details')?.textContent.includes('TEST BANK')"),'order and payment instructions');
-  await screenshot('digital-pending-mobile.png');
-  assert.equal(await evaluate("document.querySelectorAll('[data-digital-file]').length"),0);
-  const order=readRow("SELECT * FROM digital_orders WHERE customer_id='digital-ui:alice'");
-  assert.equal(order.amount_vnd,39000);
-  await evaluate("window.__switchDigitalUser('bob');window.customerSession.open('digital')");
-  await until(()=>evaluate("Boolean(document.querySelector('.digital-library-empty'))"),'other customer has no access');
-  assert.equal(await evaluate("document.querySelector('#customer-digital-orders').textContent.includes("+JSON.stringify(order.id)+")"),false);
-
-  await cdp('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});
-  await navigate('/admin');
-  await until(()=>evaluate("!document.querySelector('#dashboard-view').hidden"),'admin restored');
-  await evaluate("document.querySelector('[data-inbox=\"digital-orders\"]').click()");
-  await until(()=>evaluate("document.querySelectorAll('.request-card').length===1"),'digital inbox');
-  await evaluate("document.querySelector('.detail-button').click()");
-  await until(()=>evaluate("!document.querySelector('#status-form').hidden && !document.querySelector('#digital-payment-confirm').hidden"),'digital payment approval');
-  await evaluate("document.querySelector('#status-form').requestSubmit()");
-  assert.equal(readRow('SELECT status FROM digital_orders WHERE id=?',order.id).status,'pending');
-  await evaluate("document.querySelector('#digital-payment-verified').checked=true;document.querySelector('#status-form').requestSubmit()");
-  await until(()=>readRow('SELECT status FROM digital_orders WHERE id=?',order.id).status==='paid','payment approved');
-  await until(()=>evaluate("document.querySelector('#detail-message').textContent==='Đã cập nhật trạng thái.'"),'approval reflected');
-  await screenshot('digital-admin-approved.png');
-
-  await navigate('/');
-  await evaluate("window.__switchDigitalUser('alice');window.customerSession.open('digital')");
-  await until(()=>evaluate("document.querySelectorAll('[data-digital-file]').length===2"),'paid library');
-  await cdp('Emulation.setDeviceMetricsOverride',{width:375,height:844,deviceScaleFactor:1,mobile:true});
-  await sleep(280);
-  assert.equal(await evaluate("document.querySelector('#customer-dialog').scrollWidth<=document.querySelector('#customer-dialog').clientWidth"),true);
-  assert.equal(await evaluate("document.querySelectorAll('.customer-account-tabs [data-customer-section]').length"),3);
-  assert.equal(await evaluate("document.querySelector('.customer-account-tabs [data-customer-section=\"digital\"]').getAttribute('aria-pressed')"),'true');
-  await screenshot('digital-paid-mobile.png');
-  await evaluate("document.querySelector('[data-digital-file]').click()");
-  await until(()=>downloads.length===1,'authorized PDF download');
-  assert.ok(downloads[0].includes('/paid-documents/lop-4/chuyen-de-tong-hieu/'));
-
-  await navigate('/admin');await until(()=>evaluate("!document.querySelector('#dashboard-view').hidden"),'admin for revocation');
-  await evaluate("document.querySelector('[data-inbox=\"digital-orders\"]').click()");
-  await until(()=>evaluate("document.querySelector('.request-card')"),'paid order in inbox');
-  await evaluate("document.querySelector('.detail-button').click()");
-  await until(()=>evaluate("document.querySelector('#next-status').value==='revoked'"),'revocation action');
-  await evaluate("document.querySelector('#digital-action-note').value='Test refund';document.querySelector('#status-form').requestSubmit()");
-  await until(()=>readRow('SELECT status FROM digital_orders WHERE id=?',order.id).status==='revoked','access revoked');
-  await navigate('/');await evaluate("window.__switchDigitalUser('alice');window.customerSession.open('digital')");
-  await until(()=>evaluate("Boolean(document.querySelector('.digital-order-status')?.textContent.includes('thu hồi'))"),'revocation in library');
-  assert.equal(await evaluate("document.querySelectorAll('[data-digital-file]').length"),0);
   assert.deepEqual(browserErrors,[]);
-  console.log('Digital UI passed: draft catalog, six responsive sizes, login, management, publication, checkout, manual payment, owner-only library, download and revocation. No real upstream or payment was used.');
+  console.log('Public digital UI passed: 15 groups, 29 original PDFs without login, 6-item pagination, class filters, multi-file picker, and 6 responsive sizes.');
 
 } finally {
   if (socket?.readyState === WebSocket.OPEN) { try { await cdp('Browser.close'); } catch {} socket.close(); }

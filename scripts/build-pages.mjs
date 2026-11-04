@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { seed } from '../database/seed.mjs';
 import { bookPreviews } from '../database/book-previews.mjs';
+import {digitalPreviews} from '../digital-catalog.mjs';
 import { build } from 'esbuild';
 const root = resolve('.'), output = resolve('dist');
 if (output !== resolve(root,'dist')) throw new Error('Invalid output path');
@@ -12,6 +13,11 @@ if (output !== resolve(root,'dist')) throw new Error('Invalid output path');
 for (const preview of bookPreviews) {
   const pdf = await readFile(resolve(root,'public/assets/books preview',preview.file));
   if (pdf.subarray(0,5).toString('ascii') !== '%PDF-') throw new Error('Invalid reading sample: '+preview.file);
+}
+for(const product of digitalPreviews)for(const file of product.files){
+  if(!/^\/assets\/documents\/previews\/lop-[3-9]\/[A-Za-z0-9_./-]+\.pdf$/.test(file.url)||file.url.split('/').includes('..'))throw new Error('Invalid preview path');
+  const pdf=await readFile(resolve(root,'public'+file.url));
+  if(pdf.subarray(0,5).toString('ascii')!=='%PDF-'||pdf.length>25*1024*1024)throw new Error('Invalid or oversized public preview: '+file.url);
 }
 await rm(output,{recursive:true,force:true}); await mkdir(output,{recursive:true});
 const logoVersion = createHash('sha256').update(await readFile('public/assets/logo.png')).digest('hex').slice(0,12);

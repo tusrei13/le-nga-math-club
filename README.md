@@ -37,7 +37,7 @@ SQLite cập nhật tự động khi khởi động. Với D1 đã deploy, publi
 
 ## Tài liệu số
 
-Mục #tai-lieu-so hiển thị danh mục tài liệu PDF theo lớp và nút Tài liệu của tôi. Luồng đặt mua, duyệt thanh toán và tải riêng tư được mô tả trong DIGITAL-DOCUMENTS.md.
+Mục #tai-lieu-so có 15 nhóm với 29 PDF đọc thử công khai, không cần đăng nhập hoặc thanh toán; lọc theo lớp, phân trang 6 nhóm/trang và chọn từng file. Xem DIGITAL-DOCUMENTS.md.
 
 Đây là phần giới thiệu và tải mẫu. Chưa có bán file trả phí, xác nhận chuyển khoản hoặc cấp quyền tải riêng. File trả phí sau này phải đặt trong kho riêng và kiểm tra quyền tải phía server; không đưa file trả phí vào public/assets/.
 
@@ -84,6 +84,6 @@ Chạy `npm run check:pages` để biết cấu hình còn thiếu. Với hai y�
 
 Bản Node có `/healthz`, giới hạn gửi đơn/tư vấn, timeout HTTP, graceful shutdown và CSP. Sao lưu SQLite đang chạy bằng `npm run db:backup`; file tạo trong `data/backups/`. Trên Cloudflare, dùng D1 export/Time Travel theo hướng dẫn riêng.
 
-## Bán tài liệu PDF riêng tư
+## Tài liệu PDF đọc thử công khai
 
-Danh mục 14 bộ, duyệt chuyển khoản và quyền tải theo tài khoản: [DIGITAL-DOCUMENTS.md](DIGITAL-DOCUMENTS.md). Giá khởi tạo là giá tạm; xác nhận giá, file và thông tin nhận tiền trong admin trước khi mở bán.
+Danh mục 15 nhóm, 29 PDF đọc thử miễn phí, lọc theo lớp và phân trang 6 nhóm/trang. Không cần đăng nhập, thanh toán hoặc Supabase. Xem [DIGITAL-DOCUMENTS.md](DIGITAL-DOCUMENTS.md).

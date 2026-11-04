@@ -6,7 +6,6 @@
 .digital-heading .section-subtitle { margin:12px 0 0; }
 .digital-sale-badge { display:inline-flex; align-items:center; min-height:28px; padding:4px 10px; border:1px solid #29315f33; font:600 12px var(--sans); color:var(--brand-navy); background:#ffbf2f22; }
 .digital-sale-badge[hidden] { display:none; }
-#digital-library-open { flex-shrink:0; white-space:nowrap; }
 @media(max-width:650px) { .digital-section .digital-heading { align-items:flex-start; gap:18px; margin-bottom:24px; } .digital-title-row { gap:10px 14px; } }
 
 .digital-store-controls { display:flex; align-items:center; flex-wrap:wrap; gap:16px 24px; margin-bottom:20px; }
@@ -24,52 +23,8 @@
 .digital-product-bottom strong { color:var(--brand-navy); font-size:20px; }
 .digital-product-bottom .btn { min-height:44px; font-size:13px; padding:10px 14px; }
 .digital-product .btn:disabled { color:var(--ink-soft); background:#e9e8e3; border-color:var(--line); cursor:default; opacity:1; }
-.digital-checkout { width:min(560px,calc(100% - 32px)); max-height:calc(100dvh - 32px); padding:28px; border:1px solid var(--line); border-top:4px solid var(--brand-gold); background:var(--paper); color:var(--brand-navy); overflow-y:auto; }
-.digital-checkout::backdrop { background:#20284f88; }
-.digital-checkout-header { display:flex; align-items:flex-start; gap:20px; justify-content:space-between; }
-.digital-checkout-header h2 { font-size:28px; }
-.digital-checkout-close { min-width:44px; min-height:44px; border:1px solid var(--line); background:transparent; color:var(--brand-navy); font:24px var(--sans); }
-.digital-checkout-price { font-size:24px; font-weight:700; margin:20px 0 8px; }
-.digital-checkout-note { color:var(--ink-soft); font-size:14px; margin:0 0 24px; }
-.digital-order-form { display:grid; gap:18px; }
-.digital-order-form>label:not(.digital-consent) { display:grid; gap:8px; font-size:14px; }
-.digital-order-form input:not([type=checkbox]) { width:100%; min-width:0; min-height:48px; border:1px solid var(--line-dark); padding:10px 12px; color:var(--brand-navy); background:white; font:16px var(--sans); }
-.digital-consent { display:flex; gap:10px; align-items:flex-start; font-size:13px; line-height:1.65; }
-.digital-consent input { width:18px; height:18px; flex-shrink:0; accent-color:var(--brand-navy); margin-top:3px; }
-#digital-checkout-status { margin:0; font-size:14px; overflow-wrap:anywhere; }
-#digital-checkout-status:empty { display:none; }
-.customer-account-tabs { flex-wrap:wrap; }
-#customer-digital-view { min-width:0; }
-.digital-library-card { border:1px solid #29315f26; border-radius:8px; padding:20px; margin-bottom:18px; }
-.digital-library-heading { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px; }
-.digital-library-heading h4 { font:650 18px/1.4 var(--sans); margin:0; }
-.digital-order-status { font-size:12px; color:var(--brand-navy); background:#fff8e6; padding:5px 9px; }
-.digital-library-card>p { font-size:13px; color:var(--ink-soft); }
-.digital-order-reference { overflow-wrap:anywhere; }
-.digital-library-files { display:flex; flex-wrap:wrap; gap:10px; margin-top:18px; }
-.digital-library-files .btn { min-height:44px; font-size:14px; padding:10px 14px; }
-.digital-payment-details { border-top:1px solid #29315f26; margin-top:18px; padding-top:18px; }
-.digital-payment-details h4 { margin:0 0 12px; font:650 16px var(--sans); }
-.digital-payment-details dl { margin:0; display:grid; gap:8px; font-size:13px; }
-.digital-payment-details dl>div { display:grid; grid-template-columns:105px minmax(0,1fr); gap:12px; }
-.digital-payment-details dt { color:var(--ink-soft); }
-.digital-payment-details dd { margin:0; overflow-wrap:anywhere; }
-.digital-payment-details p,.digital-download-status { font-size:13px; color:var(--ink-soft); }
-.digital-library-empty { padding:28px 0; }
-.digital-library-empty h4 { font:600 21px var(--sans); margin:0; }
-.digital-library-empty p { color:var(--ink-soft); font-size:14px; }
 @media(max-width:1000px) { .digital-catalog { grid-template-columns:1fr; } }
-@media(max-width:650px) {
-  .digital-catalog { grid-template-columns:1fr; gap:16px; }
-
-  .digital-checkout { padding:22px 18px; }
-  .digital-checkout-header h2 { font-size:25px; }
-  .digital-payment-details dl>div { grid-template-columns:1fr; gap:2px; }
-  .digital-library-card { padding:16px; }
-}
-
-#customer-digital-refresh { flex-shrink:0; border:1px solid var(--line); background:white; color:var(--brand-navy); border-radius:50%; min-width:44px; min-height:44px; font-size:24px; }
-
+@media(max-width:650px) { .digital-catalog { gap:16px; } }
 .digital-grade-filters { display:flex; flex:1; min-width:0; overflow-x:auto; gap:6px; padding:2px 2px 8px; }
 .digital-grade-filters button { flex-shrink:0; min-height:44px; padding:10px 16px; border:1px solid var(--line); background:transparent; color:var(--brand-navy); font:600 14px var(--sans); cursor:pointer; white-space:nowrap; }
 .digital-grade-filters [aria-pressed="true"] { background:var(--brand-navy); color:white; border-color:var(--brand-navy); }
@@ -111,3 +66,14 @@
 #digital-pagination button:focus-visible { outline:2px solid var(--brand-navy); outline-offset:2px; }
 #tai-lieu-so { scroll-margin-top:100px; }
 #digital-title:focus { outline:none; }
+
+.digital-preview-dialog { width:min(540px,calc(100% - 32px)); max-height:calc(100dvh - 32px); overflow-y:auto; border:1px solid var(--line); border-top:4px solid var(--brand-gold); padding:26px; background:var(--paper); color:var(--brand-navy); }
+.digital-preview-dialog::backdrop { background:#20284f88; }
+.digital-preview-dialog header { display:flex; justify-content:space-between; align-items:flex-start; gap:18px; }
+.digital-preview-dialog h2 { font:600 23px/1.4 var(--sans); margin:0; }
+#digital-preview-close { flex-shrink:0; width:44px; height:44px; border:1px solid var(--line); background:white; font:26px var(--sans); color:var(--brand-navy); }
+.digital-preview-dialog p,.digital-preview-note { font-size:14px; color:var(--ink-soft); line-height:1.7; }
+#digital-preview-files { display:grid; gap:10px; margin-top:20px; }
+#digital-preview-files .btn { justify-content:flex-start; white-space:normal; overflow-wrap:anywhere; }
+.digital-preview-free { color:var(--ink-soft); font-size:12px; }
+@media(max-width:420px) { .digital-preview-dialog { padding:20px; } }

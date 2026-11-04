@@ -1,72 +1,42 @@
-# Tài liệu số riêng tư
+# Tài liệu số: bản đọc thử công khai
 
-Trang sách có danh mục PDF theo lớp, đơn tài liệu riêng và mục **Tài liệu của tôi** trong tài khoản Firebase. Node/SQLite và Cloudflare Pages/D1 dùng chung API trong `digital-api.mjs`.
+Tất cả 29 PDF trong `public/assets/documents/previews/` là bản đọc thử đã được chủ CLB cho phép chia sẻ công khai. Không phải bản đầy đủ để bán. Danh mục có 15 nhóm, bao gồm nhóm Toán 3 quyển 1–4.
 
-## Dữ liệu ban đầu
+## Cách hoạt động
 
-Migration `008-digital-documents.sql` tạo 14 bộ tài liệu với 25 file PDF đầy đủ theo tên file đã sắp xếp. Bốn file `BanDocThu` của Toán 3 không được đưa vào bán như bản đầy đủ. PDF gốc vẫn nằm trong Supabase, không được sao chép vào repo hoặc output deploy.
+- Khách mở **Đọc thử PDF** ngay, không cần đăng nhập, tài khoản, chuyển khoản hoặc quyền tải.
+- Bộ nhiều file mở danh sách để chọn từng bản; bộ một file mở PDF trong tab mới.
+- Giữ bộ lọc lớp và phân trang 6 nhóm/trang.
+- Không hiển thị giá tạm hay nút mua cho bản đọc thử.
+- URL file là công khai. Ai có đường dẫn đều xem/tải được.
+- Không gọi Supabase và không cần SUPABASE_SECRET_KEY, SUPABASE_SERVICE_ROLE_KEY hoặc SUPABASE_URL.
 
-Giá 29.000–79.000đ là **giá tạm để chủ CLB duyệt**, không phải giá đã xác nhận. Tất cả bộ ban đầu là bản nháp, danh mục hiển thị “Giá dự kiến / Sắp mở bán”. Nhận đơn và thông tin ngân hàng ban đầu đều tắt/trống. Migration chạy lại giữ nguyên chỉnh sửa và đơn đã có.
+## Cấu trúc và cập nhật
 
-## Thiết lập Production
+Giữ PDF trong `public/assets/documents/previews/lop-N/ten-bo/`.
+Danh mục và ánh xạ từng file nằm trong `digital-catalog.mjs`: id, lớp, tên, số file, nhãn file, URL public và dung lượng.
+Khi thêm/thay file, cập nhật danh mục tương ứng rồi commit PDF cùng code.
 
-1. Giữ bucket `paid-documents` của Supabase ở chế độ **Private**. Không tạo policy cho phép `anon` hoặc mọi người đọc toàn bộ bucket.
-2. Trong Supabase **Project Settings → API Keys**, lấy một **Secret key** (`sb_secret_...`). API cũng hỗ trợ legacy `service_role` qua `SUPABASE_SERVICE_ROLE_KEY`; không dùng `anon` hoặc publishable key để giao PDF.
-3. Thêm khóa vào Cloudflare Pages project **le-nga-books**, môi trường **Production**, dưới dạng Secret tên `SUPABASE_SECRET_KEY`. Có thể dùng terminal trong repo:
+Build kiểm tra file có thật, định dạng PDF và giới hạn 25 MiB mỗi file. File trong `public/` được chép vào `dist/` khi build Pages.
 
-   ```powershell
-   npx wrangler pages secret put SUPABASE_SECRET_KEY --project-name le-nga-books
-   ```
+## Triển khai thay đổi này
 
-   Dán khóa tại lời nhắc bí mật. Không đưa khóa vào `wrangler.toml`, HTML, frontend JS, GitHub, log hoặc chat. Secret mới cần deploy lại để có trong runtime.
+1. Commit và push code cùng thư mục PDF; Cloudflare Pages trang sách build như cũ.
+2. Không cần chạy migration database mới. Đọc thử không phụ thuộc bảng tài liệu của migration 008.
+3. Nếu đã gỡ khóa Supabase, giữ nguyên trạng thái đó. Nếu còn khóa, xóa khỏi Variables and Secrets của Pages rồi deploy lại; thu hồi khóa ở Supabase nếu không có ứng dụng khác sử dụng.
+4. Kiểm tra một nhóm nhiều file, một nhóm một file và bộ lọc lớp trên website sau deploy.
 
-4. URL mặc định đã đúng project của CLB: `https://qyyhdfmlvmuqqcihoejg.supabase.co`. Nếu cần thay, đặt biến server `SUPABASE_URL`. API chỉ chấp nhận HTTPS trên tên miền project `*.supabase.co`, bucket cố định `paid-documents`.
-5. Áp dụng riêng migration mới vào D1 hiện có:
+Không đổi bucket sang Public; website dùng các bản PDF đã chép vào public. Chưa cần xóa bucket hoặc project.
 
-   ```powershell
-   npx wrangler d1 execute le-nga-books --remote --file=database/migrations/008-digital-documents.sql
-   ```
+## Đơn tài liệu cũ
 
-   Không cần nhập lại toàn bộ `cloudflare/init.sql` cho database đang sử dụng.
+Bảng đơn cũ được giữ nguyên để tra cứu trong admin. Trang quản trị hiển thị danh sách bản đọc thử và lịch sử đơn cũ; không còn form nhận tiền, mở bán hay đường dẫn bucket.
 
-6. Build và deploy bản code mới của trang sách theo `CLOUDFLARE.md`. Không cần đổi Firebase hay deploy STEM Maths.
-7. Vào trang quản trị hiện có, chọn tab **Tài liệu số → Quản lý tài liệu và thông tin thanh toán**:
-   - Điền ngân hàng, số tài khoản, chủ tài khoản thật và hướng dẫn cho khách.
-   - Kiểm tra tên, mô tả, giá từng bộ; kiểm tra đường dẫn từng file tương ứng trong Supabase.
-   - Bỏ **Bản nháp** rồi lưu. Máy chủ thử tạo link có thời hạn cho từng file để kiểm tra kho trước khi cho mở bán.
-   - Bật **Mở nhận đơn tài liệu** sau khi hoàn tất. API từ chối nếu chưa đủ thông tin nhận tiền hoặc thiếu cấu hình kho.
+API tạo đơn tài liệu và API cấp link tải riêng tư trả HTTP 410. Admin không thể xác nhận thanh toán mới; chỉ có thể hủy đơn chờ hoặc thu hồi trạng thái quyền cũ. Không có yêu cầu ký link Supabase, kể cả khi secret cũ còn tồn tại.
 
-Phần Data API/PostgREST của Supabase không cần bật cho luồng Storage này.
+Nếu đã có người thanh toán thật, chủ CLB cần liên hệ xử lý riêng; việc đổi sang đọc thử không tự hoàn tiền.
 
-## Quy trình nhận đơn
-
-Khách đăng nhập Firebase, chọn một bộ và tạo đơn. Giá và tên tài liệu được chụp từ database phía máy chủ; một tài khoản chỉ có một đơn chờ hoặc đã trả tiền cho cùng bộ. Gửi lại sau lỗi mạng sử dụng cùng mã gửi để tránh tạo trùng.
-
-Mục **Tài liệu của tôi** hiển thị mã đơn, số tiền, thông tin chuyển khoản và trạng thái. Khách không có nút tự xác nhận đã thanh toán.
-
-Chủ CLB đối chiếu giao dịch ngân hàng thực tế với mã đơn, số tiền. Trong admin, chọn **Đã thanh toán**, tích xác nhận đã kiểm tra tiền thực nhận rồi lưu. Chỉ lúc đó khách mới có các nút tải từng PDF trong bộ.
-
-Khi cần thu hồi quyền, chuyển đơn đã thanh toán sang **Đã thu hồi quyền tải** và ghi lý do. Lịch sử lưu người xử lý và thời gian; sửa trạng thái yêu cầu phiên admin, CSRF và phiên bản đơn hiện tại.
-
-## Bảo vệ file
-
-API tải xác thực Firebase trên mỗi yêu cầu, kiểm tra đúng tài khoản sở hữu đơn, trạng thái đã thanh toán và file thuộc đúng bộ. Người dùng không thể gửi đường dẫn PDF tùy ý để yêu cầu ký.
-
-Khóa Supabase chỉ được gửi từ backend tới Storage; key mới dùng header `apikey`, legacy service_role dùng thêm Bearer JWT. URL trả về được kiểm tra đúng host và đường dẫn. Kết nối có timeout và không theo redirect.
-
-Link tải hiệu lực 60 giây và là bearer link: ai có link đó có thể dùng trong thời gian còn hiệu lực. Thu hồi đơn ngăn tạo link mới nhưng link đã phát hành có thể còn dùng tối đa 60 giây. File khách đã tải xuống không thể thu hồi hoặc ngăn họ chia sẻ bằng cơ chế này.
-
-Kho bị lỗi, thiếu khóa, đơn chưa trả tiền hoặc sai chủ sở hữu đều không được cấp link. Dữ liệu danh mục công khai không chứa object key, khóa Supabase, thông tin khách hay link tải có chữ ký.
-
-## Chạy local
-
-`npm start` không tự đọc `.env`. Để thử với cấu hình thật, lưu biến theo `.env.example` vào file `.env` đã được gitignore rồi chạy:
-
-```powershell
-node --env-file=.env server.mjs
-```
-
-Không cần khóa thật để xem danh mục nháp. Các bài test dùng kho/Firebase mô phỏng, database tạm; không kết nối bucket thật hoặc tạo giao dịch ngân hàng.
+Migration 008 là lịch sử schema, không sửa hoặc xóa dữ liệu đơn đã có. Khi sau này có bản đầy đủ để bán, phải xây lại luồng bán với đúng file, giá và kho riêng tư; không dùng PDF đọc thử làm bản đầy đủ.
 
 ## Kiểm tra
 
@@ -76,5 +46,3 @@ npm run test:ui
 npm run test:ui:digital
 npm run build:pages
 ```
-
-Sau deploy: kiểm tra danh mục, sửa một bộ và xác nhận file, tạo đơn thử có tài khoản, duyệt sau khi đối chiếu giao dịch, thử tải bằng tài khoản chủ đơn và thử từ tài khoản khác; cuối cùng thử thu hồi quyền.

@@ -124,7 +124,7 @@ function selectInbox(table, status = '') {
   $('#digital-management').hidden=table!=='digital-orders';if(table!=='digital-orders')$('#digital-management').open=false;
   document.querySelectorAll('[data-inbox]').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.inbox === table)));
   $('#inbox-title').textContent = table === 'orders' ? 'Đơn sách' : table==='digital-orders'?'Đơn tài liệu số':table==='stem-enquiries'?'Tư vấn STEM Maths':'Yêu cầu tư vấn';
-  $('#inbox-description').textContent = table === 'orders' ? 'Nhận đơn, xác nhận với phụ huynh và theo dõi giao sách.' : table==='digital-orders'?'Kiểm tra chuyển khoản, mở hoặc thu hồi quyền tải PDF.':table==='stem-enquiries'?'Trao đổi chương trình Toán offline, ghi chú và xác nhận xếp lớp.':'Liên hệ phụ huynh và tìm sách phù hợp với con.';
+  $('#inbox-description').textContent = table === 'orders' ? 'Nhận đơn, xác nhận với phụ huynh và theo dõi giao sách.' : table==='digital-orders'?'Bản đọc thử công khai và lịch sử đơn cũ. Không nhận thanh toán mới.':table==='stem-enquiries'?'Trao đổi chương trình Toán offline, ghi chú và xác nhận xếp lớp.':'Liên hệ phụ huynh và tìm sách phù hợp với con.';
   $('#search-input').value=''; populateFilter(); $('#status-filter').value=status; loadList();
 }
 function syncSummaryFilter() {

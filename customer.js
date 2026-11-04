@@ -118,7 +118,6 @@ function setProfileEditing(value) {
 function showSection(next) {
   section = next;
   $('#customer-orders-view').hidden = next !== 'orders';
-  $('#customer-digital-view').hidden = next !== 'digital';
   $('#customer-profile-view').hidden = next !== 'profile';
   for (const button of dialog.querySelectorAll('[data-customer-section]')) button.setAttribute('aria-pressed', String(button.dataset.customerSection === next));
   message('');

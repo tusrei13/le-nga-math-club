@@ -146,4 +146,8 @@ Schema v3 bổ sung customer_orders để liên kết đơn với Firebase UID �
 
 ## Migration 008: tài liệu số
 
-Bổ sung danh mục, file riêng tư, cấu hình chuyển khoản, đơn và lịch sử tài liệu. Chạy riêng `database/migrations/008-digital-documents.sql` cho D1 đã có. Không đưa PDF bán vào `public/`. Chi tiết: [DIGITAL-DOCUMENTS.md](DIGITAL-DOCUMENTS.md).
+Schema lịch sử của luồng bán PDF trước đây; giữ để không mất đơn cũ. Danh mục hiện tại dùng bản đọc thử công khai và không yêu cầu chạy migration này trên D1 để đọc thử. Các PDF đầy đủ để bán sau này vẫn không được đặt trong public. Chi tiết: [DIGITAL-DOCUMENTS.md](DIGITAL-DOCUMENTS.md).
+
+### Tài liệu số hiện tại: bản đọc thử công khai
+
+Danh mục dùng digital-catalog.mjs và PDF trong public/assets/documents/previews/, không cần migration mới hoặc Supabase. Migration 008 và đơn cũ được giữ để tra cứu; API nhận tiền/cấp link riêng tư đã ngừng. Xem DIGITAL-DOCUMENTS.md.
