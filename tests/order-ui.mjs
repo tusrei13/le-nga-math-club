@@ -73,15 +73,15 @@ try {
   await cdp('Runtime.enable'); await cdp('Page.enable');
   await cdp('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
   await cdp('Page.navigate', { url: `http://127.0.0.1:${port}/` });
-  await until(() => evaluate(`document.querySelectorAll('[data-product-quantity]').length === 9 && document.querySelector('#hero-book-price').textContent.includes('299')`), 'loaded catalog');
+  await until(() => evaluate(`document.querySelectorAll('[data-product-quantity]').length === 13 && document.querySelector('#hero-book-price').textContent.includes('299')`), 'loaded catalog');
   await sleep(300);
   assert.equal(await evaluate('document.title'),'Sách & Tài liệu Toán Cô Lê Nga');
   assert.equal(await evaluate("document.querySelector('.site-nav a[href=\"#tai-lieu-so\"]').textContent"),'Tài liệu số');
 
   const readingProducts=(await(await fetch('http://127.0.0.1:'+port+'/api/landing')).json()).products;
   const readingLinks=await evaluate("[...document.querySelectorAll('.book-card [data-book-preview]')].map(a=>({id:a.dataset.bookPreview,href:a.href,target:a.target,rel:a.rel,label:a.getAttribute('aria-label')}))");
-  assert.equal(readingLinks.length,9);
-  assert.equal(new Set(readingLinks.map(link=>link.href)).size,9);
+  assert.equal(readingLinks.length,13);
+  assert.equal(new Set(readingLinks.map(link=>link.href)).size,13);
   for(const product of readingProducts){
     const link=readingLinks.find(link=>link.id===product.id);
     assert.equal(link.href,new URL(product.media.find(media=>media.kind==='sample').url,'http://127.0.0.1:'+port).href);
@@ -112,7 +112,7 @@ try {
     if([375,768,1440].includes(width))await screenshot('book-hero-'+width+'.png');
 
     const previewLayout=await evaluate("(()=>{const links=[...document.querySelectorAll('.book-card [data-book-preview]')];return {count:links.length,small:links.some(a=>a.getBoundingClientRect().height<44),outside:links.some(a=>{const r=a.getBoundingClientRect();return r.left<0||r.right>innerWidth+.5;})};})()");
-    assert.deepEqual(previewLayout,{count:9,small:false,outside:false},'book preview actions at '+width);
+    assert.deepEqual(previewLayout,{count:13,small:false,outside:false},'book preview actions at '+width);
     if([375,768,1440].includes(width)){
       await evaluate("document.querySelector('.book-card-actions').scrollIntoView({behavior:'instant',block:'center'})");
       await screenshot('book-previews-'+width+'.png');
@@ -145,6 +145,16 @@ try {
   assert.equal(await evaluate(`document.querySelector('#selected-book-count').textContent`), '2 cuốn');
   await evaluate(`document.querySelector('#order-panel').scrollIntoView({behavior:'instant',block:'start'})`);
   await screenshot('order-desktop.png');
+
+  await evaluate("document.querySelector('[data-book-group=primary]').click()");
+  assert.equal(await evaluate("document.querySelectorAll('.book-option:not([hidden])').length"),4,'all four primary volumes can be selected');
+  assert.equal(await evaluate("[...document.querySelectorAll('.book-option:not([hidden]) h4')].every((e,i)=>e.textContent.endsWith('Tập '+(i+1)))"),true);
+  await cdp('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+  await evaluate("document.querySelector('#order-panel').scrollIntoView({behavior:'instant'})");
+  assert.equal(await evaluate("document.documentElement.scrollWidth<=innerWidth"),true,'primary book group fits mobile');
+  await screenshot('order-primary-mobile.png');
+  await evaluate("document.querySelector('[data-book-group]').click()");
+  await cdp('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});
   const desktopHeight = await evaluate(`Math.round(document.querySelector('#order-panel').getBoundingClientRect().height)`);
   assert.ok(desktopHeight < 850, `Desktop ticket is too tall: ${desktopHeight}`);
   await evaluate(`document.querySelector('#order-next').click()`);

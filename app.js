@@ -13,6 +13,8 @@ const modeInputs = [...document.querySelectorAll('[name="request_mode"]')];
 const submitLabel = document.querySelector('#submit-label');
 let orderStep = 1;
 let activeBookGroup = '6';
+const primarySeries=product=>product.id.startsWith('sieu-nhan-tap-');
+const bookGroup=product=>primarySeries(product)?'primary':product.category==='thi-vao-6'?'entrance':String(product.grade);
 const visibility = { hero: true, order: false, footer: false, digital: false };
 const visibleActions = new Set();
 const overlappingContent = new Set();
@@ -298,7 +300,7 @@ function updateTotal() {
 }
 function updateOrderArtwork() {
   const chosen = selectedItems().map(item => catalog.find(p => p.id === item.product_id));
-  const group = catalog.filter(p => (p.category === 'thi-vao-6' ? 'entrance' : String(p.grade)) === activeBookGroup);
+  const group = catalog.filter(p => bookGroup(p) === activeBookGroup);
   const books = [...chosen, ...group.filter(p => !chosen.some(c => c.id === p.id))].slice(0,2);
   document.querySelectorAll('.order-book-display img').forEach((image,index) => {
     const cover = books[index]?.media.find(m => m.kind === 'cover');
@@ -351,7 +353,7 @@ async function loadLanding() {
     for (const [index, product] of catalog.entries()) {
       const card = element('article', undefined, 'book-card');
       const meta = element('div', undefined, 'book-meta');
-      meta.append(element('span', `${String(index + 1).padStart(2,'0')} / ${product.category === 'phan-dang' ? 'PHÂN DẠNG' : 'THI VÀO 6'}`), element('span', `LỚP ${product.grade}`));
+      meta.append(element('span', `${String(index + 1).padStart(2,'0')} / ${primarySeries(product)?'SIÊU NHÂN TIỂU HỌC':product.category === 'phan-dang' ? 'PHÂN DẠNG' : 'THI VÀO 6'}`), element('span', primarySeries(product)?'TIỂU HỌC':`LỚP ${product.grade}`));
       const cover = product.media.find(media => media.kind === 'cover');
       const art = element('div', undefined, 'product-cover');
       if (cover) {
@@ -364,7 +366,7 @@ async function loadLanding() {
       const choose = element('button', 'Chọn cuốn này', 'text-link'); choose.type = 'button';
       choose.addEventListener('click', () => {
         const quantity = document.querySelector(`[data-product-quantity="${product.id}"]`);
-        setBookGroup(product.category === 'thi-vao-6' ? 'entrance' : String(product.grade));
+        setBookGroup(bookGroup(product));
         quantity.value = Math.min(20, Number(quantity.value) + 1); updateTotal(); orderStep = 1; openForm('order');
         quantity.focus({ preventScroll: true });
       });
@@ -374,7 +376,7 @@ async function loadLanding() {
       if (preview) actions.append(preview);
       copy.append(actions); card.append(meta, art, copy); cards.append(card);
       const option = element('div', undefined, 'book-option');
-      option.dataset.pickerGroup = product.category === 'thi-vao-6' ? 'entrance' : String(product.grade);
+      option.dataset.pickerGroup = bookGroup(product);
       const thumbnail = element('img'); thumbnail.alt = ''; thumbnail.loading = 'lazy';
       if (cover) thumbnail.src = cover.url; else thumbnail.hidden = true;
       thumbnail.addEventListener('error', () => { thumbnail.hidden = true; }, { once: true });

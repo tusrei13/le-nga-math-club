@@ -76,7 +76,7 @@ try {
   await cdp('Page.navigate',{url:'http://127.0.0.1:'+port+'/'});
   await until(()=>evaluate("document.querySelectorAll('.digital-product').length===6"),'public reading catalog');
   const data=await(await fetch('http://127.0.0.1:'+port+'/api/digital/products')).json();
-  assert.equal(data.products.length,15);assert.equal(data.checkout_enabled,false);
+  assert.equal(data.products.length,17);assert.equal(data.checkout_enabled,false);
   assert.equal(await evaluate("document.querySelector('#digital-checkout')"),null);
   assert.equal(await evaluate("document.querySelector('[data-customer-section=digital]')"),null);
   assert.equal(await evaluate("document.querySelector('#digital-sale-note').textContent"),'Đọc thử miễn phí');
@@ -84,13 +84,13 @@ try {
   const titles=new Set(await evaluate("[...document.querySelectorAll('.digital-product h3')].map(e=>e.textContent)"));
   for(const page of [2,3]){
     await evaluate("document.querySelectorAll('#digital-pagination button')["+page+"].click()");
-    assert.equal(await evaluate("document.querySelectorAll('.digital-product').length"),page===2?6:3);
+    assert.equal(await evaluate("document.querySelectorAll('.digital-product').length"),page===2?6:5);
     for(const title of await evaluate("[...document.querySelectorAll('.digital-product h3')].map(e=>e.textContent)")){assert.equal(titles.has(title),false);titles.add(title);}
   }
-  assert.equal(titles.size,15);
-  assert.equal(await evaluate("document.querySelector('#digital-page-summary').textContent"),'Hiển thị 13–15 trong 15 bộ tài liệu');
+  assert.equal(titles.size,17);
+  assert.equal(await evaluate("document.querySelector('#digital-page-summary').textContent"),'Hiển thị 13–17 trong 17 bộ tài liệu');
   await evaluate("document.querySelectorAll('[data-digital-grade]')[1].click()");
-  assert.equal(await evaluate("document.querySelectorAll('.digital-product').length"),2);
+  assert.equal(await evaluate("document.querySelectorAll('.digital-product').length"),3);
   assert.equal(await evaluate("document.querySelector('#digital-pagination').hidden"),true);
   await evaluate("document.querySelector('[data-digital-preview=g3-quyen-1-4-preview]').click()");
   assert.equal(await evaluate("document.querySelector('#digital-preview-dialog').open"),true);
@@ -127,13 +127,13 @@ try {
   await evaluate("document.querySelector('#login-username').value='admin';document.querySelector('#login-password').value="+JSON.stringify(adminPassword)+";document.querySelector('#login-form').requestSubmit()");
   await until(()=>evaluate("!document.querySelector('#dashboard-view').hidden"),'admin session');
   await evaluate("document.querySelector('[data-inbox=\"digital-orders\"]').click();document.querySelector('#digital-management').open=true");
-  await until(()=>evaluate("document.querySelectorAll('.digital-admin-product').length===15"),'readonly public preview management');
+  await until(()=>evaluate("document.querySelectorAll('.digital-admin-product').length===17"),'readonly public preview management');
   assert.equal(await evaluate("document.querySelector('#digital-management-content form')"),null);
   assert.equal(await evaluate("document.querySelector('#digital-management-content').textContent.includes('Supabase')"),false);
-  assert.equal(await evaluate("document.querySelectorAll('#digital-management-content a').length"),29);
+  assert.equal(await evaluate("document.querySelectorAll('#digital-management-content a').length"),31);
 
   assert.deepEqual(browserErrors,[]);
-  console.log('Public digital UI passed: 15 groups, 29 original PDFs without login, 6-item pagination, class filters, multi-file picker, and 6 responsive sizes.');
+  console.log('Public digital UI passed: 17 groups, 31 original PDFs without login, 6-item pagination, class filters, multi-file picker, and 6 responsive sizes.');
 
 } finally {
   if (socket?.readyState === WebSocket.OPEN) { try { await cdp('Browser.close'); } catch {} socket.close(); }

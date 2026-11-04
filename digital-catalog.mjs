@@ -49,6 +49,20 @@ export const digitalPreviews = [
     "preview_only": true
   },
   {
+    "id": "g3-10-de-cuoi-hk1",
+    "grade": 3,
+    "title": "10 đề chinh phục cuối học kỳ I · Toán 3",
+    "files": [
+      {
+        "label": "Bản đọc thử PDF",
+        "url": "/assets/documents/previews/lop-3/10-de-chinh-phuc-cuoi-hk1/BanDocThu_10De_ChinhPhuc_CuoiHK1_Toan3.pdf",
+        "size_bytes": 2135179
+      }
+    ],
+    "file_count": 1,
+    "preview_only": true
+  },
+  {
     "id": "g4-tong-hieu",
     "grade": 4,
     "title": "Chuyên đề Tổng – Hiệu · Toán 4",
@@ -84,6 +98,20 @@ export const digitalPreviews = [
       }
     ],
     "file_count": 2,
+    "preview_only": true
+  },
+  {
+    "id": "g4-cuoi-tuan-clc",
+    "grade": 4,
+    "title": "Toán cuối tuần Chất lượng cao · Toán 4",
+    "files": [
+      {
+        "label": "Bản đọc thử PDF",
+        "url": "/assets/documents/previews/lop-4/cuoi-tuan-chat-luong-cao/CuoiTuan_Toan4_ChatLuongCao_BAN_DOC_THU.pdf",
+        "size_bytes": 995585
+      }
+    ],
+    "file_count": 1,
     "preview_only": true
   },
   {

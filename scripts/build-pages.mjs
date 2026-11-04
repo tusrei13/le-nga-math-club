@@ -52,5 +52,6 @@ sql+='\n'+await readFile('database/migrations/005-stem-maths.sql','utf8');
 sql+='\n'+await readFile('database/migrations/006-retire-geometry-book.sql','utf8');
 sql+='\n'+await readFile('database/migrations/007-book-previews.sql','utf8');
 sql+='\n'+await readFile('database/migrations/008-digital-documents.sql','utf8');
+sql+='\n'+await readFile('database/migrations/009-primary-maths-books.sql','utf8');
 db.close(); await mkdir('cloudflare',{recursive:true}); await writeFile('cloudflare/init.sql',sql);
 console.log('Pages build ready in dist/. D1 initialization SQL: cloudflare/init.sql');

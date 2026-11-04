@@ -15,8 +15,8 @@ function fixture(){
  for(const name of ['database/schema.sql','database/admin-schema.sql','database/customer-schema.sql','cloudflare/edge-schema.sql','database/migrations/008-digital-documents.sql'])db.exec(readFileSync(name,'utf8'));
  return {db,d1:sqliteD1(db)};
 }
-test('Public catalog maps all 29 actual PDF samples once, including four Toan 3 previews',()=>{
- assert.equal(digitalPreviews.length,15);const urls=digitalPreviews.flatMap(p=>p.files.map(f=>f.url));assert.equal(urls.length,29);assert.equal(new Set(urls).size,29);
+test('Public catalog maps all 31 actual PDF samples once, including four Toan 3 previews',()=>{
+ assert.equal(digitalPreviews.length,17);const urls=digitalPreviews.flatMap(p=>p.files.map(f=>f.url));assert.equal(urls.length,31);assert.equal(new Set(urls).size,31);
  const actual=readdirSync('public/assets/documents/previews',{recursive:true}).filter(f=>String(f).endsWith('.pdf')).map(f=>'/assets/documents/previews/'+String(f).replaceAll('\\','/'));
  assert.deepEqual([...urls].sort(),actual.sort());
  for(const p of digitalPreviews){assert.equal(p.file_count,p.files.length);assert.equal(p.preview_only,true);assert.ok(p.grade>=3&&p.grade<=9);
@@ -25,7 +25,7 @@ test('Public catalog maps all 29 actual PDF samples once, including four Toan 3 
 });
 test('Catalog works without a digital database or Supabase and exposes no provisional prices',async()=>{
  const response=await handleDigitalApi(req('/api/digital/products'),null,{},undefined),data=await response.json();
- assert.equal(response.status,200);assert.equal(data.mode,'public-previews');assert.equal(data.checkout_enabled,false);assert.equal(data.products.length,15);
+ assert.equal(response.status,200);assert.equal(data.mode,'public-previews');assert.equal(data.checkout_enabled,false);assert.equal(data.products.length,17);
  assert.equal(response.headers.get('Cache-Control'),'no-store');
  assert.doesNotMatch(JSON.stringify(data),/price_vnd|supabase|bank_name|signedURL|customer_id|object_key/i);
 });

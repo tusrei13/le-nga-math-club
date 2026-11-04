@@ -35,8 +35,8 @@ after(async()=>{
   if(child && child.exitCode===null) {const exited=new Promise(resolve=>child.once('exit',resolve));child.kill();await exited;}
   if(directory) await rm(directory,{recursive:true,force:true});
 });
-test('Danh mục chứa đúng 9 sách, giá, ảnh bìa và 9 PDF đọc thử đúng sách',async()=>{
-  const result=await api('/api/landing'); assert.equal(result.status,200); assert.equal(result.data.products.length,9);
+test('Danh mục chứa đúng 13 sách, giá, ảnh bìa và 13 PDF đọc thử đúng sách',async()=>{
+  const result=await api('/api/landing'); assert.equal(result.status,200); assert.equal(result.data.products.length,13);
   assert.equal(result.data.faqs.length,3);assert.equal(result.data.gifts.length,0);
   assert.equal(result.data.content.sales_policy.gifts_with_order,false);
   for(const product of result.data.products) {
@@ -44,7 +44,7 @@ test('Danh mục chứa đúng 9 sách, giá, ảnh bìa và 9 PDF đọc thử 
     const cover=product.media.find(m=>m.kind==='cover');assert.ok(cover);
     const image=await fetch(base+cover.url);assert.equal(image.status,200);assert.match(image.headers.get('content-type'),/^image\//);await image.arrayBuffer();
     const sample=product.media.find(media=>media.kind==='sample');assert.ok(sample);
-    const expectedFile=product.id==='70-de-vao-6'?'70 DE BUT TOC THI VAO LOP 6 CLC-BAN-DOC-THU.pdf':'PHAN DANG TOAN '+product.grade+'-TAP'+product.volume+'-BAN-DOC-THU.pdf';
+    const expectedFile=product.id.startsWith('sieu-nhan-tap-')?'EM LA SIEU NHAN GIAI TOAN TIEU HOC-TAP'+product.id.at(-1)+'-BAN-HOC-THU.pdf':product.id==='70-de-vao-6'?'70 DE BUT TOC THI VAO LOP 6 CLC-BAN-DOC-THU.pdf':'PHAN DANG TOAN '+product.grade+'-TAP'+product.volume+'-BAN-DOC-THU.pdf';
     assert.equal(sample.url,'/assets/books%20preview/'+encodeURIComponent(expectedFile));
     const pdf=await fetch(base+sample.url);assert.equal(pdf.status,200);assert.match(pdf.headers.get('content-type'),/^application\/pdf/);
     const received=Buffer.from(await pdf.arrayBuffer()),original=await readFile(join('public','assets','books preview',expectedFile));
@@ -114,7 +114,7 @@ test('Nội dung quản trị cập nhật được, ẩn nội dung và tính p
   assert.equal((await api('/api/admin/products/toan-6-tap-1','PATCH',{cover_url:'/assets/books/Phan%20dang%20toan%20lop6%20t1.png'},adminHeaders)).status,200);
   assert.equal((await api('/api/admin/products/toan-6-tap-1','PATCH',{active:false},adminHeaders)).status,200);
   assert.equal((await api('/api/orders','POST',order,{'Idempotency-Key':randomUUID()})).status,400);
-  assert.equal((await api('/api/products')).data.products.length,8);
+  assert.equal((await api('/api/products')).data.products.length,12);
 });
 test('Khởi tạo lại giữ nguyên dữ liệu đã chỉnh sửa và các đơn đã lưu',async()=>{
   execFileSync(process.execPath,['database/init.mjs'],{cwd:new URL('..',import.meta.url),env:{...process.env,DATABASE_PATH:join(directory,'test.sqlite')},stdio:'pipe'});
@@ -122,7 +122,7 @@ test('Khởi tạo lại giữ nguyên dữ liệu đã chỉnh sửa và các �
   assert.equal(result.data.content.sales_policy.shipping_vnd,25000);
   assert.equal(result.data.faqs[0].answer,'Nội dung thử nghiệm từ database.');
   assert.equal((await api('/api/admin/orders','GET',undefined,adminHeaders)).data.total,2);
-  assert.equal((await api('/api/products')).data.products.length,8);
+  assert.equal((await api('/api/products')).data.products.length,12);
 });
 const loginPassword='Test-only password for admin 2026';
 let sessionCookie, csrfToken;
@@ -168,7 +168,7 @@ test('Đăng xuất, hết hạn và thu hồi phiên chặn truy cập',async()
   assert.equal(logout.status,200);assert.match(logout.headers.get('set-cookie'),/Max-Age=0/);
   assert.equal((await api('/api/admin/orders','GET',undefined,{Cookie:sessionCookie})).status,401);
   const result=await login();const expiredCookie=result.cookie.split(';')[0];
-  const db=new DatabaseSync(join(directory,'test.sqlite'));db.prepare('UPDATE admin_sessions SET expires_at=?').run(Date.now()-1);db.close();
+  const db=new DatabaseSync(join(directory,'test.sqlite'));db.prepare('UPDATE admin_sessions SET expires_at=?').run(0);db.close();
   assert.equal((await api('/api/admin/orders','GET',undefined,{Cookie:expiredCookie})).status,401);
   const idle=await login();const idleCookie=idle.cookie.split(';')[0];
   const idleDb=new DatabaseSync(join(directory,'test.sqlite'));idleDb.prepare('UPDATE admin_sessions SET last_seen_at=?').run(Date.now()-31*60*1000);idleDb.close();

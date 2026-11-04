@@ -510,8 +510,8 @@ details p { font-size:16px; color:var(--ink-soft); margin:16px 0 0; }
 .step-connector { height:1px; flex:1; background:var(--line); max-width:70px; }
 .order-form .book-selection { border:0; padding:0; margin:0; }
 .book-selection legend { padding:0; font-size:14px; margin-bottom:10px; }
-.book-grade-filters { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)) minmax(0,1.3fr); border:1px solid var(--line); margin-bottom:10px; }
-.book-grade-filters button { background:transparent; color:var(--ink-soft); border:0; border-right:1px solid var(--line); min-height:42px; padding:8px 4px; font-size:13px; white-space:nowrap; }
+.book-grade-filters { display:flex; flex-wrap:wrap; border:1px solid var(--line); margin-bottom:10px; }
+.book-grade-filters button { flex:1 1 64px; max-width:100%; background:transparent; color:var(--ink-soft); border:0; border-right:1px solid var(--line); min-height:44px; padding:8px; font-size:13px; white-space:normal; }
 .book-grade-filters button:last-child { border-right:0; }
 .book-grade-filters button[aria-pressed="true"] { background:var(--brand-gold); color:var(--brand-navy); font-weight:600; }
 .order-form .book-option { display:grid; grid-template-columns:44px minmax(0,1fr) auto; gap:12px; align-items:center; min-height:82px; padding:8px 0; border-bottom:1px solid var(--line); }
@@ -604,3 +604,5 @@ details p { font-size:16px; color:var(--ink-soft); margin:16px 0 0; }
 .book-preview:hover { border-color:var(--brand-navy); background:#fff1c7; }
 .book-preview:focus-visible { outline:2px solid var(--brand-navy); outline-offset:3px; }
 .catalog-sample-note { margin:0; font-size:14px; }
+
+.book-grade-filters [data-book-group="primary"] { flex-basis:140px; }

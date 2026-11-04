@@ -1,3 +1,4 @@
+import {primaryBooks} from './primary-books.mjs';
 import { bookPreviews } from './book-previews.mjs';
 export function seed(db) {
   const insert = db.prepare(`INSERT OR IGNORE INTO products(id,slug,title,category,grade,volume,description,price_vnd,sort_order) VALUES(?,?,?,?,?,?,?,?,?)`);
@@ -9,11 +10,13 @@ export function seed(db) {
   }
   insert.run('70-de-vao-6','70-de-but-toc-thi-vao-lop-6-clc','70 đề bứt tốc thi vào lớp 6 Chất lượng cao','thi-vao-6',5,null,
     'Luyện tập với 70 đề, dành cho học sinh chuẩn bị thi vào lớp 6 Chất lượng cao.',299000,++position);
+  for(const book of primaryBooks)insert.run(book.id,book.slug,book.title,book.category,book.grade,book.volume,book.description,book.price_vnd,book.sort_order);
   const cover = db.prepare(`INSERT OR IGNORE INTO product_media(product_id,kind,url,alt) VALUES(?,'cover',?,?)`);
   for (const grade of [6,7,8,9]) for (const volume of [1,2]) {
     cover.run(`toan-${grade}-tap-${volume}`, `/assets/books/${encodeURIComponent(`Phan dang toan lop${grade} t${volume}.png`)}`, `Bìa Phân dạng Toán ${grade} tập ${volume}`);
   }
   cover.run('70-de-vao-6','/assets/books/70_de_but_toc_thi_vao_lop_6_clc.jpg','Bìa 70 đề bứt tốc thi vào lớp 6 Chất lượng cao');
+  for(const book of primaryBooks)cover.run(book.id,book.cover,'Bìa '+book.title);
   const media = db.prepare(`INSERT OR IGNORE INTO product_media(product_id,kind,url,alt) VALUES(?,'sample',?,?)`);
   const productTitle = db.prepare('SELECT title FROM products WHERE id=?');
   for (const preview of bookPreviews) {

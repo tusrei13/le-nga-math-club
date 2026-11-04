@@ -8,7 +8,7 @@ STEM Maths dùng chung database, bổ sung `stem_programs`, `stem_enquiries`, `s
 
 | Chức năng | Dữ liệu / xử lý |
 | --- | --- |
-| Danh mục sách | 9 sách, giá VND, lớp, tập, mô tả, ảnh bìa thật, trạng thái bán |
+| Danh mục sách | 13 sách, giá VND, lớp, tập, mô tả, ảnh bìa thật, trạng thái bán |
 | Trang mẫu | 9 đường dẫn PDF đọc thử riêng theo ID sách, lớp và tập; PDF minh họa chung nằm ở mục Tài liệu số |
 | Đặt sách COD | Chọn nhiều cuốn và số lượng, tính giá trên server, lưu thông tin phụ huynh và địa chỉ |
 | Nhận tư vấn | Lưu họ tên, điện thoại, lớp, ghi chú; không cần địa chỉ hoặc chọn sách |
@@ -52,7 +52,7 @@ erDiagram
 
 Không tách hồ sơ phụ huynh thành tài khoản đăng nhập: landing page cho phép đặt hàng trực tiếp, mỗi yêu cầu giữ thông tin riêng. Mã đơn là UUID; dữ liệu cá nhân chỉ có trong API quản trị.
 
-## 9 sách và giá bán
+## 13 sách và giá bán
 
 | ID | Sách | Giá / cuốn |
 | --- | --- | ---: |
@@ -65,10 +65,14 @@ Không tách hồ sơ phụ huynh thành tài khoản đăng nhập: landing pag
 | `toan-9-tap-1` | Phân dạng Toán 9 tập 1 | 299.000đ |
 | `toan-9-tap-2` | Phân dạng Toán 9 tập 2 | 299.000đ |
 | `70-de-vao-6` | 70 đề bứt tốc thi vào lớp 6 Chất lượng cao | 299.000đ |
+| `sieu-nhan-tap-1` | Em là siêu nhân giải Toán Tiểu học · Tập 1 | 299.000đ |
+| `sieu-nhan-tap-2` | Em là siêu nhân giải Toán Tiểu học · Tập 2 | 299.000đ |
+| `sieu-nhan-tap-3` | Em là siêu nhân giải Toán Tiểu học · Tập 3 | 299.000đ |
+| `sieu-nhan-tap-4` | Em là siêu nhân giải Toán Tiểu học · Tập 4 | 299.000đ |
 
-Tám ảnh PNG `Phan dang toan lop{6..9} t{1..2}.png` và một ảnh JPG được gắn từ `public/assets/books`. URL có khoảng trắng đã được mã hóa. Giá toàn bộ sách được chủ dự án xác nhận là 299.000đ/cuốn. Phí vận chuyển xác nhận riêng, không công bố freeship. Quà tặng mẫu đang tắt; các cam kết giao hàng, đổi trả và thông tin bằng cấp/kinh nghiệm chưa xác nhận đã được gỡ. Migration 004 cập nhật dữ liệu đã tồn tại một lần, giữ nguyên giá trong đơn cũ.
+Bốn ảnh PNG em_la_sieu_nhan_giai_toan_tieu_hoc_tap{1..4}.png được thêm cho bộ Tiểu học. Tám ảnh PNG `Phan dang toan lop{6..9} t{1..2}.png` và một ảnh JPG được gắn từ `public/assets/books`. URL có khoảng trắng đã được mã hóa. Giá toàn bộ sách được chủ dự án xác nhận là 299.000đ/cuốn. Phí vận chuyển xác nhận riêng, không công bố freeship. Quà tặng mẫu đang tắt; các cam kết giao hàng, đổi trả và thông tin bằng cấp/kinh nghiệm chưa xác nhận đã được gỡ. Migration 004 cập nhật dữ liệu đã tồn tại một lần, giữ nguyên giá trong đơn cũ.
 
-Migration 006 ngừng bán cuốn 200 bài hình học thi vào lớp 6, bỏ ảnh bìa đã xóa và giữ dữ liệu sách để bảo toàn lịch sử đơn hàng. Khởi tạo mới chỉ có 9 sách. Với D1 đang dùng, chạy: npx wrangler d1 execute le-nga-books --remote --file=database/migrations/006-retire-geometry-book.sql.
+Migration 006 ngừng bán cuốn 200 bài hình học thi vào lớp 6, bỏ ảnh bìa đã xóa và giữ dữ liệu sách để bảo toàn lịch sử đơn hàng. Sau migration 006 còn 9 sách gốc; migration 009 bổ sung 4 tập Tiểu học, tổng cộng 13 sách. Với D1 đang dùng, chạy: npx wrangler d1 execute le-nga-books --remote --file=database/migrations/006-retire-geometry-book.sql.
 
 Migration 007 cập nhật một lần sample trong product_media cho 9 sách sang PDF tương ứng tại public/assets/books preview/. Database SQLite áp dụng khi khởi động; với D1, deploy PDF trước rồi chạy npx wrangler d1 execute le-nga-books --remote --file=database/migrations/007-book-previews.sql. Các lần chạy sau giữ URL đã được quản trị chỉnh sửa.
 
@@ -151,3 +155,11 @@ Schema lịch sử của luồng bán PDF trước đây; giữ để không m�
 ### Tài liệu số hiện tại: bản đọc thử công khai
 
 Danh mục dùng digital-catalog.mjs và PDF trong public/assets/documents/previews/, không cần migration mới hoặc Supabase. Migration 008 và đơn cũ được giữ để tra cứu; API nhận tiền/cấp link riêng tư đã ngừng. Xem DIGITAL-DOCUMENTS.md.
+
+## Migration 009: bốn tập Siêu nhân Tiểu học
+
+Thêm 4 tập Em là siêu nhân giải Toán Tiểu học, mỗi cuốn 299.000đ, kèm bìa và PDF đọc thử riêng. Dữ liệu nhóm thi vào lớp 6; giao diện có nhóm chọn Siêu nhân Tiểu học riêng. Không sửa giá hoặc đơn cũ; chạy lại giữ các chỉnh sửa quản trị. SQLite tự áp dụng khi khởi động. D1 đang dùng cần chạy migration sau khi deploy ảnh/PDF:
+
+    npx wrangler d1 execute le-nga-books --remote --file=database/migrations/009-primary-maths-books.sql
+
+Hai PDF đọc thử số mới nằm trong lop-3/10-de-chinh-phuc-cuoi-hk1 và lop-4/cuoi-tuan-chat-luong-cao; danh mục số dùng digital-catalog.mjs nên không cần migration cho hai file này.

@@ -1,6 +1,6 @@
 # Tài liệu số: bản đọc thử công khai
 
-Tất cả 29 PDF trong `public/assets/documents/previews/` là bản đọc thử đã được chủ CLB cho phép chia sẻ công khai. Không phải bản đầy đủ để bán. Danh mục có 15 nhóm, bao gồm nhóm Toán 3 quyển 1–4.
+Tất cả 31 PDF trong `public/assets/documents/previews/` là bản đọc thử đã được chủ CLB cho phép chia sẻ công khai. Không phải bản đầy đủ để bán. Danh mục có 17 nhóm, bao gồm nhóm Toán 3 quyển 1–4.
 
 ## Cách hoạt động
 

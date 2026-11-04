@@ -27,7 +27,7 @@ test('Pages D1 orders, private receipts, random-key login, CSRF, logout and repl
   async function req(path,method='GET',data,headers={}){return worker.fetch(new Request('https://books.pages.dev'+path,{method,headers:{'Content-Type':'application/json',...headers},body:data?JSON.stringify(data):undefined}),env);}
   try {
     assert.equal((await req('/healthz')).status,200);
-    const landing=await (await req('/api/landing')).json();assert.equal(landing.products.length,9);assert.deepEqual(landing.testimonials,[]);
+    const landing=await (await req('/api/landing')).json();assert.equal(landing.products.length,13);assert.deepEqual(landing.testimonials,[]);
     assert.equal((await req('/api/admin/orders')).status,401);
     assert.equal((await req('/api/auth/login','POST',{username:'admin',password:'wrong'})).status,401);
     assert.equal((await req('/api/auth/login','POST',{username:'admin',password},{Origin:'https://evil.test'})).status,403);
@@ -115,7 +115,7 @@ test('Retiring a book preserves order snapshots, rejects purchases and survives 
     assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(),[]);
     const env={DB:d1},origin='https://books.pages.dev';
     const catalog=await (await worker.fetch(new Request(origin+'/api/products'),env)).json();
-    assert.equal(catalog.products.length,9);
+    assert.equal(catalog.products.length,13);
     assert.equal(catalog.products.some(p=>p.id===retired),false);
     const response=await worker.fetch(new Request(origin+'/api/orders',{method:'POST',headers:{'Content-Type':'application/json',Origin:origin,'Idempotency-Key':crypto.randomUUID()},body:JSON.stringify({name:'Test parent',phone:'0989066885',grade:5,address:'Test address',items:[{product_id:retired,quantity:1}]})}),env);
     assert.equal(response.status,400);
@@ -128,7 +128,7 @@ test('Retiring a book preserves order snapshots, rejects purchases and survives 
 test('Book preview migration replaces legacy samples once and preserves orders and later edits',async()=>{
   const d1=new D1(),db=d1.db,env={DB:d1};
   try {
-    db.exec("UPDATE product_media SET url='/assets/trang-mau-toan.pdf',alt='Legacy generic sample' WHERE kind='sample'; UPDATE products SET price_vnd=305000 WHERE id='toan-6-tap-1';");
+    db.exec("UPDATE product_media SET url='/assets/trang-mau-toan.pdf',alt='Legacy generic sample' WHERE kind='sample' AND product_id NOT LIKE 'sieu-nhan-tap-%'; UPDATE products SET price_vnd=305000 WHERE id='toan-6-tap-1';");
     const created=await worker.fetch(new Request('https://books.pages.dev/api/orders',{method:'POST',headers:{'Content-Type':'application/json','Idempotency-Key':crypto.randomUUID()},body:JSON.stringify({name:'Test parent',phone:'0989066885',grade:6,address:'Test address',items:[{product_id:'toan-6-tap-1',quantity:1}]})}),env);
     assert.equal(created.status,201);
     const receipt=await created.json(),snapshot=db.prepare('SELECT * FROM order_items WHERE order_id=?').get(receipt.id);
@@ -138,7 +138,7 @@ test('Book preview migration replaces legacy samples once and preserves orders a
       const rows=db.prepare("SELECT url,alt FROM product_media WHERE product_id=? AND kind='sample'").all(preview.id);
       assert.equal(rows.length,1);assert.equal(rows[0].url,preview.url);assert.match(rows[0].alt,/^Bản đọc thử /);
     }
-    assert.equal(new Set(db.prepare("SELECT url FROM product_media WHERE kind='sample'").all().map(row=>row.url)).size,9);
+    assert.equal(new Set(db.prepare("SELECT url FROM product_media WHERE kind='sample'").all().map(row=>row.url)).size,13);
     assert.deepEqual(db.prepare('SELECT * FROM order_items WHERE order_id=?').get(receipt.id),snapshot);
     assert.equal(db.prepare('SELECT total_vnd FROM orders WHERE id=?').get(receipt.id).total_vnd,305000);
     assert.equal(db.prepare("SELECT price_vnd FROM products WHERE id='toan-6-tap-1'").get().price_vnd,305000);
@@ -148,4 +148,32 @@ test('Book preview migration replaces legacy samples once and preserves orders a
     assert.equal(db.prepare('SELECT count(*) n FROM schema_versions WHERE version=7').get().n,1);
     assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(),[]);
   } finally {db.close();}
+});
+
+test('Four primary maths books upgrade an existing D1 catalog once and preserve edits and order snapshots',async()=>{
+ const d1=new D1(),db=d1.db;
+ try{
+  db.exec("PRAGMA foreign_keys=ON; DELETE FROM product_media WHERE product_id LIKE 'sieu-nhan-tap-%'; DELETE FROM products WHERE id LIKE 'sieu-nhan-tap-%';");
+  db.prepare("INSERT INTO orders(id,request_key,request_hash,parent_name,phone,grade,address,subtotal_vnd,shipping_vnd,total_vnd) VALUES('before-new-books','before-new-books','hash','Parent','0912345678',6,'Address',299000,0,299000)").run();
+  db.prepare("INSERT INTO order_items(order_id,product_id,title,unit_price_vnd,quantity) VALUES('before-new-books','toan-6-tap-1','Historical title',299000,1)").run();
+  const before=db.prepare("SELECT * FROM order_items WHERE order_id='before-new-books'").get();
+  db.prepare("UPDATE products SET price_vnd=315000 WHERE id='toan-6-tap-1'").run();
+  const migration=readFileSync('database/migrations/009-primary-maths-books.sql','utf8');db.exec(migration);
+  assert.equal(db.prepare('SELECT count(*) n FROM products WHERE active=1').get().n,13);
+  for(let n=1;n<=4;n++){
+   const id='sieu-nhan-tap-'+n,p=db.prepare('SELECT * FROM products WHERE id=?').get(id);
+   assert.equal(p.price_vnd,299000);assert.equal(p.category,'thi-vao-6');assert.ok(p.title.endsWith('Tập '+n));
+   assert.equal(db.prepare('SELECT count(*) n FROM product_media WHERE product_id=?').get(id).n,2);
+  }
+  db.prepare("UPDATE products SET price_vnd=319000,active=0 WHERE id='sieu-nhan-tap-4'").run();
+  db.exec(migration);seed(db);
+  assert.equal(db.prepare("SELECT price_vnd FROM products WHERE id='sieu-nhan-tap-4'").get().price_vnd,319000);
+  assert.equal(db.prepare("SELECT active FROM products WHERE id='sieu-nhan-tap-4'").get().active,0);
+  assert.equal(db.prepare("SELECT price_vnd FROM products WHERE id='toan-6-tap-1'").get().price_vnd,315000);
+  assert.deepEqual(db.prepare("SELECT * FROM order_items WHERE order_id='before-new-books'").get(),before);
+  assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(),[]);
+  const payload={name:'Parent',phone:'0912345678',grade:5,address:'Address',items:[{product_id:'sieu-nhan-tap-3',quantity:1}],consent:true};
+  const response=await worker.fetch(new Request('https://books.pages.dev/api/orders',{method:'POST',headers:{'Content-Type':'application/json','Idempotency-Key':'new-primary-book-request-123456'},body:JSON.stringify(payload)}),{DB:d1});
+  assert.equal(response.status,201);assert.equal((await response.json()).total_vnd,299000);
+ }finally{db.close();}
 });
