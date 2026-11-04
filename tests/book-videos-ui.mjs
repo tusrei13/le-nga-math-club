@@ -90,7 +90,7 @@ try {
   await evaluate("window.dispatchEvent(new Event('books:rendered'))");
   assert.equal(await evaluate("document.querySelectorAll('.book-video-action').length"),3,'rerenders cannot duplicate actions');
 
-  const viewports=[[320,720],[375,812],[768,1024],[1024,768],[1440,1000],[667,375]];
+  const viewports=[[320,568],[320,720],[375,812],[768,1024],[820,1180],[1024,768],[1440,1000],[1557,850],[667,375]];
   for(const [width,height] of viewports){
     await cdp('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<1100});
     await evaluate("document.querySelector('#primary-series-overview').scrollIntoView({behavior:'instant',block:'start'})");
@@ -109,17 +109,20 @@ try {
     await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,...point});
     await until(()=>evaluate("document.querySelector('#book-video-player').readyState>=2"),'overview ready '+width);
     await until(()=>evaluate("!document.querySelector('#book-video-player').paused && document.querySelector('#book-video-player').currentTime>.1"),'user click starts overview '+width);
-    const bounds=await evaluate("(()=>{const d=document.querySelector('#book-video-dialog'),r=d.getBoundingClientRect(),v=document.querySelector('#book-video-player');return {open:d.open,left:r.left,right:r.right,top:r.top,bottom:r.bottom,inner:innerWidth,height:innerHeight,overflow:d.scrollWidth>d.clientWidth,ratio:v.videoWidth/v.videoHeight};})()");
+    const bounds=await evaluate("(()=>{const d=document.querySelector('#book-video-dialog'),r=d.getBoundingClientRect(),v=document.querySelector('#book-video-player');return {open:d.open,left:r.left,right:r.right,top:r.top,bottom:r.bottom,inner:innerWidth,height:innerHeight,overflow:d.scrollWidth>d.clientWidth,verticalOverflow:d.scrollHeight>d.clientHeight,playerRatio:v.getBoundingClientRect().width/v.getBoundingClientRect().height,ratio:v.videoWidth/v.videoHeight,closeSize:document.querySelector('#book-video-close').getBoundingClientRect().width};})()");
     assert.ok(bounds.open&&bounds.left>=0&&bounds.right<=width&&bounds.top>=0&&bounds.bottom<=height&&!bounds.overflow,JSON.stringify(bounds));
     assert.equal(bounds.ratio,1080/1920);
-    if([375,1440].includes(width))await screenshot('book-video-player-'+width+'.png');
+    assert.ok(Math.abs(bounds.playerRatio-bounds.ratio)<.005,'video must fit its frame without bars '+JSON.stringify(bounds));
+    assert.equal(bounds.verticalOverflow,false,'video controls and header fit without scrolling '+width);
+    assert.ok(bounds.closeSize>=44,'close button touch target '+width);
+    if([375,768,1440,1557,667].includes(width))await screenshot('book-video-player-'+width+'.png');
     await evaluate("document.querySelector('#book-video-close').click()");
     await until(()=>evaluate("!document.querySelector('#book-video-dialog').open && !document.body.classList.contains('book-video-open')"),'dialog close');
     assert.equal(await evaluate("document.querySelector('#book-video-player').paused && !document.querySelector('#book-video-player').hasAttribute('src')"),true,'release video after close');
     assert.equal(await evaluate("document.activeElement.dataset.bookVideo"),'series','restore opening button focus');
   }
 
-  await cdp('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});
+  await cdp('Emulation.setDeviceMetricsOverride',{width:1557,height:850,deviceScaleFactor:1,mobile:false});
   for(const volume of [1,3,4]){
     await evaluate("document.querySelector('[data-book-video=sieu-nhan-tap-"+volume+"]').click();document.querySelector('#book-video-player').muted=true");
     await until(()=>evaluate("document.querySelector('#book-video-player').readyState>=2"),'volume '+volume+' metadata');
@@ -129,13 +132,22 @@ try {
     await until(()=>evaluate("document.querySelector('#book-video-player').currentTime>.25"),'volume '+volume+' playing');
     await evaluate("document.querySelector('#book-video-player').currentTime=10");
     await until(()=>evaluate("!document.querySelector('#book-video-player').seeking && document.querySelector('#book-video-player').currentTime>=10"),'volume '+volume+' seeking');
+    if(volume===1){
+      await evaluate("document.querySelector('#book-video-player').pause()");await screenshot('book-video-player-tap-1-desktop.png');
+      for(const [width,height] of [[375,812],[768,1024]]){
+        await cdp('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:true});
+        assert.equal(await evaluate("(()=>{const d=document.querySelector('#book-video-dialog'),r=d.getBoundingClientRect();return d.open&&d.scrollHeight<=d.clientHeight&&r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight;})()"),true,'rotate open player '+width);
+        await screenshot('book-video-player-tap-1-'+width+'.png');
+      }
+      await cdp('Emulation.setDeviceMetricsOverride',{width:1557,height:850,deviceScaleFactor:1,mobile:false});
+    }
     await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
     await cdp('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
     await until(()=>evaluate("!document.querySelector('#book-video-dialog').open && !document.querySelector('#book-video-player').hasAttribute('src')"),'Escape releases video');
   }
   assert.equal(await evaluate("[...document.querySelectorAll('[data-product-quantity]')].every(i=>i.value==='0')"),true,'watching videos must not change cart');
   assert.deepEqual(browserErrors,[]);
-  console.log('Book video browser checks passed: no initial MP4 requests; correct overview and 3 individual videos; play, seek, close/Escape, focus and unchanged cart; 6 phone/tablet/desktop viewports. Screenshots in data/.');
+  console.log('Book video browser checks passed: no initial MP4 requests; correct overview and 3 individual videos; play, seek, close/Escape, focus and unchanged cart; 9 phone/tablet/desktop viewports; frame aspect ratio and visible controls. Screenshots in data/.');
 } finally {
   if (socket?.readyState === WebSocket.OPEN) { try { await cdp('Browser.close'); } catch {} socket.close(); }
   for (const process of [chromium, server]) if (process && process.exitCode === null) {

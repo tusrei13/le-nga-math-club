@@ -20,20 +20,31 @@
 .book-video-action { display:inline-flex; justify-content:center; align-items:center; min-height:44px; padding:8px 12px; background:transparent; color:var(--brand-navy); border:1px solid var(--brand-navy); font:600 14px var(--sans); cursor:pointer; }
 .book-video-action:hover { background:var(--paper-deep); }
 body.book-video-open { overflow:hidden; }
-.book-video-dialog { width:min(500px,calc(100% - 24px)); padding:20px; border:1px solid var(--line); border-top:4px solid var(--brand-gold); background:var(--paper); color:var(--brand-navy); max-height:calc(100dvh - 24px); overflow-y:auto; }
-.book-video-dialog::backdrop { background:#182042b3; }
-.book-video-dialog header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:16px; }
-.book-video-dialog h2 { font:600 20px/1.4 var(--sans); margin:0; }
-#book-video-close { flex-shrink:0; min-width:44px; min-height:44px; padding:0; background:white; color:var(--brand-navy); border:1px solid var(--line); font:26px var(--sans); cursor:pointer; }
-#book-video-player { display:block; width:100%; height:min(68dvh,700px); max-height:calc(100dvh - 190px); object-fit:contain; background:#0a1027; }
-#book-video-message { color:var(--ink-soft); font-size:13px; margin:12px 0 0; }
+
+/* Size the frame from both viewport dimensions so the portrait video has no side bars. */
+.book-video-dialog { width:min(460px,calc(100vw - 24px),calc((100dvh - 148px)*.5625)); max-width:calc(100vw - 24px); max-height:calc(100dvh - 24px); margin:auto; padding:0; border:1px solid #ffffff26; border-radius:12px; background:var(--brand-navy); color:#fff; overflow:auto; box-shadow:0 24px 80px #0005; }
+.book-video-dialog::backdrop { background:#090f24d9; }
+.book-video-dialog header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px; margin:0; background:var(--brand-navy); }
+.book-video-dialog h2 { min-width:0; margin:0; font:600 16px/1.45 var(--sans); overflow-wrap:anywhere; }
+#book-video-close { display:grid; place-items:center; flex:0 0 44px; width:44px; height:44px; padding:0; border:1px solid #ffffff38; border-radius:50%; background:#ffffff0d; color:#fff; font:26px/1 var(--sans); cursor:pointer; }
+#book-video-close:hover { background:var(--brand-gold); color:var(--brand-navy); border-color:var(--brand-gold); }
+.book-video-dialog :focus-visible { outline:2px solid var(--brand-gold); outline-offset:3px; }
+#book-video-player { display:block; width:100%; height:auto; max-height:none; aspect-ratio:9/16; object-fit:contain; background:#0a1027; }
+#book-video-message { color:#fff; font-size:13px; line-height:1.6; margin:0; padding:12px 14px; }
 #book-video-message:empty { display:none; }
-#book-video-fallback { display:inline-flex; min-height:44px; align-items:center; font-size:14px; text-decoration:underline; }
+#book-video-fallback { display:flex; min-height:44px; align-items:center; color:var(--brand-gold); font-size:14px; margin:0 14px 12px; text-decoration:underline; text-underline-offset:3px; }
 #book-video-fallback[hidden] { display:none; }
 @media(max-width:650px) {
   .series-video-overview { grid-template-columns:minmax(0,1fr); gap:24px; padding:24px 18px; }
   .series-video-poster { width:min(100%,180px); }
   .series-video-copy h3 { font-size:25px; }
-  .book-video-dialog { padding:16px; }
-  .book-video-dialog h2 { font-size:18px; }
+}
+/* A short landscape screen needs the title beside the video to keep controls visible. */
+@media(max-height:550px) and (min-aspect-ratio:1/1) {
+  .book-video-dialog { width:min(560px,calc(100vw - 24px)); }
+  .book-video-dialog[open] { display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-rows:min-content min-content 1fr; }
+  .book-video-dialog header { grid-column:1; grid-row:1; align-self:start; }
+  #book-video-player { grid-column:2; grid-row:1/4; width:calc((100dvh - 26px)*.5625); }
+  #book-video-message { grid-column:1; grid-row:2; }
+  #book-video-fallback { grid-column:1; grid-row:3; align-self:start; }
 }
