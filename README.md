@@ -23,15 +23,13 @@ Database tự tạo ở `data/landing.sqlite`, gồm 16 bảng và dữ liệu 1
 
 Logo dùng chung cho trang sách, STEM Maths và quản trị tại public/assets/logo.png. Thay file này rồi build/deploy cả hai project. Build tự thêm phiên bản theo SHA-256 vào URL logo, favicon và ảnh dự phòng để trình duyệt tải ảnh mới. Giao diện hiển thị toàn bộ logo, không cắt trong khung tròn.
 
-## Ảnh bìa tách nền
+## Ảnh bìa đầu trang
 
-Cụm sách đầu trang và minh họa tủ sách dùng ba PNG riêng ở public/assets/books/cutouts/, xếp chồng bằng CSS. Chữ và hình trên bìa lấy nguyên điểm ảnh từ ba ảnh gốc, chỉ thêm alpha ở nền; không dùng ảnh dựng lại bằng AI.
+Cụm ba sách đầu trang dùng ảnh gốc trong public/assets/books/, căn và giới hạn vùng hiển thị bằng CSS. Không cần các PNG cũ trong cutouts. Khi thay ảnh nguồn, cần rà lại clip-path trong styles.css.
 
-Để tái tạo trên Windows, chạy pwsh -File scripts/prepare-book-cutouts.ps1. Script kiểm tra SHA-256 ảnh nguồn, xuất PNG và đối chiếu RGB các điểm ảnh không trong suốt. Nếu thay ảnh nguồn, cần rà và cập nhật mặt nạ trước khi chạy lại. Danh mục và database tiếp tục dùng ảnh gốc.
+## Bản đọc thử của 13 cuốn sách
 
-## Bản đọc thử của 9 cuốn sách
-
-Mỗi thẻ sách có nút Đọc thử PDF, mở bản đọc thử riêng ở tab mới và không thay đổi giỏ sách. Chín PDF gốc nằm trong public/assets/books preview/. Ánh xạ theo ID sách nằm ở database/book-previews.mjs; URL mã hóa khoảng trắng nên dùng được trên Node và Cloudflare Pages.
+Mỗi thẻ sách có nút Đọc thử PDF, mở bản đọc thử riêng ở tab mới và không thay đổi giỏ sách. Mười ba PDF gốc nằm trong public/assets/books preview/. Ánh xạ theo ID sách nằm ở database/book-previews.mjs; URL mã hóa khoảng trắng nên dùng được trên Node và Cloudflare Pages.
 
 SQLite cập nhật tự động khi khởi động. Với D1 đã deploy, publish các PDF trước rồi áp dụng database/migrations/007-book-previews.sql; xem CLOUDFLARE.md. Migration giữ lịch sử đơn và không ghi đè thay đổi quản trị khi chạy lại. Build Pages sẽ báo lỗi nếu thiếu PDF bắt buộc.
 
@@ -70,7 +68,7 @@ npm test
 
 Test dùng database tạm riêng; kiểm tra ảnh bìa, lưu đơn/tư vấn, giá tính phía server, gửi trùng, validation, quyền quản trị, trạng thái, chỉnh sửa nội dung và khả năng giữ dữ liệu khi khởi tạo lại.
 
-Phiếu đặt sách gồm hai bước: chọn sách theo nhóm lớp (hai tập cho mỗi lớp 6–9, một cuốn 70 đề thi vào lớp 6 và bốn tập Siêu nhân Tiểu học), rồi điền thông tin nhận sách. Các cuốn đã chọn được giữ khi chuyển nhóm; chế độ tư vấn mở thẳng form liên hệ.
+Phiếu đặt sách gồm hai bước: chọn sách theo nhóm Toán Tiểu học (cuốn 70 đề và bốn tập Em là siêu nhân) hoặc lớp 6–9 (hai tập mỗi lớp), rồi điền thông tin nhận sách. Các cuốn đã chọn được giữ khi chuyển nhóm; chế độ tư vấn mở thẳng form liên hệ.
 
 Có thể kiểm tra thao tác thực tế trong Chrome/Edge đã cài bằng `npm run test:ui`. Script dùng trình duyệt ẩn và database tạm, kiểm tra cả desktop/mobile rồi lưu ảnh vào `data/order-desktop.png` và `data/order-mobile.png`. Dùng `UI_BROWSER_PATH` nếu trình duyệt nằm ở đường dẫn khác.
 

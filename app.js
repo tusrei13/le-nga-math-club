@@ -13,8 +13,8 @@ const modeInputs = [...document.querySelectorAll('[name="request_mode"]')];
 const submitLabel = document.querySelector('#submit-label');
 let orderStep = 1;
 let activeBookGroup = '6';
-const primarySeries=product=>product.id.startsWith('sieu-nhan-tap-');
-const bookGroup=product=>primarySeries(product)?'primary':product.category==='thi-vao-6'?'entrance':String(product.grade);
+const primaryBook=product=>product.category==='thi-vao-6'||product.id.startsWith('sieu-nhan-tap-');
+const bookGroup=product=>primaryBook(product)?'primary':String(product.grade);
 const visibility = { hero: true, order: false, footer: false, digital: false };
 const visibleActions = new Set();
 const overlappingContent = new Set();
@@ -353,7 +353,7 @@ async function loadLanding() {
     for (const [index, product] of catalog.entries()) {
       const card = element('article', undefined, 'book-card');
       const meta = element('div', undefined, 'book-meta');
-      meta.append(element('span', `${String(index + 1).padStart(2,'0')} / ${primarySeries(product)?'SIÊU NHÂN TIỂU HỌC':product.category === 'phan-dang' ? 'PHÂN DẠNG' : 'THI VÀO 6'}`), element('span', primarySeries(product)?'TIỂU HỌC':`LỚP ${product.grade}`));
+      meta.append(element('span', `${String(index + 1).padStart(2,'0')} / ${primaryBook(product)?'TOÁN TIỂU HỌC':'PHÂN DẠNG'}`), element('span', primaryBook(product)?'TIỂU HỌC':`LỚP ${product.grade}`));
       const cover = product.media.find(media => media.kind === 'cover');
       const art = element('div', undefined, 'product-cover');
       if (cover) {

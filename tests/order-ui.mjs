@@ -147,13 +147,13 @@ try {
   await screenshot('order-desktop.png');
 
   await evaluate("document.querySelector('[data-book-group=primary]').click()");
-  assert.equal(await evaluate("document.querySelectorAll('.book-option:not([hidden])').length"),4,'all four primary volumes can be selected');
-  assert.equal(await evaluate("[...document.querySelectorAll('.book-option:not([hidden]) h4')].every((e,i)=>e.textContent.endsWith('Tập '+(i+1)))"),true);
+  assert.equal(await evaluate("document.querySelectorAll('.book-option:not([hidden])').length"),5,'primary group contains the 70-test book and all four primary volumes');
+  assert.equal(await evaluate("[...document.querySelectorAll('.book-option:not([hidden]) h4')].filter(e=>e.textContent.startsWith('Em là')).every((e,i)=>e.textContent.endsWith('Tập '+(i+1)))"),true);
   await cdp('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
   await evaluate("document.querySelector('#order-panel').scrollIntoView({behavior:'instant'})");
   assert.equal(await evaluate("document.documentElement.scrollWidth<=innerWidth"),true,'primary book group fits mobile');
   await screenshot('order-primary-mobile.png');
-  await evaluate("document.querySelector('[data-book-group]').click()");
+  await evaluate("Array.from(document.querySelectorAll('[data-book-group]')).find(b=>b.dataset.bookGroup==='6').click()");
   await cdp('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});
   const desktopHeight = await evaluate(`Math.round(document.querySelector('#order-panel').getBoundingClientRect().height)`);
   assert.ok(desktopHeight < 850, `Desktop ticket is too tall: ${desktopHeight}`);
@@ -162,8 +162,8 @@ try {
   assert.equal(await evaluate(`document.activeElement.id`), 'field-name');
   await evaluate(`document.querySelector('#order-back').click(); document.querySelector('[data-book-group="6"]').click()`);
   assert.equal(await evaluate(`document.querySelector('[data-product-quantity="toan-6-tap-1"]').value`), '1');
-  await evaluate(`document.querySelector('[data-book-group="entrance"]').click()`);
-  assert.equal(await evaluate(`document.querySelectorAll('.book-option:not([hidden])').length`), 1);
+  await evaluate(`document.querySelector('[data-book-group="primary"]').click()`);
+  assert.equal(await evaluate(`document.querySelectorAll('.book-option:not([hidden])').length`), 5);
   await cdp('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
   await evaluate(`document.querySelector('#order-panel').scrollIntoView({behavior:'instant',block:'start'})`);
   await sleep(150);

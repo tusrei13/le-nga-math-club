@@ -158,7 +158,7 @@ Danh mục dùng digital-catalog.mjs và PDF trong public/assets/documents/previ
 
 ## Migration 009: bốn tập Siêu nhân Tiểu học
 
-Thêm 4 tập Em là siêu nhân giải Toán Tiểu học, mỗi cuốn 299.000đ, kèm bìa và PDF đọc thử riêng. Dữ liệu nhóm thi vào lớp 6; giao diện có nhóm chọn Siêu nhân Tiểu học riêng. Không sửa giá hoặc đơn cũ; chạy lại giữ các chỉnh sửa quản trị. SQLite tự áp dụng khi khởi động. D1 đang dùng cần chạy migration sau khi deploy ảnh/PDF:
+Thêm 4 tập Em là siêu nhân giải Toán Tiểu học, mỗi cuốn 299.000đ, kèm bìa và PDF đọc thử riêng. Dữ liệu nhóm thi vào lớp 6; giao diện gộp bốn tập cùng cuốn 70 đề bứt tốc vào nhóm Toán Tiểu học. Không sửa giá hoặc đơn cũ; chạy lại giữ các chỉnh sửa quản trị. SQLite tự áp dụng khi khởi động. D1 đang dùng cần chạy migration sau khi deploy ảnh/PDF:
 
     npx wrangler d1 execute le-nga-books --remote --file=database/migrations/009-primary-maths-books.sql
 
