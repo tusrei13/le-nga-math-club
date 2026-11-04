@@ -112,6 +112,12 @@
             <div><h2>Sách giấy</h2><p class="section-subtitle">Kho tri thức cho từng chặng đường.</p></div>
           </div>
           <div class="catalog-facts reveal"><div><strong id="catalog-book-count">13 đầu sách</strong><span>chọn từng cuốn</span></div><div><strong>Lớp 5–9</strong><span>Tiểu học, THCS &amp; thi vào 6</span></div><div><strong id="catalog-min-price">299.000đ/cuốn</strong><span>giá VND</span></div><div><strong>Giao sách</strong><span>CLB xác nhận phí giao hàng</span></div></div>
+          <template id="primary-series-intro">
+            <article class="series-video-overview" id="primary-series-overview" aria-labelledby="primary-series-title">
+              <div class="series-video-stage"><button type="button" class="series-video-poster" aria-haspopup="dialog" data-book-video="series" aria-label="Xem video giới thiệu bộ Em là siêu nhân giải Toán Tiểu học"><img src="/assets/videos/sieu-nhan/bo-sach.jpg" alt="" width="540" height="960" loading="lazy" /><span class="series-video-play" aria-hidden="true"></span><span class="series-video-caption">Xem giới thiệu bộ sách<span data-book-video-duration="series">44 giây</span></span></button></div>
+              <div class="series-video-copy"><p class="series-video-kicker">VIDEO GIỚI THIỆU</p><h3 id="primary-series-title">Khám phá bộ Em là siêu nhân giải Toán Tiểu học</h3><p>Tìm hiểu nội dung từng tập trước khi chọn sách phù hợp cho con.</p><ol class="series-video-volumes"><li><strong>Tập 1</strong><span>10 phương pháp vàng</span></li><li><strong>Tập 2</strong><span>Số thập phân, tỉ số phần trăm, xác suất và thống kê</span></li><li><strong>Tập 3</strong><span>Hình học thi Chất lượng cao</span></li><li><strong>Tập 4</strong><span>Chuyển động</span></li></ol></div>
+            </article>
+          </template>
           <div class="book-catalog" id="book-catalog" aria-live="polite"><p>Đang tải danh mục sách…</p></div><div class="catalog-foot reveal">
             <p class="catalog-note"><strong>Chọn sách theo lớp và mục tiêu học tập.</strong> Phân dạng Toán lớp 6–9 gồm hai tập mỗi lớp; bộ Em là siêu nhân giải Toán Tiểu học gồm bốn tập. Có bản đọc thử riêng cho từng cuốn.</p>
             <div class="catalog-actions">
@@ -296,6 +302,7 @@
       <button class="floating-toggle" type="button" aria-label="Thu gọn thanh mua sách" aria-expanded="true" aria-controls="floating-body"><span aria-hidden="true">−</span></button>
     </div>
 
+    <dialog id="book-video-dialog" class="book-video-dialog" aria-labelledby="book-video-title"><header><h2 id="book-video-title">Video giới thiệu sách</h2><button type="button" id="book-video-close" aria-label="Đóng video">×</button></header><video id="book-video-player" controls playsinline preload="none"></video><p id="book-video-message" role="status" aria-live="polite"></p><a id="book-video-fallback" target="_blank" rel="noopener noreferrer" hidden>Mở video ở tab mới</a></dialog>
     <dialog id="digital-preview-dialog" class="digital-preview-dialog" aria-labelledby="digital-preview-title"><header><h2 id="digital-preview-title">Chọn bản đọc thử</h2><button type="button" id="digital-preview-close" aria-label="Đóng danh sách bản đọc thử">×</button></header><p>Các file dưới đây là bản đọc thử, không phải tài liệu đầy đủ. Bạn có thể mở PDF miễn phí mà không cần đăng nhập.</p><div id="digital-preview-files"></div></dialog>
     <dialog class="customer-dialog" id="customer-dialog" aria-labelledby="customer-title">
       <div class="customer-dialog-heading"><div class="customer-heading-identity"><span class="customer-avatar" id="customer-panel-avatar" aria-hidden="true" hidden></span><div><p class="customer-kicker" id="customer-kicker">CLB TOÁN CÔ LÊ NGA</p><h2 id="customer-title">Chào mừng bạn.</h2><p id="customer-welcome-note" hidden></p></div></div><button type="button" id="customer-close" aria-label="Đóng cửa sổ">×</button></div>
@@ -338,6 +345,8 @@
     </dialog>
     <link rel="stylesheet" href="/customer.css" />
     <link rel="stylesheet" href="/digital.css" />
+    <link rel="stylesheet" href="/book-videos.css" />
+    <script src="/book-videos.js" type="module"></script>
     <script src="/digital.js" type="module"></script>
     <script src="/customer.js" type="module"></script>
     <script src="/app.js" defer></script>

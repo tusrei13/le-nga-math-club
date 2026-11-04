@@ -1,0 +1,39 @@
+
+/* One overview before the primary series; individual videos stay with their books. */
+.series-video-overview { grid-column:1/-1; display:grid; grid-template-columns:minmax(180px,.75fr) minmax(0,1.25fr); align-items:center; gap:32px 48px; padding:32px; border-block:1px solid var(--line); background:var(--paper-deep); margin-block:8px; }
+.series-video-stage { display:grid; place-items:center; min-width:0; }
+.series-video-poster { position:relative; display:block; width:min(100%,210px); aspect-ratio:9/16; padding:0; border:0; background:var(--brand-navy); cursor:pointer; color:var(--brand-navy); }
+.series-video-poster img { display:block; width:100%; height:100%; object-fit:contain; }
+.series-video-play { position:absolute; inset:0; display:grid; place-items:center; }
+.series-video-play::before { content:""; width:64px; height:64px; border-radius:50%; background:var(--brand-gold); box-shadow:0 3px 18px #10183244; }
+.series-video-play::after { content:""; position:absolute; border-block:10px solid transparent; border-left:16px solid var(--brand-navy); margin-left:5px; }
+.series-video-caption { position:absolute; bottom:0; inset-inline:0; padding:12px 8px; background:var(--brand-gold); font:600 13px/1.5 var(--sans); }
+.series-video-caption span { display:block; font-size:11px; font-weight:400; }
+.series-video-poster:focus-visible,.book-video-action:focus-visible { outline:2px solid var(--brand-navy); outline-offset:4px; }
+.series-video-copy { min-width:0; }
+.series-video-kicker { color:var(--ink-soft); font:600 11px var(--sans); letter-spacing:.1em; margin:0 0 12px; }
+.series-video-copy h3 { font-size:clamp(24px,2.3vw,32px); line-height:1.3; margin:0 0 16px; max-width:24ch; }
+.series-video-copy>p:not(.series-video-kicker) { color:var(--ink-soft); font-size:15px; margin:0 0 20px; }
+.series-video-volumes { list-style:none; padding:0; margin:0; font-size:14px; }
+.series-video-volumes li { display:grid; grid-template-columns:48px minmax(0,1fr); gap:14px; padding:10px 0; border-top:1px solid var(--line); }
+.series-video-volumes strong { font-weight:650; }
+.book-video-action { display:inline-flex; justify-content:center; align-items:center; min-height:44px; padding:8px 12px; background:transparent; color:var(--brand-navy); border:1px solid var(--brand-navy); font:600 14px var(--sans); cursor:pointer; }
+.book-video-action:hover { background:var(--paper-deep); }
+body.book-video-open { overflow:hidden; }
+.book-video-dialog { width:min(500px,calc(100% - 24px)); padding:20px; border:1px solid var(--line); border-top:4px solid var(--brand-gold); background:var(--paper); color:var(--brand-navy); max-height:calc(100dvh - 24px); overflow-y:auto; }
+.book-video-dialog::backdrop { background:#182042b3; }
+.book-video-dialog header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:16px; }
+.book-video-dialog h2 { font:600 20px/1.4 var(--sans); margin:0; }
+#book-video-close { flex-shrink:0; min-width:44px; min-height:44px; padding:0; background:white; color:var(--brand-navy); border:1px solid var(--line); font:26px var(--sans); cursor:pointer; }
+#book-video-player { display:block; width:100%; height:min(68dvh,700px); max-height:calc(100dvh - 190px); object-fit:contain; background:#0a1027; }
+#book-video-message { color:var(--ink-soft); font-size:13px; margin:12px 0 0; }
+#book-video-message:empty { display:none; }
+#book-video-fallback { display:inline-flex; min-height:44px; align-items:center; font-size:14px; text-decoration:underline; }
+#book-video-fallback[hidden] { display:none; }
+@media(max-width:650px) {
+  .series-video-overview { grid-template-columns:minmax(0,1fr); gap:24px; padding:24px 18px; }
+  .series-video-poster { width:min(100%,180px); }
+  .series-video-copy h3 { font-size:25px; }
+  .book-video-dialog { padding:16px; }
+  .book-video-dialog h2 { font-size:18px; }
+}

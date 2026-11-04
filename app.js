@@ -350,8 +350,10 @@ async function loadLanding() {
     const cards = document.querySelector('#book-catalog');
     const options = document.querySelector('#book-options');
     cards.replaceChildren(); options.replaceChildren();
+    let primaryIntroAdded=false;
     for (const [index, product] of catalog.entries()) {
-      const card = element('article', undefined, 'book-card');
+      if(!primaryIntroAdded&&product.id.startsWith('sieu-nhan-tap-')){const intro=document.querySelector('#primary-series-intro');if(intro)cards.append(intro.content.cloneNode(true));primaryIntroAdded=true;}
+      const card = element('article', undefined, 'book-card');card.dataset.productId=product.id;
       const meta = element('div', undefined, 'book-meta');
       meta.append(element('span', `${String(index + 1).padStart(2,'0')} / ${primaryBook(product)?'TOÁN TIỂU HỌC':'PHÂN DẠNG'}`), element('span', primaryBook(product)?'TIỂU HỌC':`LỚP ${product.grade}`));
       const cover = product.media.find(media => media.kind === 'cover');
@@ -393,6 +395,7 @@ async function loadLanding() {
       increase.addEventListener('click', () => { quantity.value = Math.min(20, Number(quantity.value) + 1); updateTotal(); });
       controls.append(decrease,quantity,increase); option.append(thumbnail,info,controls); options.append(option);
     }
+    window.dispatchEvent(new Event('books:rendered'));
     setBookGroup(activeBookGroup);
     if (catalog.length) {
       const minimum = Math.min(...catalog.map(p => p.price_vnd));

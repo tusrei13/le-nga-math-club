@@ -181,3 +181,32 @@ test('Giới hạn thử đăng nhập liên tiếp',async()=>{
   for(let i=0;i<5;i++) assert.equal((await login('wrong password')).status,401);
   assert.equal((await login()).status,429);
 });
+
+test('Video giới thiệu đúng file, hỗ trợ tua bằng byte ranges và không lộ backend',async()=>{
+  const {bookVideos}=await import('../book-video-data.js');
+  assert.deepEqual(Object.keys(bookVideos),['series','sieu-nhan-tap-1','sieu-nhan-tap-3','sieu-nhan-tap-4']);
+  for(const config of Object.values(bookVideos)){
+    const original=await readFile(join('public',config.src));
+    assert.equal(original.length,config.size_bytes);assert.ok(original.length<25*1024*1024);
+    assert.equal(original.subarray(4,8).toString(),'ftyp');
+    const head=await fetch(base+config.src,{method:'HEAD'});
+    assert.equal(head.status,200);assert.equal(head.headers.get('content-type'),'video/mp4');assert.equal(head.headers.get('accept-ranges'),'bytes');
+    assert.equal(Number(head.headers.get('content-length')),original.length);assert.equal((await head.arrayBuffer()).byteLength,0);
+    const range=await fetch(base+config.src,{headers:{Range:'bytes=0-31'}});
+    assert.equal(range.status,206);assert.equal(range.headers.get('content-range'),'bytes 0-31/'+original.length);
+    assert.deepEqual(Buffer.from(await range.arrayBuffer()),original.subarray(0,32));
+    const suffix=await fetch(base+config.src,{headers:{Range:'bytes=-16'}});
+    assert.equal(suffix.status,206);assert.deepEqual(Buffer.from(await suffix.arrayBuffer()),original.subarray(-16));
+    const end=await fetch(base+config.src,{headers:{Range:'bytes='+(original.length-8)+'-'}});
+    assert.equal(end.status,206);assert.deepEqual(Buffer.from(await end.arrayBuffer()),original.subarray(-8));
+    for(const invalid of ['bytes='+original.length+'-','bytes=5-2','bytes=-0','bytes=0-1,4-5']){
+      const response=await fetch(base+config.src,{headers:{Range:invalid}});
+      assert.equal(response.status,416);assert.equal(response.headers.get('content-range'),'bytes */'+original.length);
+      await response.arrayBuffer();
+    }
+    const rangedHead=await fetch(base+config.src,{method:'HEAD',headers:{Range:'bytes=0-31'}});
+    assert.equal(rangedHead.status,206);assert.equal((await rangedHead.arrayBuffer()).byteLength,0);
+    const poster=await fetch(base+config.poster);assert.equal(poster.status,200);assert.equal(poster.headers.get('content-type'),'image/jpeg');await poster.arrayBuffer();
+  }
+  assert.equal((await fetch(base+'/video-assets.mjs')).status,404);
+});

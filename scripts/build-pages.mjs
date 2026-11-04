@@ -1,3 +1,4 @@
+import {bookVideos} from '../book-video-data.js';
 import {staticSecurityHeaders,policies} from '../security.mjs';
 import { createHash } from 'node:crypto';
 import { cp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
@@ -19,9 +20,16 @@ for(const product of digitalPreviews)for(const file of product.files){
   const pdf=await readFile(resolve(root,'public'+file.url));
   if(pdf.subarray(0,5).toString('ascii')!=='%PDF-'||pdf.length>25*1024*1024)throw new Error('Invalid or oversized public preview: '+file.url);
 }
+for(const config of Object.values(bookVideos)){
+  if(!/^\/assets\/videos\/sieu-nhan\/[a-z0-9-]+\.mp4$/.test(config.src))throw new Error('Invalid video URL');
+  const video=await readFile(resolve(root,'public'+config.src));
+  if(video.length>25*1024*1024||video.subarray(4,8).toString('ascii')!=='ftyp')throw new Error('Video is invalid or exceeds Pages limit: '+config.src);
+  const poster=await readFile(resolve(root,'public'+config.poster));
+  if(poster[0]!==255||poster[1]!==216)throw new Error('Missing or invalid video poster: '+config.poster);
+}
 await rm(output,{recursive:true,force:true}); await mkdir(output,{recursive:true});
 const logoVersion = createHash('sha256').update(await readFile('public/assets/logo.png')).digest('hex').slice(0,12);
-for (const name of ['index.html','styles.css','app.js','admin.html','admin.css','admin.js','customer.js','customer.css','digital.js','digital.css','admin-digital.js','admin-digital.css']) {
+for (const name of ['index.html','styles.css','app.js','admin.html','admin.css','admin.js','customer.js','customer.css','digital.js','digital.css','admin-digital.js','admin-digital.css','book-videos.js','book-video-data.js','book-videos.css']) {
   const destination = resolve(output,name);
   if (name.endsWith('.html') || name === 'customer.js') {
     const text = await readFile(name,'utf8');

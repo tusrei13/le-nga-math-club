@@ -6,6 +6,7 @@ import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { seed } from '../database/seed.mjs';
+import { bookVideos } from '../book-video-data.js';
 import { bookPreviews } from '../database/book-previews.mjs';
 import { createHash, randomBytes } from 'node:crypto';
 import worker from '../cloudflare/worker.mjs';
@@ -82,11 +83,13 @@ test('Pages admin login accepts a chosen password only for the Firebase UID gran
 test('Pages output excludes private files and SQLite online backups preserve rows',()=>{
   execFileSync(process.execPath,['scripts/build-pages.mjs']);
   for(const file of ['server.mjs','api.mjs','auth.mjs','database/db.mjs','data/landing.sqlite','.env'])assert.equal(existsSync(join('dist',file)),false);
-  for(const file of ['_worker.js','index.html','admin.html','assets/book-stack.png'])assert.equal(existsSync(join('dist',file)),true);
+  for(const file of ['_worker.js','index.html','admin.html','assets/logo.png'])assert.equal(existsSync(join('dist',file)),true);
   for(const preview of bookPreviews){
     const source=readFileSync(join('public/assets/books preview',preview.file));
     assert.ok(readFileSync(join('dist/assets/books preview',preview.file)).equals(source),'Deployed sample differs: '+preview.id);
   }
+  for(const config of Object.values(bookVideos))for(const path of [config.src,config.poster])assert.ok(readFileSync(join('dist',path)).equals(readFileSync(join('public',path))),'Video asset differs: '+path);
+  for(const file of ['book-videos.js','book-videos.css','book-video-data.js'])assert.ok(existsSync(join('dist',file)));
   const scratch=mkdtempSync(join(tmpdir(),'le-nga-backup-')),source=join(scratch,'source.sqlite'),target=join(scratch,'backup.sqlite');
   try{const db=new DatabaseSync(source);db.exec("PRAGMA journal_mode=WAL;CREATE TABLE sample(value TEXT);INSERT INTO sample VALUES('saved');");execFileSync(process.execPath,['database/backup.mjs',target],{env:{...process.env,DATABASE_PATH:source}});const copy=new DatabaseSync(target);assert.equal(copy.prepare('SELECT value FROM sample').get().value,'saved');copy.close();db.close();}finally{rmSync(scratch,{recursive:true,force:true});}
 });

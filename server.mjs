@@ -1,3 +1,4 @@
+import {serveVideoFile} from './video-assets.mjs';
 import {securityHeaders,policies} from './security.mjs';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
@@ -53,15 +54,16 @@ const server = createServer(async (request, response) => {
       response.setHeader('Referrer-Policy','same-origin');
       response.setHeader('Content-Security-Policy',policies.admin);
     }
-    else if (['index.html', 'styles.css', 'app.js', 'customer.js', 'customer.css', 'digital.js', 'digital.css'].includes(relative)) {
+    else if (['index.html', 'styles.css', 'app.js', 'customer.js', 'customer.css', 'digital.js', 'digital.css', 'book-videos.js', 'book-video-data.js', 'book-videos.css'].includes(relative)) {
       file = join(root, relative);
       response.setHeader('Content-Security-Policy', policies.books);
     }
     else if (relative === 'manus-routes.json' || relative.startsWith('assets/')) file = resolve(publicRoot, relative);
     else if (relative.startsWith('public/assets/')) file = resolve(publicRoot, relative.slice(7));
-    if (!file || (!Object.hasOwn(stemFiles,relative) && !Object.hasOwn(adminFiles,relative) && !['index.html', 'styles.css', 'app.js', 'customer.js', 'customer.css', 'digital.js', 'digital.css'].includes(relative) && !file.startsWith(publicRoot + sep))) {
+    if (!file || (!Object.hasOwn(stemFiles,relative) && !Object.hasOwn(adminFiles,relative) && !['index.html', 'styles.css', 'app.js', 'customer.js', 'customer.css', 'digital.js', 'digital.css', 'book-videos.js', 'book-video-data.js', 'book-videos.css'].includes(relative) && !file.startsWith(publicRoot + sep))) {
       response.writeHead(404); response.end('Not found'); return;
     }
+    if(extname(file)==='.mp4'){await serveVideoFile(request,response,file);return;}
     const data = await readFile(file);
     response.writeHead(200, { 'Content-Type': mime[extname(file)] || 'application/octet-stream', 'Cache-Control': Object.hasOwn(adminFiles,relative)?'no-store':'no-cache' });
     response.end(request.method === 'HEAD' ? undefined : data);

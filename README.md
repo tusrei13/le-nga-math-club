@@ -85,3 +85,14 @@ Bản Node có `/healthz`, giới hạn gửi đơn/tư vấn, timeout HTTP, gra
 ## Tài liệu PDF đọc thử công khai
 
 Danh mục 17 nhóm, 31 PDF đọc thử miễn phí, lọc theo lớp và phân trang 6 nhóm/trang. Không cần đăng nhập, thanh toán hoặc Supabase. Xem [DIGITAL-DOCUMENTS.md](DIGITAL-DOCUMENTS.md).
+
+
+## Video giới thiệu bộ sách Tiểu học
+
+Khối giới thiệu bộ sách nằm trước bốn tập **Em là siêu nhân giải Toán Tiểu học**. Các tập 1, 3, 4 có nút **Xem giới thiệu** bên cạnh **Đọc thử PDF**. Tập 2 chưa có video nên chưa hiện nút này.
+
+Các MP4 và ảnh poster trích từ video gốc nằm trong `public/assets/videos/sieu-nhan/`. Video giữ tỉ lệ dọc, có điều khiển phát/tua; chỉ tải MP4 sau khi người xem bấm và dừng khi đóng. File được đưa cùng bản build Pages; không cần bucket, biến môi trường hoặc migration mới. Mỗi MP4 hiện dưới 25 MiB; build sẽ báo lỗi nếu vượt giới hạn.
+
+Để bổ sung tập 2: thêm `tap-2.mp4` và `tap-2.jpg` vào thư mục trên, rồi thêm khóa `sieu-nhan-tap-2` trong `book-video-data.js` theo cấu trúc các tập hiện có. Nút trên thẻ sách sẽ xuất hiện tự động. Không thay video bằng nội dung AI hoặc thay đổi chữ trên bìa.
+
+Chạy `npm run test:ui:videos` để kiểm tra trình phát trong Chrome/Edge, tải theo yêu cầu, tua, đóng bằng Escape và bố cục điện thoại/iPad/desktop. Ảnh kiểm tra lưu trong `data/book-video-*.png`.
