@@ -14,7 +14,7 @@ function productCard(product){
   info.append(node('p',(topic?'Chuyên đề':'Bộ đề')+' · PDF · '+product.file_count+' bản đọc thử','digital-product-meta'),node('h3',product.title));
   const bottom=node('div',undefined,'digital-product-bottom');
   bottom.append(node('span','Đọc thử miễn phí','digital-preview-free'));
-  if(product.files.length===1)bottom.append(previewLink(product.files[0],'Đọc thử PDF'));
+  if(product.files.length===1)bottom.append(previewLink(product.files[0],'Đọc thử PDF','btn btn-primary'));
   else {const button=node('button','Đọc thử PDF','btn btn-primary');button.type='button';button.dataset.digitalPreview=product.id;button.addEventListener('click',()=>openPreview(product));bottom.append(button);}
   info.append(bottom);card.append(cover,info);return card;
 }
@@ -29,8 +29,6 @@ function renderPagination(total){
     else if(/^\d+$/.test(label))item.setAttribute('aria-label','Trang '+page);
     item.addEventListener('click',()=>{
       currentPage=page;renderCatalog();
-      $('#digital-title').focus({preventScroll:true});
-      $('#tai-lieu-so').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});
     });nav.append(item);
   }
   button('Trước',currentPage-1,currentPage===1);
@@ -62,8 +60,8 @@ async function loadCatalog(){
   }finally{catalog.setAttribute('aria-busy','false');}
 }
 
-function previewLink(file,label=file.label){
-  const link=node('a',label,'btn btn-outline');
+function previewLink(file,label=file.label,className='btn btn-outline'){
+  const link=node('a',label,className);
   const url=new URL(file.url,location.origin);
   if(url.origin!==location.origin||!url.pathname.startsWith('/assets/documents/previews/')||!url.pathname.endsWith('.pdf'))throw new Error('Đường dẫn đọc thử không hợp lệ.');
   link.href=url.href;link.target='_blank';link.rel='noopener noreferrer';return link;
