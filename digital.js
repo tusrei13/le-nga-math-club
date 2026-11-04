@@ -12,13 +12,9 @@ function productCard(product){
   const card=node('article',undefined,'digital-product');
   const cover=node('div',undefined,'digital-cover'+(topic?' digital-cover-topic':''));
   cover.setAttribute('aria-hidden','true');
-  const top=node('div',undefined,'digital-cover-top');top.append(node('span','TOÁN CÔ LÊ NGA'),node('span',topic?'Chuyên đề':'Bộ đề'));
-  const main=node('div',undefined,'digital-cover-main');
-  main.append(node('span',product.title.replace(/\s*·\s*Toán.*$/i,'').replace(/^Chuyên đề\s*/i,''),'digital-cover-title'));
-  const grade=node('div',undefined,'digital-cover-grade');grade.append(node('small','LỚP'),node('strong',String(product.grade)));
-  main.append(grade);cover.append(top,main,node('span','TÀI LIỆU PDF','digital-cover-footer'));
+  cover.append(node('span','TOÁN CÔ LÊ NGA','digital-cover-brand'),node('strong','TOÁN '+product.grade,'digital-cover-grade'),node('span',undefined,'digital-cover-lines'),node('span',topic?'CHUYÊN ĐỀ':'BỘ ĐỀ','digital-cover-kind'));
   const info=node('div',undefined,'digital-product-info');
-  info.append(node('p','Lớp '+product.grade+' · PDF · '+product.file_count+' file','digital-product-meta'),node('h3',product.title));
+  info.append(node('p',(topic?'Chuyên đề':'Bộ đề')+' · PDF · '+product.file_count+' file','digital-product-meta'),node('h3',product.title));
   const seeded='Tài liệu PDF cho lớp '+product.grade+'. '+product.title+'. Bộ gồm '+product.file_count+' file; xem tên từng file sau khi được cấp quyền tải.';
   if(product.description&&product.description!==seeded)info.append(node('p',product.description,'digital-product-description'));
   const bottom=node('div',undefined,'digital-product-bottom'),price=node('div');
