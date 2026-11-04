@@ -6,7 +6,8 @@ const labels={pending:'Chờ xác nhận thanh toán',paid:'Đã mở quyền t�
 const node=(tag,text,className)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(className)e.className=className;return e;};
 function session(){return window.customerSession;}
 function openLibrary(){session()?.open('digital');}
-let selectedGrade='';
+let selectedGrade='',currentPage=1;
+const pageSize=6;
 function productCard(product){
   const topic=/chuyên đề|tổng\s*[–-]\s*hiệu|tối ưu|đường tròn/i.test(product.title);
   const card=node('article',undefined,'digital-product');
@@ -26,10 +27,32 @@ function productCard(product){
   }
   info.append(bottom);card.append(cover,info);return card;
 }
+function renderPagination(total){
+  const pages=Math.max(1,Math.ceil(total/pageSize)),start=(currentPage-1)*pageSize;
+  $('#digital-page-summary').textContent=total?'Hiển thị '+(start+1)+'–'+Math.min(start+pageSize,total)+' trong '+total+' bộ tài liệu':'Không có tài liệu cho lựa chọn này.';
+  const nav=$('#digital-pagination');nav.replaceChildren();nav.hidden=pages<=1;
+  if(pages<=1)return;
+  function button(label,page,disabled=false){
+    const item=node('button',label);item.type='button';item.disabled=disabled;item.dataset.digitalPage=String(page);
+    if(label===String(currentPage))item.setAttribute('aria-current','page');
+    else if(/^\d+$/.test(label))item.setAttribute('aria-label','Trang '+page);
+    item.addEventListener('click',()=>{
+      currentPage=page;renderCatalog();
+      $('#digital-title').focus({preventScroll:true});
+      $('#tai-lieu-so').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});
+    });nav.append(item);
+  }
+  button('Trước',currentPage-1,currentPage===1);
+  for(let page=1;page<=pages;page++)button(String(page),page);
+  button('Sau',currentPage+1,currentPage===pages);
+}
 function renderCatalog(){
   const grade=selectedGrade;
   const visible=products.filter(p=>!grade||p.grade===Number(grade));
-  catalog.replaceChildren(...visible.map(productCard));
+  currentPage=Math.min(currentPage,Math.max(1,Math.ceil(visible.length/pageSize)));
+  const start=(currentPage-1)*pageSize;
+  catalog.replaceChildren(...visible.slice(start,start+pageSize).map(productCard));
+  renderPagination(visible.length);
   if(!visible.length)catalog.append(node('p','Chưa có tài liệu cho lựa chọn này.','digital-empty'));
   $('#digital-result-count').textContent=visible.length+' bộ tài liệu';
   const saleNote=$('#digital-sale-note');
@@ -43,7 +66,7 @@ async function loadCatalog(){
     if(!response.ok)throw new Error(data.error);
     products=data.products;checkoutEnabled=data.checkout_enabled;renderCatalog();$('#digital-catalog-status').textContent='';
   }catch(error){
-    catalog.replaceChildren();$('#digital-result-count').textContent='';
+    catalog.replaceChildren();$('#digital-result-count').textContent='';$('#digital-pagination').hidden=true;$('#digital-page-summary').textContent='';
     const retry=node('button','Tải lại danh mục','btn btn-outline');retry.type='button';retry.addEventListener('click',loadCatalog);catalog.append(retry);
     $('#digital-catalog-status').textContent=error.name==='TimeoutError'?'Kết nối mất quá lâu. Vui lòng thử lại.':error.message||'Chưa tải được danh mục.';
   }finally{catalog.setAttribute('aria-busy','false');}
@@ -82,7 +105,7 @@ form.addEventListener('submit',async event=>{
 });
 $('#digital-checkout-close').addEventListener('click',()=>checkout.close());
 checkout.addEventListener('close',()=>{requestGeneration++;selected=undefined;buyerId=undefined;});
-document.querySelectorAll('[data-digital-grade]').forEach(button=>button.addEventListener('click',()=>{selectedGrade=button.dataset.digitalGrade;document.querySelectorAll('[data-digital-grade]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));renderCatalog();}));
+document.querySelectorAll('[data-digital-grade]').forEach(button=>button.addEventListener('click',()=>{selectedGrade=button.dataset.digitalGrade;currentPage=1;document.querySelectorAll('[data-digital-grade]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));renderCatalog();}));
 $('#digital-library-open').addEventListener('click',openLibrary);
 $('#customer-digital-refresh').addEventListener('click',loadLibrary);
 function transferDetails(order,payment){

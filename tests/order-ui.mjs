@@ -120,7 +120,7 @@ try {
 
     await evaluate("document.querySelector('#tai-lieu-so').scrollIntoView({behavior:'instant',block:'start'})");
     await sleep(100);
-    await until(()=>evaluate("document.querySelectorAll('.digital-product').length===14"),'digital catalog');
+    await until(()=>evaluate("document.querySelectorAll('.digital-product').length===6"),'digital catalog');
     const layout=await evaluate("(()=>{const visible=e=>e.getClientRects().length>0;const outside=[...document.querySelectorAll('.digital-catalog,.digital-product,.digital-store-controls,.site-header .brand,.menu-toggle')].filter(visible).filter(e=>{const r=e.getBoundingClientRect();return r.left<-.5||r.right>innerWidth+.5;}).map(e=>e.id||e.className);return {inner:innerWidth,document:document.documentElement.scrollWidth,outside};})()");
     assert.equal(layout.inner,width,JSON.stringify(layout));
     assert.ok(layout.document<=width,JSON.stringify({width,...layout}));

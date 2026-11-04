@@ -91,22 +91,36 @@ try {
   await cdp('Browser.setDownloadBehavior',{behavior:'deny'});
   const navigate=async path=>{
     await cdp('Page.navigate',{url:'http://127.0.0.1:'+port+path});
-    await until(()=>evaluate(path==='/admin'?"Boolean(document.querySelector('#login-view'))":"document.querySelectorAll('.digital-product').length===14 && Boolean(window.__switchDigitalUser)"),'page '+path);
+    await until(()=>evaluate(path==='/admin'?"Boolean(document.querySelector('#login-view'))":"document.querySelectorAll('.digital-product').length===6 && Boolean(window.__switchDigitalUser)"),'page '+path);
   };
   const readRow=(sql,...params)=>{const db=new DatabaseSync(join(scratch,'test.sqlite'));try{return db.prepare(sql).get(...params);}finally{db.close();}};
   await navigate('/');
-  assert.equal(await evaluate("document.querySelectorAll('.digital-cover').length"),14);
+  assert.equal(await evaluate("document.querySelectorAll('.digital-cover').length"),6);
   const viewportProblems=[];
   for(const [width,height] of [[320,568],[375,844],[768,1024],[1024,768],[1440,1000],[1920,1080]]){
     await cdp('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<1100});
     await evaluate("document.querySelector('#tai-lieu-so').scrollIntoView({behavior:'instant'})");await sleep(120);
-    const overflow=await evaluate("(()=>{const all=[...document.querySelectorAll('.digital-product,.digital-store-heading,.digital-store-controls')];return {page:document.documentElement.scrollWidth>innerWidth,offscreen:all.filter(e=>{const r=e.getBoundingClientRect();return r.left<-.5||r.right>innerWidth+.5}).map(e=>e.className)};})()");
+    const overflow=await evaluate("(()=>{const all=[...document.querySelectorAll('.digital-product,.digital-heading,.digital-store-controls,.digital-catalog-footer,#digital-pagination')];return {page:document.documentElement.scrollWidth>innerWidth,offscreen:all.filter(e=>{const r=e.getBoundingClientRect();return r.left<-.5||r.right>innerWidth+.5}).map(e=>e.className)};})()");
     if(overflow.page||overflow.offscreen.length)viewportProblems.push({width,...overflow});
     if([375,768,1440].includes(width))await screenshot('digital-catalog-'+width+'.png');
   }
   assert.deepEqual(viewportProblems,[]);
+  assert.equal(await evaluate("document.querySelector('#digital-page-summary').textContent"),'Hiển thị 1–6 trong 14 bộ tài liệu');
+  const allTitles=new Set(await evaluate("[...document.querySelectorAll('.digital-product h3')].map(e=>e.textContent)"));
+  for(const page of [2,3]){
+    await evaluate("document.querySelectorAll('#digital-pagination button')["+page+"].click()");
+    assert.equal(await evaluate("document.querySelectorAll('.digital-product').length"),page===2?6:2);
+    assert.equal(await evaluate("document.querySelector('#digital-pagination [aria-current]').textContent"),String(page));
+    for(const title of await evaluate("[...document.querySelectorAll('.digital-product h3')].map(e=>e.textContent)")){assert.equal(allTitles.has(title),false);allTitles.add(title);}
+  }
+  assert.equal(allTitles.size,14);
+  assert.equal(await evaluate("document.querySelector('#digital-pagination button:last-child').disabled"),true);
+  assert.equal(await evaluate("document.querySelector('#digital-page-summary').textContent"),'Hiển thị 13–14 trong 14 bộ tài liệu');
+
   await evaluate("document.querySelector('[data-digital-grade]').parentElement.children[2].click()");
   assert.equal(await evaluate("document.querySelectorAll('.digital-product').length"),2);
+  assert.equal(await evaluate("document.querySelector('#digital-pagination').hidden"),true);
+  assert.equal(await evaluate("document.querySelector('#digital-page-summary').textContent"),'Hiển thị 1–2 trong 2 bộ tài liệu');
 
   const adminPassword='Digital UI admin only 2026';
   const adminDb=new DatabaseSync(join(scratch,'test.sqlite'));adminDb.prepare('INSERT INTO admin_users(id,username,password_hash) VALUES(?,?,?)').run('digital-ui-admin','admin',await hashPassword(adminPassword));adminDb.close();

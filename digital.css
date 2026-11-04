@@ -100,3 +100,14 @@
   .digital-product-meta { font-size:11px; line-height:1.6; }
   .digital-product-bottom { gap:12px; }
 }
+
+.digital-catalog-footer { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-top:24px; }
+#digital-page-summary { margin:0; font-size:13px; color:var(--ink-soft); }
+#digital-pagination { display:flex; flex-wrap:wrap; gap:6px; }
+#digital-pagination[hidden] { display:none; }
+#digital-pagination button { min-width:44px; min-height:44px; padding:10px 14px; border:1px solid var(--line); color:var(--brand-navy); background:transparent; font:600 14px var(--sans); cursor:pointer; }
+#digital-pagination [aria-current="page"] { background:var(--brand-navy); color:white; border-color:var(--brand-navy); }
+#digital-pagination button:disabled { opacity:.45; cursor:default; }
+#digital-pagination button:focus-visible { outline:2px solid var(--brand-navy); outline-offset:2px; }
+#tai-lieu-so { scroll-margin-top:100px; }
+#digital-title:focus { outline:none; }
