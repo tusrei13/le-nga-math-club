@@ -6,23 +6,32 @@ const labels={pending:'Chờ xác nhận thanh toán',paid:'Đã mở quyền t�
 const node=(tag,text,className)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(className)e.className=className;return e;};
 function session(){return window.customerSession;}
 function openLibrary(){session()?.open('digital');}
-function productDescription(product){
-  const seeded='Tài liệu PDF cho lớp '+product.grade+'. '+product.title+'. Bộ gồm '+product.file_count+' file; xem tên từng file sau khi được cấp quyền tải.';
-  return product.description===seeded?'Gồm '+product.file_count+' file PDF để tải về và luyện tập.':product.description;
-}
+let selectedGrade='';
 function productCard(product){
+  const topic=/chuyên đề|tổng\s*[–-]\s*hiệu|tối ưu|đường tròn/i.test(product.title);
   const card=node('article',undefined,'digital-product');
-  const top=node('div',undefined,'digital-product-meta');top.append(node('span','Lớp '+product.grade),node('span','PDF · '+product.file_count+' file'));
-  card.append(top,node('h3',product.title),node('p',productDescription(product),'digital-product-description'));
+  const cover=node('div',undefined,'digital-cover'+(topic?' digital-cover-topic':''));
+  cover.setAttribute('aria-hidden','true');
+  const top=node('div',undefined,'digital-cover-top');top.append(node('span','TOÁN CÔ LÊ NGA'),node('span',topic?'Chuyên đề':'Bộ đề'));
+  const main=node('div',undefined,'digital-cover-main');
+  main.append(node('span',product.title.replace(/\s*·\s*Toán.*$/i,'').replace(/^Chuyên đề\s*/i,''),'digital-cover-title'));
+  const grade=node('div',undefined,'digital-cover-grade');grade.append(node('small','LỚP'),node('strong',String(product.grade)));
+  main.append(grade);cover.append(top,main,node('span','TÀI LIỆU PDF','digital-cover-footer'));
+  const info=node('div',undefined,'digital-product-info');
+  info.append(node('p','Lớp '+product.grade+' · PDF · '+product.file_count+' file','digital-product-meta'),node('h3',product.title));
+  const seeded='Tài liệu PDF cho lớp '+product.grade+'. '+product.title+'. Bộ gồm '+product.file_count+' file; xem tên từng file sau khi được cấp quyền tải.';
+  if(product.description&&product.description!==seeded)info.append(node('p',product.description,'digital-product-description'));
   const bottom=node('div',undefined,'digital-product-bottom'),price=node('div');
-  price.append(node('small',product.is_draft?'Giá dự kiến':'Giá trọn bộ'),node('strong',money(product.price_vnd)));
-  const button=node('button',product.is_draft?'Sắp mở bán':checkoutEnabled?'Chọn bộ này':'Chưa nhận đặt','btn btn-primary');
-  button.type='button';button.disabled=product.is_draft||!checkoutEnabled;button.dataset.digitalProduct=product.id;
-  button.addEventListener('click',()=>openCheckout(product));
-  bottom.append(price,button);card.append(bottom);return card;
+  price.append(node('small',product.is_draft?'Giá dự kiến':'Giá trọn bộ'),node('strong',money(product.price_vnd)));bottom.append(price);
+  if(checkoutEnabled){
+    const button=node('button',product.is_draft?'Sắp mở bán':'Chọn bộ này','btn btn-primary');
+    button.type='button';button.disabled=product.is_draft;button.dataset.digitalProduct=product.id;
+    button.addEventListener('click',()=>openCheckout(product));bottom.append(button);
+  }
+  info.append(bottom);card.append(cover,info);return card;
 }
 function renderCatalog(){
-  const grade=$('#digital-grade').value;
+  const grade=selectedGrade;
   const visible=products.filter(p=>!grade||p.grade===Number(grade));
   catalog.replaceChildren(...visible.map(productCard));
   if(!visible.length)catalog.append(node('p','Chưa có tài liệu cho lựa chọn này.','digital-empty'));
@@ -77,7 +86,7 @@ form.addEventListener('submit',async event=>{
 });
 $('#digital-checkout-close').addEventListener('click',()=>checkout.close());
 checkout.addEventListener('close',()=>{requestGeneration++;selected=undefined;buyerId=undefined;});
-$('#digital-grade').addEventListener('change',renderCatalog);
+document.querySelectorAll('[data-digital-grade]').forEach(button=>button.addEventListener('click',()=>{selectedGrade=button.dataset.digitalGrade;document.querySelectorAll('[data-digital-grade]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));renderCatalog();}));
 $('#digital-library-open').addEventListener('click',openLibrary);
 $('#customer-digital-refresh').addEventListener('click',loadLibrary);
 function transferDetails(order,payment){

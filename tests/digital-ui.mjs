@@ -95,7 +95,7 @@ try {
   };
   const readRow=(sql,...params)=>{const db=new DatabaseSync(join(scratch,'test.sqlite'));try{return db.prepare(sql).get(...params);}finally{db.close();}};
   await navigate('/');
-  assert.equal(await evaluate("document.querySelectorAll('.digital-product button:disabled').length"),14);
+  assert.equal(await evaluate("document.querySelectorAll('.digital-cover').length"),14);
   const viewportProblems=[];
   for(const [width,height] of [[320,568],[375,844],[768,1024],[1024,768],[1440,1000],[1920,1080]]){
     await cdp('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<1100});
@@ -105,7 +105,7 @@ try {
     if([375,768,1440].includes(width))await screenshot('digital-catalog-'+width+'.png');
   }
   assert.deepEqual(viewportProblems,[]);
-  await evaluate("document.querySelector('#digital-grade').value='4';document.querySelector('#digital-grade').dispatchEvent(new Event('change'))");
+  await evaluate("document.querySelector('[data-digital-grade]').parentElement.children[2].click()");
   assert.equal(await evaluate("document.querySelectorAll('.digital-product').length"),2);
 
   const adminPassword='Digital UI admin only 2026';
