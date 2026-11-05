@@ -92,7 +92,7 @@ async function loadList() {
         const thumbnails=element('div',undefined,'book-thumbnails');
         for (const item of row.items.slice(0,3)) { const image=coverImage(item); if(image) thumbnails.append(image); }
         const copy=element('div');
-        copy.append(element('span',row.items.map(item=>item.title).join(' · '),'cell-title'),element('span',`${books} cuốn · Thanh toán COD`,'cell-meta'));
+        copy.append(element('span',row.items.map(item=>item.title).join(' · '),'cell-title'),element('span',`${books} sản phẩm · Thanh toán COD`,'cell-meta'));
         content.append(thumbnails,copy,element('strong',currency(row.total_vnd),'request-total'));
       } else if(table==='digital-orders'){content.append(element('span',row.title,'cell-title'),element('strong',currency(row.amount_vnd),'request-total'));}
       else content.append(element('span',table==='stem-enquiries'?row.program_title+(row.specialist_goal?' · Định hướng thi chuyên':''):`Tư vấn sách cho lớp ${row.grade}`,'cell-title'),element('span',row.note ? row.note.slice(0,65) + (row.note.length>65?'…':'') : 'Chưa có ghi chú','cell-meta'));
@@ -166,7 +166,7 @@ function renderDetail(row,table) {
     const books=element('section',undefined,'detail-section');books.append(element('h3','Sách trong đơn'));
     for(const item of row.items) {
       const line=element('div',undefined,'detail-book'),copy=element('div',item.title);
-      copy.append(element('small',`${item.quantity} cuốn × ${currency(item.unit_price_vnd)}`));
+      copy.append(element('small',`${item.quantity} sản phẩm × ${currency(item.unit_price_vnd)}`));
       const image=coverImage(item); if(image) line.append(image);
       else line.classList.add('without-cover');
       line.append(copy,element('strong',currency(item.quantity*item.unit_price_vnd)));books.append(line);

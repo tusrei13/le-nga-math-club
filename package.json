@@ -19,7 +19,8 @@
     "test": "node --test tests/api.test.mjs tests/runtime.test.mjs tests/deploy.test.mjs tests/customer.test.mjs tests/pages-admin.test.mjs tests/stem.test.mjs tests/security.test.mjs tests/digital.test.mjs",
     "test:ui": "node tests/order-ui.mjs",
     "test:ui:digital": "node tests/digital-ui.mjs",
-    "test:ui:videos": "node tests/book-videos-ui.mjs"
+    "test:ui:videos": "node tests/book-videos-ui.mjs",
+    "test:ui:reference": "node tests/reference-ui.mjs"
   },
   "engines": {
     "node": ">=22.16.0"

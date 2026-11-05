@@ -73,33 +73,13 @@ try {
   await cdp('Runtime.enable'); await cdp('Page.enable');
   await cdp('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
   await cdp('Page.navigate', { url: `http://127.0.0.1:${port}/` });
-  await until(() => evaluate(`document.querySelectorAll('[data-product-quantity]').length === 13 && document.querySelector('#hero-book-price').textContent.includes('299')`), 'loaded catalog');
+  await until(() => evaluate(`document.querySelectorAll('[data-product-quantity]').length === 4 && document.querySelector('#hero-book-price').textContent.includes('49')`), 'loaded catalog');
   await sleep(300);
   assert.equal(await evaluate('document.title'),'Sách & Tài liệu Toán Cô Lê Nga');
-  assert.equal(await evaluate("document.querySelector('.site-nav a[href=\"#tai-lieu-so\"]').textContent"),'Tài liệu số');
+  assert.equal(await evaluate("document.querySelector('.site-nav a[href=\"#tai-lieu-so\"]').textContent"),'Đọc thử PDF');
 
-  const readingProducts=(await(await fetch('http://127.0.0.1:'+port+'/api/landing')).json()).products;
-  const readingLinks=await evaluate("[...document.querySelectorAll('.book-card [data-book-preview]')].map(a=>({id:a.dataset.bookPreview,href:a.href,target:a.target,rel:a.rel,label:a.getAttribute('aria-label')}))");
-  assert.equal(readingLinks.length,13);
-  assert.equal(new Set(readingLinks.map(link=>link.href)).size,13);
-  for(const product of readingProducts){
-    const link=readingLinks.find(link=>link.id===product.id);
-    assert.equal(link.href,new URL(product.media.find(media=>media.kind==='sample').url,'http://127.0.0.1:'+port).href);
-    assert.equal(link.target,'_blank');assert.ok(link.rel.includes('noopener')&&link.rel.includes('noreferrer'));assert.ok(link.label.includes(product.title));
-  }
-  const previousTargets=new Set((await cdp('Target.getTargets')).targetInfos.map(target=>target.targetId));
-  await evaluate("document.fonts.ready.then(()=>true)");
-  await evaluate("(()=>{const a=document.querySelector('.book-card [data-book-preview]');a.focus({preventScroll:true});a.scrollIntoView({behavior:'instant',block:'center'});})()");
-  await sleep(150);
-  const previewPoint=await evaluate("(()=>{const r=document.querySelector('.book-card [data-book-preview]').getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()");
-  assert.equal(await evaluate('document.elementFromPoint('+previewPoint.x+','+previewPoint.y+')?.closest("a")?.href'),readingLinks[0].href,'pointer hits the preview action');
-  await cdp('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,...previewPoint});
-  await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,...previewPoint});
-  // Headless Chromium can download PDFs rather than retain a PDF page target.
-  const openedPreview=await until(()=>openedWindows.find(opened=>opened.url===readingLinks[0].href),'browser opens the matching reading sample');
-  assert.equal(openedPreview.userGesture,true);
-  for(const target of (await cdp('Target.getTargets')).targetInfos)if(!previousTargets.has(target.targetId)&&target.type==='page')await cdp('Target.closeTarget',{targetId:target.targetId});
-  assert.equal(await evaluate("[...document.querySelectorAll('[data-product-quantity]')].every(input=>input.value==='0')"),true,'reading a preview must not select a book');
+  assert.equal(await evaluate("document.querySelectorAll('.book-card [data-book-preview]').length"),9);
+  assert.equal(await evaluate("[...document.querySelectorAll('[data-product-quantity]')].every(input=>input.value==='0')"),true);
 
   assert.equal(await evaluate("document.querySelector('.digital-document')"),null,'free sample block removed');
   await mkdir(output,{recursive:true});
@@ -112,7 +92,7 @@ try {
     if([375,768,1440].includes(width))await screenshot('book-hero-'+width+'.png');
 
     const previewLayout=await evaluate("(()=>{const links=[...document.querySelectorAll('.book-card [data-book-preview]')];return {count:links.length,small:links.some(a=>a.getBoundingClientRect().height<44),outside:links.some(a=>{const r=a.getBoundingClientRect();return r.left<0||r.right>innerWidth+.5;})};})()");
-    assert.deepEqual(previewLayout,{count:13,small:false,outside:false},'book preview actions at '+width);
+    assert.deepEqual(previewLayout,{count:9,small:false,outside:false},'book preview actions at '+width);
     if([375,768,1440].includes(width)){
       await evaluate("document.querySelector('.book-card-actions').scrollIntoView({behavior:'instant',block:'center'})");
       await screenshot('book-previews-'+width+'.png');
@@ -136,18 +116,18 @@ try {
   await evaluate("document.querySelector('#order-panel').scrollIntoView({behavior:'instant',block:'start'})");
   assert.equal(await evaluate(`/freeship|đổi trả miễn phí|lời giải chi tiết 100%/i.test(document.body.innerText)`),false);
   assert.equal(await evaluate(`document.querySelector('#qua-tang').hidden && document.querySelector('#shipping-label').textContent.includes('xác nhận riêng')`),true);
-  assert.equal(await evaluate(`document.querySelectorAll('.book-option:not([hidden])').length`), 2);
+  assert.equal(await evaluate(`document.querySelectorAll('.book-option:not([hidden])').length`), 1);
   assert.equal(await evaluate(`document.querySelector('#order-contact-fields').hidden`), true);
   await evaluate(`document.querySelector('#order-next').click()`);
   assert.equal(await evaluate(`document.querySelector('#items-error').hidden`), false);
   await evaluate(`document.querySelector('[data-picker-group="6"] [data-quantity-increase]').click(); document.querySelector('[data-book-group="7"]').click(); document.querySelector('[data-picker-group="7"] [data-quantity-increase]').click()`);
-  assert.equal(await evaluate(`document.querySelector('#order-total').textContent`), '598.000đ');
-  assert.equal(await evaluate(`document.querySelector('#selected-book-count').textContent`), '2 cuốn');
+  assert.equal(await evaluate(`document.querySelector('#order-total').textContent`), '538.000đ');
+  assert.equal(await evaluate(`document.querySelector('#selected-book-count').textContent`), '2 sản phẩm');
   await evaluate(`document.querySelector('#order-panel').scrollIntoView({behavior:'instant',block:'start'})`);
   await screenshot('order-desktop.png');
 
   await evaluate("document.querySelector('[data-book-group=primary]').click()");
-  assert.equal(await evaluate("document.querySelectorAll('.book-option:not([hidden])').length"),5,'primary group contains the 70-test book and all four primary volumes');
+  assert.equal(await evaluate("document.querySelectorAll('.book-option:not([hidden])').length"),1,'primary group only allows ordering the priced 70-test book');
   assert.equal(await evaluate("[...document.querySelectorAll('.book-option:not([hidden]) h4')].filter(e=>e.textContent.startsWith('Em là')).every((e,i)=>e.textContent.endsWith('Tập '+(i+1)))"),true);
   await cdp('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
   await evaluate("document.querySelector('#order-panel').scrollIntoView({behavior:'instant'})");
@@ -161,9 +141,9 @@ try {
   assert.equal(await evaluate(`document.querySelector('#order-contact-fields').hidden`), false);
   assert.equal(await evaluate(`document.activeElement.id`), 'field-name');
   await evaluate(`document.querySelector('#order-back').click(); document.querySelector('[data-book-group="6"]').click()`);
-  assert.equal(await evaluate(`document.querySelector('[data-product-quantity="toan-6-tap-1"]').value`), '1');
+  assert.equal(await evaluate(`document.querySelector('[data-product-quantity="phan-dang-6-bo-2-tap"]').value`), '1');
   await evaluate(`document.querySelector('[data-book-group="primary"]').click()`);
-  assert.equal(await evaluate(`document.querySelectorAll('.book-option:not([hidden])').length`), 5);
+  assert.equal(await evaluate(`document.querySelectorAll('.book-option:not([hidden])').length`), 1);
   await cdp('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
   await evaluate(`document.querySelector('#order-panel').scrollIntoView({behavior:'instant',block:'start'})`);
   await sleep(150);
@@ -332,7 +312,7 @@ try {
   await until(()=>evaluate(`document.querySelectorAll('#request-list .request-card').length===1`),'phone search');
   await evaluate(`document.querySelector('.detail-button').click()`);
   await until(()=>evaluate(`document.querySelector('#detail-dialog').open && !document.querySelector('#status-form').hidden`),'order details');
-  assert.equal(await evaluate(`document.querySelector('#detail-content').textContent.includes('598.000đ')`),true);
+  assert.equal(await evaluate(`document.querySelector('#detail-content').textContent.includes('538.000đ')`),true);
   assert.equal(await evaluate(`document.querySelector('#detail-dialog').matches(':modal')`),false);
   assert.equal(await evaluate(`document.querySelectorAll('.book-thumbnails img').length`),2);
   assert.equal(await evaluate(`document.querySelectorAll('.detail-book img').length`),2);

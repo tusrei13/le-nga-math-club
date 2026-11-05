@@ -1,6 +1,6 @@
 # Sách & Tài liệu Toán Cô Lê Nga
 
-Landing page gồm sách giấy và tài liệu số: 9 đầu sách đặt COD, PDF mẫu miễn phí và form tư vấn. Dữ liệu lưu trong SQLite; frontend và API chạy chung bằng Node.js.
+Landing page gồm 21 mục sách và tài liệu theo bản mẫu tháng 11/2026: 9 mục sách giấy và 12 mục tài liệu lớp 3–5. Sách giấy có giá được đặt COD; PDF đầy đủ đặt qua Zalo trợ lí, PDF đọc thử miễn phí. Dữ liệu lưu trong SQLite; frontend và API chạy chung bằng Node.js.
 
 STEM Maths là landing page thứ hai dành cho chương trình Toán offline lớp 3–9. Chạy `npm run build:stem`, xem local tại `/stem/`; hướng dẫn Cloudflare và D1 trong [STEM-MATHS.md](STEM-MATHS.md).
 
@@ -17,7 +17,7 @@ npm start
 
 Mở `http://localhost:3000`. Không mở trực tiếp `index.html` bằng `file://`, vì trang cần gọi API.
 
-Database tự tạo ở `data/landing.sqlite`, gồm 16 bảng và dữ liệu 13 sách với ảnh bìa trong `public/assets/books`. `npm start` cũng tự khởi tạo nếu chưa có database.
+Database tự tạo ở `data/landing.sqlite`, với danh mục hiện hành theo `reference-catalog.mjs`. `npm start` cũng tự khởi tạo nếu chưa có database.
 
 ## Logo
 
@@ -27,17 +27,15 @@ Logo dùng chung cho trang sách, STEM Maths và quản trị tại public/asset
 
 Cụm ba sách đầu trang dùng ảnh gốc trong public/assets/books/, căn và giới hạn vùng hiển thị bằng CSS. Không cần các PNG cũ trong cutouts. Khi thay ảnh nguồn, cần rà lại clip-path trong styles.css.
 
-## Bản đọc thử của 13 cuốn sách
+## Bản đọc thử sách và tài liệu
 
-Mỗi thẻ sách có nút Đọc thử PDF, mở bản đọc thử riêng ở tab mới và không thay đổi giỏ sách. Mười ba PDF gốc nằm trong public/assets/books preview/. Ánh xạ theo ID sách nằm ở database/book-previews.mjs; URL mã hóa khoảng trắng nên dùng được trên Node và Cloudflare Pages.
-
-SQLite cập nhật tự động khi khởi động. Với D1 đã deploy, publish các PDF trước rồi áp dụng database/migrations/007-book-previews.sql; xem CLOUDFLARE.md. Migration giữ lịch sử đơn và không ghi đè thay đổi quản trị khi chạy lại. Build Pages sẽ báo lỗi nếu thiếu PDF bắt buộc.
+Nút Đọc thử PDF mở đúng mẫu theo sản phẩm; bộ nhiều bản cho chọn từng file. Bản mẫu mới và nguồn ảnh/video nằm trong public/assets/catalog; các bản cũ vẫn được giữ để bảo toàn đường dẫn. Xem [REFERENCE-CATALOG.md](REFERENCE-CATALOG.md) cho giá, đơn vị bán, thời hạn ưu đãi và migration D1 bắt buộc.
 
 ## Tài liệu số
 
 Mục #tai-lieu-so có 17 nhóm với 31 PDF đọc thử công khai, không cần đăng nhập hoặc thanh toán; lọc theo lớp, phân trang 6 nhóm/trang và chọn từng file. Xem DIGITAL-DOCUMENTS.md.
 
-Đây là phần giới thiệu và tải mẫu. Chưa có bán file trả phí, xác nhận chuyển khoản hoặc cấp quyền tải riêng. File trả phí sau này phải đặt trong kho riêng và kiểm tra quyền tải phía server; không đưa file trả phí vào public/assets/.
+Kho đọc thử tách khỏi mục tài liệu đầy đủ có giá và liên hệ Zalo. Website chưa tự xác nhận chuyển khoản hoặc cấp quyền tải tài liệu đã mua. File trả phí sau này phải đặt trong kho riêng và kiểm tra quyền tải phía server; không đưa file trả phí vào public/assets/.
 
 ## Tài khoản khách hàng
 
@@ -68,7 +66,7 @@ npm test
 
 Test dùng database tạm riêng; kiểm tra ảnh bìa, lưu đơn/tư vấn, giá tính phía server, gửi trùng, validation, quyền quản trị, trạng thái, chỉnh sửa nội dung và khả năng giữ dữ liệu khi khởi tạo lại.
 
-Phiếu đặt sách gồm hai bước: chọn sách theo nhóm Toán Tiểu học (cuốn 70 đề và bốn tập Em là siêu nhân) hoặc lớp 6–9 (hai tập mỗi lớp), rồi điền thông tin nhận sách. Các cuốn đã chọn được giữ khi chuyển nhóm; chế độ tư vấn mở thẳng form liên hệ.
+Phiếu đặt sách gồm hai bước: chọn sách giấy hoặc bộ sách có giá xác định, rồi điền thông tin nhận sách. Các tập Siêu nhân và bộ lớp 9 cần liên hệ báo giá; PDF đầy đủ đặt qua Zalo. Các cuốn đã chọn được giữ khi chuyển nhóm; chế độ tư vấn mở thẳng form liên hệ.
 
 Có thể kiểm tra thao tác thực tế trong Chrome/Edge đã cài bằng `npm run test:ui`. Script dùng trình duyệt ẩn và database tạm, kiểm tra cả desktop/mobile rồi lưu ảnh vào `data/order-desktop.png` và `data/order-mobile.png`. Dùng `UI_BROWSER_PATH` nếu trình duyệt nằm ở đường dẫn khác.
 

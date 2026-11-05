@@ -1,6 +1,7 @@
+import {readFileSync} from 'node:fs';
 import {primaryBooks} from './primary-books.mjs';
 import { bookPreviews } from './book-previews.mjs';
-export function seed(db) {
+export function seed(db,{reference=true}={}) {
   const insert = db.prepare(`INSERT OR IGNORE INTO products(id,slug,title,category,grade,volume,description,price_vnd,sort_order) VALUES(?,?,?,?,?,?,?,?,?)`);
   let position = 0;
   for (const grade of [6,7,8,9]) for (const volume of [1,2]) {
@@ -52,4 +53,5 @@ export function seed(db) {
   achievement.run('math-85','8.5+','Mốc điểm Toán lớp 6–9','Ghi nhận từ chia sẻ phụ huynh/học viên',1);
   achievement.run('math-90','9.0+','Điểm Toán nổi bật','Những bước tiến sau khi học có lộ trình',2);
   achievement.run('clc','CLC','Trường Chuyên / Chất lượng cao','Mục tiêu có lộ trình để chạm tới',3);
+  if(reference&&!db.prepare('SELECT 1 FROM schema_versions WHERE version=10').get())for(const file of ['004-catalog-corrections.sql','006-retire-geometry-book.sql','007-book-previews.sql','009-primary-maths-books.sql','010-reference-catalog.sql'])db.exec(readFileSync(new URL('./migrations/'+file,import.meta.url),'utf8'));
 }

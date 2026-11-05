@@ -104,7 +104,7 @@ test('Parent input stays data, SQL search stays bound and API responses hide int
     assert.equal(detail.request_key,undefined);assert.equal(detail.request_hash,undefined);
     const search=await(await req('/api/admin/stem-enquiries?q='+encodeURIComponent("' OR 1=1 --"),{headers})).json();
     assert.equal(search.total,0);assert.equal(db.prepare('SELECT count(*) AS n FROM admin_users').get().n,1);
-    const order=await req('/api/orders',{method:'POST',data:{name:'Parent',phone:'0989066885',grade:6,address:'Hà Nội',items:[{product_id:'toan-6-tap-1',quantity:1}]},headers:{'Idempotency-Key':randomUUID()}});
+    const order=await req('/api/orders',{method:'POST',data:{name:'Parent',phone:'0989066885',grade:6,address:'Hà Nội',items:[{product_id:'phan-dang-6-bo-2-tap',quantity:1}]},headers:{'Idempotency-Key':randomUUID()}});
     assert.equal(order.status,201);const id=(await order.json()).id;
     const list=await(await req('/api/admin/orders',{headers})).json();
     const ticket=await(await req('/api/admin/orders/'+id,{headers})).json();

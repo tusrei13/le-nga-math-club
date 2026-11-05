@@ -124,6 +124,7 @@ function setBookGroup(group) {
   activeBookGroup = group;
   document.querySelectorAll('[data-book-group]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.bookGroup === group)));
   document.querySelectorAll('[data-picker-group]').forEach(row => { row.hidden = row.dataset.pickerGroup !== group; });
+  const quote=document.querySelector('#book-quote-hint');if(quote)quote.hidden=[...document.querySelectorAll('.book-option')].some(row=>row.dataset.pickerGroup===group);
   if (catalogLoaded) updateOrderArtwork();
 }
 document.querySelectorAll('[data-book-group]').forEach(button => button.addEventListener('click', () => setBookGroup(button.dataset.bookGroup)));
@@ -266,9 +267,11 @@ function selectedItems() {
 function updateTotal() {
   const items = selectedItems();
   const subtotal = items.reduce((sum,item) => sum + catalog.find(p => p.id === item.product_id).price_vnd * item.quantity, 0);
-  document.querySelector('#order-total').textContent = currency(subtotal + (items.length ? salesPolicy.shipping_vnd : 0));
+  document.querySelector('#order-total').textContent = currency(subtotal + (items.length&& !items.every(i=>catalog.find(p=>p.id===i.product_id)?.free_shipping_preorder) ? salesPolicy.shipping_vnd : 0));
   const count = items.reduce((sum,item) => sum + item.quantity, 0);
-  document.querySelector('#selected-book-count').textContent = count ? `${count} cuốn` : 'Chưa chọn sách';
+  const free=items.length&&items.every(i=>catalog.find(p=>p.id===i.product_id)?.free_shipping_preorder);
+  document.querySelector('#shipping-label').textContent=free?'Miễn phí vận chuyển cho 70 đề bứt tốc đặt trước':salesPolicy.shipping_vnd?'Phí giao hàng '+currency(salesPolicy.shipping_vnd):'Phí vận chuyển được CLB xác nhận riêng';
+  document.querySelector('#selected-book-count').textContent = count ? `${count} sản phẩm` : 'Chưa chọn sách';
   const selected = document.querySelector('#selected-books');
   selected.replaceChildren();
   if (!items.length) selected.append(element('p', 'Cuốn sách đầu tiên đang chờ con.', 'receipt-empty'));
@@ -324,7 +327,8 @@ function element(tag, text, className) {
   return node;
 }
 function bookPreviewLink(product) {
-  const sample = product.media.find(media => media.kind === 'sample');
+  if(product.previews?.length>1){const button=element('button','Đọc thử PDF','book-preview');button.type='button';button.dataset.catalogPreview=product.id;button.dataset.bookPreview=product.id;return button;}
+  const sample = product.previews?.length?product.previews[0]:product.media.find(media => media.kind === 'sample');
   if (!sample?.url) return null;
   let url;
   try { url = new URL(sample.url, location.origin); } catch { return null; }
@@ -345,7 +349,9 @@ async function loadLanding() {
     const response = await fetch('/api/landing', { signal: AbortSignal.timeout(15000) });
     if (!response.ok) throw new Error('Không thể tải dữ liệu sách.');
     const data = await response.json();
-    catalog = data.products;
+    catalog = data.products.filter(p=>p.format==='paper');
+    window.referenceProducts=data.products;
+    window.dispatchEvent(new CustomEvent('catalog:loaded',{detail:data.products}));
     salesPolicy = data.content.sales_policy;
     const cards = document.querySelector('#book-catalog');
     const options = document.querySelector('#book-options');
@@ -364,9 +370,10 @@ async function loadLanding() {
         art.append(image);
       } else art.append(element('p', product.title));
       const copy = element('div', undefined, 'book-card-copy');
-      copy.append(element('h3', product.title), element('p', product.description), element('strong', currency(product.price_vnd), 'product-price'));
-      const choose = element('button', 'Chọn cuốn này', 'text-link'); choose.type = 'button';
-      choose.addEventListener('click', () => {
+      copy.append(element('h3', product.title), element('p', product.description), element('strong', product.price_vnd===null?'Liên hệ':currency(product.price_vnd)+'/'+product.unit, 'product-price'));
+      const choose = element(product.orderable?'button':'a', product.orderable?'Chọn sản phẩm này':'Hỏi giá qua Zalo', 'text-link');
+      if(!product.orderable){choose.href='https://zalo.me/0365473632';choose.target='_blank';choose.rel='noopener noreferrer';}else choose.type='button';
+      if(product.orderable)choose.addEventListener('click', () => {
         const quantity = document.querySelector(`[data-product-quantity="${product.id}"]`);
         setBookGroup(bookGroup(product));
         quantity.value = Math.min(20, Number(quantity.value) + 1); updateTotal(); orderStep = 1; openForm('order');
@@ -377,13 +384,14 @@ async function loadLanding() {
       const preview = bookPreviewLink(product);
       if (preview) actions.append(preview);
       copy.append(actions); card.append(meta, art, copy); cards.append(card);
+      if(!product.orderable)continue;
       const option = element('div', undefined, 'book-option');
       option.dataset.pickerGroup = bookGroup(product);
       const thumbnail = element('img'); thumbnail.alt = ''; thumbnail.loading = 'lazy';
       if (cover) thumbnail.src = cover.url; else thumbnail.hidden = true;
       thumbnail.addEventListener('error', () => { thumbnail.hidden = true; }, { once: true });
       const info = element('div', undefined, 'book-option-info');
-      info.append(element('h4', product.title),element('span', currency(product.price_vnd)));
+      info.append(element('h4', product.title),element('span', currency(product.price_vnd)+'/'+product.unit));
       const controls = element('div', undefined, 'book-quantity');
       const decrease = element('button', '−'); decrease.type = 'button'; decrease.dataset.quantityDecrease = ''; decrease.setAttribute('aria-label', `Giảm số lượng ${product.title}`);
       const increase = element('button', '+'); increase.type = 'button'; increase.dataset.quantityIncrease = ''; increase.setAttribute('aria-label', `Thêm ${product.title}`);
@@ -398,9 +406,10 @@ async function loadLanding() {
     window.dispatchEvent(new Event('books:rendered'));
     setBookGroup(activeBookGroup);
     if (catalog.length) {
-      const minimum = Math.min(...catalog.map(p => p.price_vnd));
-      const uniform = catalog.every(product => product.price_vnd === minimum);
-      for (const id of ['catalog-min-price', 'hero-book-price', 'floating-book-price']) document.getElementById(id).textContent = uniform ? `${currency(minimum)}/cuốn` : `Từ ${currency(minimum)}`;
+      const minimum=Math.min(...catalog.filter(p=>p.price_vnd!==null).map(p=>p.price_vnd));
+      document.querySelector('#catalog-min-price').textContent='Từ '+currency(minimum);
+      document.querySelector('#floating-book-price').textContent='Từ '+currency(minimum);
+      document.querySelector('#hero-book-price').textContent='Từ '+currency(Math.min(...data.products.filter(p=>p.price_vnd!==null).map(p=>p.price_vnd)))+'/tài liệu';
     }
     const faqList = document.querySelector('.faq-list'); faqList.replaceChildren();
     for (const [index, faq] of data.faqs.entries()) {
@@ -437,8 +446,8 @@ async function loadLanding() {
     const heroTitle = document.querySelector('.hero-title');
     if (heroTitle.textContent.replace(/\s+/g,' ').trim() !== data.content.hero.title) heroTitle.textContent = data.content.hero.title;
     heroTitle.setAttribute('aria-label',data.content.hero.title);
-    document.querySelector('#hero-book-count').textContent = catalog.length;
-    document.querySelector('#catalog-book-count').textContent = catalog.length + ' đầu sách';
+    document.querySelector('#hero-book-count').textContent = data.products.length;
+    document.querySelector('#catalog-book-count').textContent = catalog.length + ' sản phẩm sách giấy';
     const heroImage = document.querySelector('.hero-art-image');
     const illustration = data.content.hero.illustration_url;
     const useBookCovers = ['/assets/book-stack.png','/assets/book-stack.svg','public/assets/book-stack.svg'].includes(illustration);
@@ -446,7 +455,8 @@ async function loadLanding() {
     document.querySelector('.hero-book-covers').hidden = !useBookCovers;
     if (!useBookCovers) heroImage.src = illustration;
     const contact = data.content.contact;
-    document.querySelectorAll('a[href^="tel:"]').forEach(a => { a.href = `tel:${contact.phone}`; a.textContent = contact.phone_display; });
+    document.querySelectorAll('a[href^="tel:"]:not([data-assistant-phone])').forEach(a=>{a.href='tel:'+contact.phone;a.textContent=contact.phone_display;});
+    document.querySelectorAll('[data-assistant-phone]').forEach(a=>{a.href='tel:'+(contact.assistant_phone||'0365473632');a.textContent=contact.assistant_phone_display||'0365 473 632';});
     document.querySelector('.order-contact small').textContent = contact.email;
     document.querySelector('a[href^="mailto:"]').href = `mailto:${contact.email}`;
     document.querySelector('a[href^="mailto:"]').textContent = contact.email;
@@ -456,7 +466,7 @@ async function loadLanding() {
     const shippingNote = salesPolicy.shipping_vnd ? `Phí giao hàng ${currency(salesPolicy.shipping_vnd)}` : 'Phí vận chuyển được CLB xác nhận riêng';
     document.querySelector('#shipping-label').textContent = shippingNote;
     document.querySelector('#order-total-label').textContent = salesPolicy.shipping_vnd ? 'Tổng tiền' : 'Tiền sách';
-    document.querySelector('.hero-offer>span').textContent = shippingNote;
+    document.querySelector('.hero-offer>span').textContent='Giá theo cuốn, bộ hoặc tài liệu PDF. Sách giấy giao tận nhà; PDF đầy đủ đặt qua Zalo trợ lí.';
     const showGifts = Boolean(salesPolicy.gifts_with_order && data.gifts.length);
     document.querySelector('#qua-tang').hidden = !showGifts;
     document.querySelectorAll('a[href="#qua-tang"]').forEach(link => { link.hidden = !showGifts; });

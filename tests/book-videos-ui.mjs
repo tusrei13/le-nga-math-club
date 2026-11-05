@@ -80,7 +80,7 @@ try {
   });
   await cdp('Network.enable');
   await cdp('Page.navigate',{url:'http://127.0.0.1:'+port+'/'});
-  await until(()=>evaluate("document.querySelectorAll('.book-card').length===13 && document.querySelectorAll('.book-video-action').length===3"),'catalog and video actions');
+  await until(()=>evaluate("document.querySelectorAll('.book-card').length===9 && document.querySelectorAll('.book-video-action').length===3"),'catalog and video actions');
   await evaluate("document.querySelector('#primary-series-overview').scrollIntoView({behavior:'instant',block:'center'})");
   await sleep(500);
   assert.equal(mediaRequests.length,0,'MP4 must not load before user interaction');

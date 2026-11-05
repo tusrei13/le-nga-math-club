@@ -1,5 +1,8 @@
 # Cơ sở dữ liệu landing page CLB Toán Cô Lê Nga
 
+Cập nhật hiện hành tháng 11/2026: danh mục 21 mục và giá theo bản mẫu dùng migration [010-reference-catalog.sql](database/migrations/010-reference-catalog.sql). Xem [REFERENCE-CATALOG.md](REFERENCE-CATALOG.md) để triển khai và phân biệt sách giấy, PDF đầy đủ, bản đọc thử. Các migration bên dưới ghi lại các giai đoạn trước.
+
+
 Dự án dùng **một database SQLite gồm 20 bảng liên kết**, phù hợp với landing page chạy trên một máy chủ Node.js. Không cần cài MySQL/PostgreSQL hoặc thư viện npm ngoài. Database thực tế nằm ở `data/landing.sqlite`, được tạo bằng `npm run db:init` hoặc tự động khi `npm start`.
 
 STEM Maths dùng chung database, bổ sung `stem_programs`, `stem_enquiries`, `stem_enquiry_history` và dùng `edge_rate_limits` để hạn chế gửi form. Xem [STEM-MATHS.md](STEM-MATHS.md) để build website thứ hai và áp dụng migration 005 lên D1.

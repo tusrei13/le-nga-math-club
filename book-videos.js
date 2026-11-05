@@ -10,6 +10,7 @@ function localAsset(path,extension){
 function openVideo(id,button){
   const config=bookVideos[id];if(!config)return;
   const version=++sequence;video.pause();opener=button;
+  document.querySelectorAll('[data-reference-player]').forEach(player=>player.pause());
   title.textContent=config.title;message.textContent='';fallback.hidden=true;
   video.poster=localAsset(config.poster,'.jpg');
   video.src=localAsset(config.src,'.mp4');video.setAttribute('aria-label',config.title);

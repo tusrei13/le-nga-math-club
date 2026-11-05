@@ -1,3 +1,4 @@
+import {referenceCatalog} from '../reference-catalog.mjs';
 import {bookVideos} from '../book-video-data.js';
 import {staticSecurityHeaders,policies} from '../security.mjs';
 import { createHash } from 'node:crypto';
@@ -20,6 +21,11 @@ for(const product of digitalPreviews)for(const file of product.files){
   const pdf=await readFile(resolve(root,'public'+file.url));
   if(pdf.subarray(0,5).toString('ascii')!=='%PDF-'||pdf.length>25*1024*1024)throw new Error('Invalid or oversized public preview: '+file.url);
 }
+for(const p of referenceCatalog){
+  if(p.cover)await readFile(resolve(root,'public'+p.cover));
+  for(const f of p.previews){const path=decodeURIComponent(f.url);if(!path.startsWith('/assets/')||path.includes('..'))throw new Error('Invalid reference sample path');const pdf=await readFile(resolve(root,'public'+path));if(pdf.subarray(0,5).toString()!=='%PDF-'||pdf.length>25*1024*1024)throw new Error('Invalid reference PDF '+f.url);}
+}
+for(const file of ['video-70-de-but-toc.mp4','video-phieu-danh-gia-toan-5.mp4']){const video=await readFile(resolve(root,'public/assets/catalog',file));if(video.length>25*1024*1024||video.subarray(4,8).toString()!=='ftyp')throw new Error('Invalid reference video '+file);}
 for(const config of Object.values(bookVideos)){
   if(!/^\/assets\/videos\/sieu-nhan\/[a-z0-9-]+\.mp4$/.test(config.src))throw new Error('Invalid video URL');
   const video=await readFile(resolve(root,'public'+config.src));
@@ -29,7 +35,7 @@ for(const config of Object.values(bookVideos)){
 }
 await rm(output,{recursive:true,force:true}); await mkdir(output,{recursive:true});
 const logoVersion = createHash('sha256').update(await readFile('public/assets/logo.png')).digest('hex').slice(0,12);
-for (const name of ['index.html','styles.css','app.js','admin.html','admin.css','admin.js','customer.js','customer.css','digital.js','digital.css','admin-digital.js','admin-digital.css','book-videos.js','book-video-data.js','book-videos.css']) {
+for (const name of ['index.html','styles.css','app.js','admin.html','admin.css','admin.js','customer.js','customer.css','digital.js','digital.css','admin-digital.js','admin-digital.css','book-videos.js','book-video-data.js','book-videos.css','catalog-ui.js','catalog-ui.css']) {
   const destination = resolve(output,name);
   if (name.endsWith('.html') || name === 'customer.js') {
     const text = await readFile(name,'utf8');
@@ -61,5 +67,6 @@ sql+='\n'+await readFile('database/migrations/006-retire-geometry-book.sql','utf
 sql+='\n'+await readFile('database/migrations/007-book-previews.sql','utf8');
 sql+='\n'+await readFile('database/migrations/008-digital-documents.sql','utf8');
 sql+='\n'+await readFile('database/migrations/009-primary-maths-books.sql','utf8');
+sql+='\n'+await readFile('database/migrations/010-reference-catalog.sql','utf8');
 db.close(); await mkdir('cloudflare',{recursive:true}); await writeFile('cloudflare/init.sql',sql);
 console.log('Pages build ready in dist/. D1 initialization SQL: cloudflare/init.sql');

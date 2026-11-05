@@ -2,6 +2,8 @@
 
 Tất cả 31 PDF trong `public/assets/documents/previews/` là bản đọc thử đã được chủ CLB cho phép chia sẻ công khai. Không phải bản đầy đủ để bán. Danh mục có 17 nhóm, bao gồm nhóm Toán 3 quyển 1–4.
 
+Mục tài liệu đầy đủ mới có giá và liên hệ Zalo được mô tả trong [REFERENCE-CATALOG.md](REFERENCE-CATALOG.md). Những PDF trong kho đọc thử này vẫn miễn phí; không bật lại thanh toán hoặc Supabase.
+
 ## Cách hoạt động
 
 - Khách mở **Đọc thử PDF** ngay, không cần đăng nhập, tài khoản, chuyển khoản hoặc quyền tải.

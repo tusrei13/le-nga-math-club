@@ -1,3 +1,4 @@
+import {catalogProduct,shippingFor} from './reference-catalog.mjs';
 import {SecurityError,validateJsonHeaders,isJsonType} from './security.mjs';
 import { randomUUID, createHash } from 'node:crypto';
 import { db, products, landing, transaction } from './database/db.mjs';
@@ -121,11 +122,12 @@ export async function handleApi(request,response,url) {
       const result=transaction(()=>{
         const existing=previous('orders',requestKey,digest); if(existing) return {row:existing,replay:true};
         const resolved=items.map(item=>{
-          const product=db.prepare('SELECT * FROM products WHERE id=? AND active=1').get(item.product_id);
-          check(product,`Sách ${item.product_id} hiện không có trong danh mục.`); return {...item,product};
+          const row=db.prepare('SELECT * FROM products WHERE id=? AND active=1').get(item.product_id);
+          const product=row?catalogProduct(row):null;
+          check(product,`Sách ${item.product_id} hiện không có trong danh mục.`); check(product.orderable,'Sản phẩm này cần liên hệ trợ lí qua Zalo trước khi đặt.'); return {...item,product};
         });
         const subtotal=resolved.reduce((sum,item)=>sum+item.product.price_vnd*item.quantity,0);
-        const policy=JSON.parse(db.prepare("SELECT value_json FROM site_content WHERE key='sales_policy'").get().value_json), shipping=policy.shipping_vnd;
+        const policy=JSON.parse(db.prepare("SELECT value_json FROM site_content WHERE key='sales_policy'").get().value_json), shipping=shippingFor(resolved,policy);
         check(Number.isSafeInteger(shipping) && shipping>=0 && Number.isSafeInteger(subtotal+shipping),'Chính sách giá không hợp lệ.');
         const id=`DH-${randomUUID()}`;
         db.prepare('INSERT INTO orders(id,request_key,request_hash,parent_name,phone,grade,address,note,subtotal_vnd,shipping_vnd,total_vnd) VALUES(?,?,?,?,?,?,?,?,?,?,?)').run(id,requestKey,digest,person.name,person.phone,person.grade,address,person.note,subtotal,shipping,subtotal+shipping);

@@ -11,7 +11,7 @@ import { bookPreviews } from '../database/book-previews.mjs';
 import { createHash, randomBytes } from 'node:crypto';
 import worker from '../cloudflare/worker.mjs';
 class D1 {
-  constructor(){this.db=new DatabaseSync(':memory:');for(const file of ['database/schema.sql','database/admin-schema.sql','database/customer-schema.sql','cloudflare/edge-schema.sql'])this.db.exec(readFileSync(file,'utf8'));seed(this.db);}
+  constructor({reference=true}={}){this.db=new DatabaseSync(':memory:');for(const file of ['database/schema.sql','database/admin-schema.sql','database/customer-schema.sql','cloudflare/edge-schema.sql'])this.db.exec(readFileSync(file,'utf8'));seed(this.db,{reference});}
   prepare(sql) {
     const db=this.db;
     return { bind(...args) { return {
@@ -28,16 +28,16 @@ test('Pages D1 orders, private receipts, random-key login, CSRF, logout and repl
   async function req(path,method='GET',data,headers={}){return worker.fetch(new Request('https://books.pages.dev'+path,{method,headers:{'Content-Type':'application/json',...headers},body:data?JSON.stringify(data):undefined}),env);}
   try {
     assert.equal((await req('/healthz')).status,200);
-    const landing=await (await req('/api/landing')).json();assert.equal(landing.products.length,13);assert.deepEqual(landing.testimonials,[]);
+    const landing=await (await req('/api/landing')).json();assert.equal(landing.products.length,21);assert.deepEqual(landing.testimonials,[]);
     assert.equal((await req('/api/admin/orders')).status,401);
     assert.equal((await req('/api/auth/login','POST',{username:'admin',password:'wrong'})).status,401);
     assert.equal((await req('/api/auth/login','POST',{username:'admin',password},{Origin:'https://evil.test'})).status,403);
     const login=await req('/api/auth/login','POST',{username:'admin',password});assert.equal(login.status,200);const auth=await login.json();const cookie=login.headers.get('Set-Cookie').split(';')[0];assert.match(login.headers.get('Set-Cookie'),/Secure/);
     const admin={Cookie:cookie,'X-CSRF-Token':auth.csrf_token};
-    const payload={name:'Nguyễn An',phone:'0989066885',grade:6,address:'Hà Nội',items:[{product_id:'toan-6-tap-1',quantity:2}],total_vnd:1};const key={'Idempotency-Key':crypto.randomUUID()};
-    const created=await req('/api/orders','POST',payload,key);assert.equal(created.status,201);const receipt=await created.json();assert.equal(receipt.total_vnd,598000);assert.equal(receipt.phone,undefined);
+    const payload={name:'Nguyễn An',phone:'0989066885',grade:6,address:'Hà Nội',items:[{product_id:'phan-dang-6-bo-2-tap',quantity:2}],total_vnd:1};const key={'Idempotency-Key':crypto.randomUUID()};
+    const created=await req('/api/orders','POST',payload,key);assert.equal(created.status,201);const receipt=await created.json();assert.equal(receipt.total_vnd,538000);assert.equal(receipt.phone,undefined);
     assert.equal((await req('/api/orders','POST',payload,key)).status,200);assert.equal((await req('/api/orders','POST',{...payload,address:'Khác'},key)).status,409);
-    const invalid=await req('/api/orders','POST',{...payload,items:[{product_id:'toan-6-tap-1',quantity:2},{product_id:'missing',quantity:1}]},{'Idempotency-Key':crypto.randomUUID()});assert.equal(invalid.status,400);assert.equal(d1.db.prepare('SELECT count(*) n FROM orders').get().n,1);
+    const invalid=await req('/api/orders','POST',{...payload,items:[{product_id:'phan-dang-6-bo-2-tap',quantity:2},{product_id:'missing',quantity:1}]},{'Idempotency-Key':crypto.randomUUID()});assert.equal(invalid.status,400);assert.equal(d1.db.prepare('SELECT count(*) n FROM orders').get().n,1);
     assert.equal((await req(`/api/admin/orders/${receipt.id}/status`,'PATCH',{status:'confirmed'},{Cookie:cookie})).status,403);
     assert.equal((await req(`/api/admin/orders/${receipt.id}/status`,'PATCH',{status:'confirmed',expected_status:'pending'},admin)).status,200);
     assert.equal((await req(`/api/admin/orders/${receipt.id}/status`,'PATCH',{status:'shipping',expected_status:'pending'},admin)).status,409);
@@ -48,7 +48,7 @@ test('Pages D1 orders, private receipts, random-key login, CSRF, logout and repl
   } finally { d1.db.close(); }
 });
 test('Catalog corrections update existing prices once and preserve order snapshots and later edits',async()=>{
-  const d1=new D1();
+  const d1=new D1({reference:false});
   try {
     d1.db.exec("UPDATE products SET price_vnd=119000; UPDATE gifts SET active=1;");
     const payload={name:'Parent',phone:'0989066885',grade:6,address:'Hà Nội',items:[{product_id:'toan-6-tap-1',quantity:2}]};
@@ -96,7 +96,7 @@ test('Pages output excludes private files and SQLite online backups preserve row
 
 
 test('Retiring a book preserves order snapshots, rejects purchases and survives reseeding',async()=>{
-  const d1=new D1(),db=d1.db;
+  const d1=new D1({reference:false}),db=d1.db;
   try {
     const retired='200-bai-hinh-vao-6',title='200 bài hình học thi vào lớp 6 Chất lượng cao';
     db.prepare("INSERT INTO products(id,slug,title,category,grade,description,price_vnd) VALUES(?,?,?,'thi-vao-6',5,'Historical book',299000)").run(retired,retired,title);
@@ -109,7 +109,7 @@ test('Retiring a book preserves order snapshots, rejects purchases and survives 
     db.exec(migration);
     assert.equal(db.prepare('SELECT active FROM products WHERE id=?').get(retired).active,0);
     assert.equal(db.prepare("SELECT count(*) n FROM product_media WHERE product_id=? AND kind='cover'").get(retired).n,0);
-    seed(db);db.exec(migration);
+    seed(db,{reference:false});db.exec(migration);
     assert.equal(db.prepare('SELECT active FROM products WHERE id=?').get(retired).active,0);
     assert.equal(db.prepare("SELECT count(*) n FROM product_media WHERE product_id=? AND kind='cover'").get(retired).n,0);
     assert.deepEqual(db.prepare("SELECT * FROM order_items WHERE order_id='legacy-order'").get(),snapshot);
@@ -129,7 +129,7 @@ test('Retiring a book preserves order snapshots, rejects purchases and survives 
 
 
 test('Book preview migration replaces legacy samples once and preserves orders and later edits',async()=>{
-  const d1=new D1(),db=d1.db,env={DB:d1};
+  const d1=new D1({reference:false}),db=d1.db,env={DB:d1};
   try {
     db.exec("UPDATE product_media SET url='/assets/trang-mau-toan.pdf',alt='Legacy generic sample' WHERE kind='sample' AND product_id NOT LIKE 'sieu-nhan-tap-%'; UPDATE products SET price_vnd=305000 WHERE id='toan-6-tap-1';");
     const created=await worker.fetch(new Request('https://books.pages.dev/api/orders',{method:'POST',headers:{'Content-Type':'application/json','Idempotency-Key':crypto.randomUUID()},body:JSON.stringify({name:'Test parent',phone:'0989066885',grade:6,address:'Test address',items:[{product_id:'toan-6-tap-1',quantity:1}]})}),env);
@@ -146,7 +146,7 @@ test('Book preview migration replaces legacy samples once and preserves orders a
     assert.equal(db.prepare('SELECT total_vnd FROM orders WHERE id=?').get(receipt.id).total_vnd,305000);
     assert.equal(db.prepare("SELECT price_vnd FROM products WHERE id='toan-6-tap-1'").get().price_vnd,305000);
     db.prepare("UPDATE product_media SET url=? WHERE product_id='toan-6-tap-1' AND kind='sample'").run('/assets/later-admin-sample.pdf');
-    db.exec(migration);seed(db);
+    db.exec(migration);seed(db,{reference:false});
     assert.equal(db.prepare("SELECT url FROM product_media WHERE product_id='toan-6-tap-1' AND kind='sample'").get().url,'/assets/later-admin-sample.pdf');
     assert.equal(db.prepare('SELECT count(*) n FROM schema_versions WHERE version=7').get().n,1);
     assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(),[]);
@@ -154,7 +154,7 @@ test('Book preview migration replaces legacy samples once and preserves orders a
 });
 
 test('Four primary maths books upgrade an existing D1 catalog once and preserve edits and order snapshots',async()=>{
- const d1=new D1(),db=d1.db;
+ const d1=new D1({reference:false}),db=d1.db;
  try{
   db.exec("PRAGMA foreign_keys=ON; DELETE FROM product_media WHERE product_id LIKE 'sieu-nhan-tap-%'; DELETE FROM products WHERE id LIKE 'sieu-nhan-tap-%';");
   db.prepare("INSERT INTO orders(id,request_key,request_hash,parent_name,phone,grade,address,subtotal_vnd,shipping_vnd,total_vnd) VALUES('before-new-books','before-new-books','hash','Parent','0912345678',6,'Address',299000,0,299000)").run();
@@ -169,7 +169,7 @@ test('Four primary maths books upgrade an existing D1 catalog once and preserve 
    assert.equal(db.prepare('SELECT count(*) n FROM product_media WHERE product_id=?').get(id).n,2);
   }
   db.prepare("UPDATE products SET price_vnd=319000,active=0 WHERE id='sieu-nhan-tap-4'").run();
-  db.exec(migration);seed(db);
+  db.exec(migration);seed(db,{reference:false});
   assert.equal(db.prepare("SELECT price_vnd FROM products WHERE id='sieu-nhan-tap-4'").get().price_vnd,319000);
   assert.equal(db.prepare("SELECT active FROM products WHERE id='sieu-nhan-tap-4'").get().active,0);
   assert.equal(db.prepare("SELECT price_vnd FROM products WHERE id='toan-6-tap-1'").get().price_vnd,315000);
@@ -177,6 +177,38 @@ test('Four primary maths books upgrade an existing D1 catalog once and preserve 
   assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(),[]);
   const payload={name:'Parent',phone:'0912345678',grade:5,address:'Address',items:[{product_id:'sieu-nhan-tap-3',quantity:1}],consent:true};
   const response=await worker.fetch(new Request('https://books.pages.dev/api/orders',{method:'POST',headers:{'Content-Type':'application/json','Idempotency-Key':'new-primary-book-request-123456'},body:JSON.stringify(payload)}),{DB:d1});
-  assert.equal(response.status,201);assert.equal((await response.json()).total_vnd,299000);
+  assert.equal(response.status,400);assert.match((await response.json()).error,/liên hệ/);
  }finally{db.close();}
+});
+
+test('Reference migration preserves old snapshots, retires individual volumes and is idempotent',()=>{
+ const d1=new D1({reference:false}),db=d1.db;
+ try{
+  for(const version of ['004-catalog-corrections.sql','006-retire-geometry-book.sql','007-book-previews.sql','009-primary-maths-books.sql'])db.exec(readFileSync('database/migrations/'+version,'utf8'));
+  db.exec("INSERT INTO orders(id,request_key,request_hash,parent_name,phone,grade,address,subtotal_vnd,shipping_vnd,total_vnd) VALUES('legacy','legacy-ref-request','hash','Parent','0912345678',6,'Address',299000,0,299000);INSERT INTO order_items(order_id,product_id,title,unit_price_vnd,quantity) VALUES('legacy','toan-6-tap-1','Historical individual volume',299000,1)");
+  const before=db.prepare("SELECT * FROM order_items WHERE order_id='legacy'").get(),migration=readFileSync('database/migrations/010-reference-catalog.sql','utf8');
+  db.exec(migration);assert.equal(db.prepare('SELECT count(*) n FROM products WHERE active=1').get().n,21);
+  assert.equal(db.prepare("SELECT sum(active) n FROM products WHERE id LIKE 'toan-%-tap-%'").get().n,0);
+  assert.deepEqual(db.prepare("SELECT * FROM order_items WHERE order_id='legacy'").get(),before);
+  db.exec("UPDATE products SET price_vnd=280000 WHERE id='phan-dang-6-bo-2-tap';UPDATE faqs SET answer='Later admin answer' WHERE id='solutions'");
+  db.exec(migration);seed(db);
+  assert.equal(db.prepare("SELECT price_vnd FROM products WHERE id='phan-dang-6-bo-2-tap'").get().price_vnd,280000);
+  assert.equal(db.prepare("SELECT answer FROM faqs WHERE id='solutions'").get().answer,'Later admin answer');
+  assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(),[]);
+ }finally{db.close();}
+});
+test('Reference prices, enquiry-only items, expired offers and preorder shipping are enforced by D1',async()=>{
+ const {catalogProduct,referenceCatalog}=await import('../reference-catalog.mjs'),d1=new D1();
+ const person={name:'Parent',phone:'0912345678',grade:6,address:'Address'};
+ const req=items=>worker.fetch(new Request('https://books.pages.dev/api/orders',{method:'POST',headers:{'Content-Type':'application/json','Idempotency-Key':crypto.randomUUID()},body:JSON.stringify({...person,items})}),{DB:d1});
+ try{
+  for(const id of ['sieu-nhan-tap-1','phan-dang-9-bo-2-tap','tai-lieu-t5combo','toan-6-tap-1'])assert.equal((await req([{product_id:id,quantity:1}])).status,400,'must not accept '+id);
+  const bundle=referenceCatalog.find(p=>p.id==='phan-dang-6-bo-2-tap'),row={id:bundle.id,price_vnd:269000};
+  assert.equal(catalogProduct(row,Date.parse('2026-11-05')).price_vnd,269000);
+  assert.equal(catalogProduct(row,Date.parse('2026-12-01')).price_vnd,299000);
+  assert.equal(catalogProduct({...row,price_vnd:280000},Date.parse('2026-12-01')).price_vnd,280000);
+  const policy=JSON.parse(d1.db.prepare("SELECT value_json FROM site_content WHERE key='sales_policy'").get().value_json);policy.shipping_vnd=25000;d1.db.prepare("UPDATE site_content SET value_json=? WHERE key='sales_policy'").run(JSON.stringify(policy));
+  const free=await req([{product_id:'70-de-vao-6',quantity:2}]);assert.equal(free.status,201);const receipt=await free.json();assert.equal(receipt.shipping_vnd,0);assert.equal(receipt.total_vnd,498000);
+  const mixed=await req([{product_id:'70-de-vao-6',quantity:1},{product_id:bundle.id,quantity:1}]);assert.equal(mixed.status,201);assert.equal((await mixed.json()).total_vnd,543000);
+ }finally{d1.db.close();}
 });

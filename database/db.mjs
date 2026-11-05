@@ -1,3 +1,4 @@
+import {catalogProduct} from '../reference-catalog.mjs';
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -26,10 +27,11 @@ transaction(() => {
   db.exec(readFileSync(new URL('./migrations/007-book-previews.sql', import.meta.url),'utf8'));
   db.exec(readFileSync(new URL('./migrations/008-digital-documents.sql', import.meta.url),'utf8'));
   db.exec(readFileSync(new URL('./migrations/009-primary-maths-books.sql', import.meta.url),'utf8'));
+  db.exec(readFileSync(new URL('./migrations/010-reference-catalog.sql', import.meta.url),'utf8'));
 });
 export function products(includeInactive = false) {
   return db.prepare(`SELECT * FROM products ${includeInactive ? '' : 'WHERE active = 1'} ORDER BY sort_order,id`).all().map(p => ({
-    ...p, media: db.prepare('SELECT kind,url,alt FROM product_media WHERE product_id = ?').all(p.id)
+    ...catalogProduct(p), media: db.prepare('SELECT kind,url,alt FROM product_media WHERE product_id = ?').all(p.id)
   }));
 }
 export function landing() {

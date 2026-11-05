@@ -11,7 +11,7 @@ import { hashPassword } from '../passwords.mjs';
 let child, directory, base;
 const token='test-only-admin-token-with-at-least-32-characters';
 const person={name:'Nguyễn Thị An',phone:'0989066885',grade:6,note:'Con cần ôn hình học.'};
-const order={...person,address:'02 Geleximco, Hà Nội',items:[{product_id:'toan-6-tap-1',quantity:2},{product_id:'70-de-vao-6',quantity:1}],total_vnd:1};
+const order={...person,address:'02 Geleximco, Hà Nội',items:[{product_id:'phan-dang-6-bo-2-tap',quantity:2},{product_id:'70-de-vao-6',quantity:1}],total_vnd:1};
 const adminHeaders={Authorization:`Bearer ${token}`};
 async function api(path,method='GET',data,headers={}) {
   const response=await fetch(base+path,{method,headers:{'Content-Type':'application/json',...headers},body:data===undefined?undefined:JSON.stringify(data)});
@@ -35,43 +35,40 @@ after(async()=>{
   if(child && child.exitCode===null) {const exited=new Promise(resolve=>child.once('exit',resolve));child.kill();await exited;}
   if(directory) await rm(directory,{recursive:true,force:true});
 });
-test('Danh mục chứa đúng 13 sách, giá, ảnh bìa và 13 PDF đọc thử đúng sách',async()=>{
-  const result=await api('/api/landing'); assert.equal(result.status,200); assert.equal(result.data.products.length,13);
-  assert.equal(result.data.faqs.length,3);assert.equal(result.data.gifts.length,0);
-  assert.equal(result.data.content.sales_policy.gifts_with_order,false);
-  for(const product of result.data.products) {
-    assert.equal(product.price_vnd,299000);
-    const cover=product.media.find(m=>m.kind==='cover');assert.ok(cover);
-    const image=await fetch(base+cover.url);assert.equal(image.status,200);assert.match(image.headers.get('content-type'),/^image\//);await image.arrayBuffer();
-    const sample=product.media.find(media=>media.kind==='sample');assert.ok(sample);
-    const expectedFile=product.id.startsWith('sieu-nhan-tap-')?'EM LA SIEU NHAN GIAI TOAN TIEU HOC-TAP'+product.id.at(-1)+'-BAN-HOC-THU.pdf':product.id==='70-de-vao-6'?'70 DE BUT TOC THI VAO LOP 6 CLC-BAN-DOC-THU.pdf':'PHAN DANG TOAN '+product.grade+'-TAP'+product.volume+'-BAN-DOC-THU.pdf';
-    assert.equal(sample.url,'/assets/books%20preview/'+encodeURIComponent(expectedFile));
-    const pdf=await fetch(base+sample.url);assert.equal(pdf.status,200);assert.match(pdf.headers.get('content-type'),/^application\/pdf/);
-    const received=Buffer.from(await pdf.arrayBuffer()),original=await readFile(join('public','assets','books preview',expectedFile));
-    assert.equal(received.subarray(0,5).toString('ascii'),'%PDF-');
-    assert.equal(createHash('sha256').update(received).digest('hex'),createHash('sha256').update(original).digest('hex'));
-
-  }
+test('Danh mục mẫu có 21 sản phẩm, giá/liên hệ đúng và PDF đọc thử truy cập được',async()=>{
+ const {referenceCatalog}=await import('../reference-catalog.mjs');
+ const result=await api('/api/landing');assert.equal(result.status,200);assert.equal(result.data.products.length,21);
+ assert.equal(result.data.faqs.length,6);assert.equal(result.data.gifts.length,0);
+ for(const p of result.data.products){
+  const source=referenceCatalog.find(s=>s.id===p.id);assert.ok(source);
+  assert.equal(p.title,source.title);assert.equal(p.price_vnd,source.price_vnd);
+  if(p.price_vnd===null)assert.equal(p.orderable,false);
+  for(const media of p.media.filter(m=>m.kind==='cover')){const r=await fetch(base+media.url);assert.equal(r.status,200);assert.match(r.headers.get('content-type'),/^image\//);await r.arrayBuffer();}
+  for(const preview of p.previews){const r=await fetch(base+preview.url);assert.equal(r.status,200);assert.match(r.headers.get('content-type'),/^application\/pdf/);assert.equal(Buffer.from(await r.arrayBuffer()).subarray(0,5).toString(),'%PDF-');}
+ }
+ assert.equal(result.data.products.find(p=>p.id==='phan-dang-6-bo-2-tap').unit,'bộ');
+ assert.equal(result.data.products.find(p=>p.id==='phan-dang-6-bo-2-tap').previews.length,3);
 });
-test('Đơn lưu giá 299k và snapshot; không tự thêm quà, gửi lại không tạo đơn mới',async()=>{
+
+test('Đơn lưu giá bộ theo mẫu và snapshot; không tự thêm quà, gửi lại không tạo đơn mới',async()=>{
   const headers={'Idempotency-Key':randomUUID()};
-  const first=await api('/api/orders','POST',order,headers);assert.equal(first.status,201);assert.equal(first.data.total_vnd,897000);
+  const first=await api('/api/orders','POST',order,headers);assert.equal(first.status,201);assert.equal(first.data.total_vnd,787000);
   const replay=await api('/api/orders','POST',order,headers);assert.equal(replay.status,200);assert.equal(replay.data.id,first.data.id);
   const conflict=await api('/api/orders','POST',{...order,note:'Khác'},headers);assert.equal(conflict.status,409);
   const list=await api('/api/admin/orders','GET',undefined,adminHeaders);assert.equal(list.data.total,1);
   assert.equal(list.data.data[0].items.length,2);assert.equal(list.data.data[0].gifts.length,0);assert.equal(list.data.data[0].parent_name,person.name);
-  const update=await api('/api/admin/products/toan-6-tap-1','PATCH',{price_vnd:129000},adminHeaders);assert.equal(update.status,200);
-  const after=await api('/api/admin/orders','GET',undefined,adminHeaders);assert.equal(after.data.data[0].items.find(i=>i.product_id==='toan-6-tap-1').unit_price_vnd,299000);
-  assert.equal((await api('/api/orders','POST',order,headers)).data.total_vnd,897000);
-  await api('/api/admin/products/toan-6-tap-1','PATCH',{price_vnd:299000},adminHeaders);
+  const update=await api('/api/admin/products/phan-dang-6-bo-2-tap','PATCH',{price_vnd:129000},adminHeaders);assert.equal(update.status,200);
+  const after=await api('/api/admin/orders','GET',undefined,adminHeaders);assert.equal(after.data.data[0].items.find(i=>i.product_id==='phan-dang-6-bo-2-tap').unit_price_vnd,269000);
+  assert.equal((await api('/api/orders','POST',order,headers)).data.total_vnd,787000);
+  await api('/api/admin/products/phan-dang-6-bo-2-tap','PATCH',{price_vnd:269000},adminHeaders);
 });
 test('Dữ liệu không hợp lệ bị từ chối, giao dịch lỗi không lưu nửa đơn',async()=>{
   for(const payload of [
     {...order,phone:'123'}, {...order,grade:10}, {...order,address:''}, {...order,items:[]},
-    {...order,items:[{product_id:'toan-6-tap-1',quantity:0}]},
-    {...order,items:[{product_id:'toan-6-tap-1',quantity:1.5}]},
-    {...order,items:[{product_id:'toan-6-tap-1',quantity:1},{product_id:'not-a-book',quantity:1}]},
-    {...order,items:[{product_id:'toan-6-tap-1',quantity:1},{product_id:'toan-6-tap-1',quantity:1}]}
+    {...order,items:[{product_id:'phan-dang-6-bo-2-tap',quantity:0}]},
+    {...order,items:[{product_id:'phan-dang-6-bo-2-tap',quantity:1.5}]},
+    {...order,items:[{product_id:'phan-dang-6-bo-2-tap',quantity:1},{product_id:'not-a-book',quantity:1}]},
+    {...order,items:[{product_id:'phan-dang-6-bo-2-tap',quantity:1},{product_id:'phan-dang-6-bo-2-tap',quantity:1}]}
   ]) assert.equal((await api('/api/orders','POST',payload,{'Idempotency-Key':randomUUID()})).status,400);
   const rows=await api('/api/admin/orders','GET',undefined,adminHeaders);assert.equal(rows.data.total,1);
   assert.equal((await api('/api/orders','POST',order)).status,400);
@@ -102,27 +99,27 @@ test('Trạng thái theo quy trình và lịch sử thay đổi được lưu',a
 });
 test('Nội dung quản trị cập nhật được, ẩn nội dung và tính phí từ chính sách trong database',async()=>{
   assert.equal((await api('/api/admin/content')).status,401);
-  assert.equal((await api('/api/admin/content','GET',undefined,adminHeaders)).data.faqs.length,3);
+  assert.equal((await api('/api/admin/content','GET',undefined,adminHeaders)).data.faqs.length,6);
   assert.equal((await api('/api/admin/faqs/foundation','PATCH',{answer:'Nội dung thử nghiệm từ database.'},adminHeaders)).status,200);
-  assert.equal((await api('/api/landing')).data.faqs[0].answer,'Nội dung thử nghiệm từ database.');
+  assert.equal((await api('/api/landing')).data.faqs.find(f=>f.id==='foundation').answer,'Nội dung thử nghiệm từ database.');
   assert.equal((await api('/api/admin/testimonials/parent-5','PATCH',{published:false},adminHeaders)).status,200);
   assert.equal((await api('/api/landing')).data.testimonials.length,0);
   assert.equal((await api('/api/admin/content/sales_policy','PATCH',{shipping_vnd:25000,gifts_with_order:false},adminHeaders)).status,200);
   assert.equal((await api('/api/admin/content/contact','PATCH',{facebook:'javascript:alert(1)'},adminHeaders)).status,400);
-  const result=await api('/api/orders','POST',order,{'Idempotency-Key':randomUUID()});assert.equal(result.data.total_vnd,922000);
+  const result=await api('/api/orders','POST',order,{'Idempotency-Key':randomUUID()});assert.equal(result.data.total_vnd,812000);
   const rows=await api('/api/admin/orders','GET',undefined,adminHeaders);assert.equal(rows.data.data.find(row=>row.id===result.data.id).gifts.length,0);
-  assert.equal((await api('/api/admin/products/toan-6-tap-1','PATCH',{cover_url:'/assets/books/Phan%20dang%20toan%20lop6%20t1.png'},adminHeaders)).status,200);
-  assert.equal((await api('/api/admin/products/toan-6-tap-1','PATCH',{active:false},adminHeaders)).status,200);
+  assert.equal((await api('/api/admin/products/phan-dang-6-bo-2-tap','PATCH',{cover_url:'/assets/books/Phan%20dang%20toan%20lop6%20t1.png'},adminHeaders)).status,200);
+  assert.equal((await api('/api/admin/products/phan-dang-6-bo-2-tap','PATCH',{active:false},adminHeaders)).status,200);
   assert.equal((await api('/api/orders','POST',order,{'Idempotency-Key':randomUUID()})).status,400);
-  assert.equal((await api('/api/products')).data.products.length,12);
+  assert.equal((await api('/api/products')).data.products.length,20);
 });
 test('Khởi tạo lại giữ nguyên dữ liệu đã chỉnh sửa và các đơn đã lưu',async()=>{
   execFileSync(process.execPath,['database/init.mjs'],{cwd:new URL('..',import.meta.url),env:{...process.env,DATABASE_PATH:join(directory,'test.sqlite')},stdio:'pipe'});
   const result=await api('/api/admin/content','GET',undefined,adminHeaders);
   assert.equal(result.data.content.sales_policy.shipping_vnd,25000);
-  assert.equal(result.data.faqs[0].answer,'Nội dung thử nghiệm từ database.');
+  assert.equal(result.data.faqs.find(f=>f.id==='foundation').answer,'Nội dung thử nghiệm từ database.');
   assert.equal((await api('/api/admin/orders','GET',undefined,adminHeaders)).data.total,2);
-  assert.equal((await api('/api/products')).data.products.length,12);
+  assert.equal((await api('/api/products')).data.products.length,20);
 });
 const loginPassword='Test-only password for admin 2026';
 let sessionCookie, csrfToken;

@@ -213,7 +213,7 @@ function emptyOrders() {
   const link = element('a', 'Chọn sách cho con', 'btn btn-primary');
   link.href = '#bo-sach';
   link.addEventListener('click', () => dialog.close());
-  empty.append(books, element('h3', 'Tủ sách của bạn bắt đầu từ đây.'), element('p', 'Một cuốn sách phù hợp, một khởi đầu cho con.'), link);
+  empty.append(books, element('h3', 'Tủ sách của bạn bắt đầu từ đây.'), element('p', 'Một sản phẩm sách phù hợp, một khởi đầu cho con.'), link);
   return empty;
 }
 function orderCard(order) {
@@ -230,7 +230,7 @@ function orderCard(order) {
   for (const item of order.items) {
     const row = element('div', undefined, 'customer-order-item');
     const description = element('div');
-    description.append(element('h4', item.title), element('p', `${item.quantity} cuốn${Number.isFinite(item.unit_price_vnd) ? ` · ${money(item.unit_price_vnd)}/cuốn` : ''}`));
+    description.append(element('h4', item.title), element('p', `${item.quantity} sản phẩm${Number.isFinite(item.unit_price_vnd) ? ` · ${money(item.unit_price_vnd)}/sản phẩm` : ''}`));
     row.append(coverImage(item.cover_url, item.title), description);
     items.append(row);
   }
@@ -260,7 +260,7 @@ async function loadOrders() {
   const timeout = setTimeout(() => controller.abort(), 15000);
   const container = $('#customer-orders');
   container.setAttribute('aria-busy', 'true');
-  container.replaceChildren(element('p', 'Đang tìm những cuốn sách của bạn…', 'customer-orders-loading'));
+  container.replaceChildren(element('p', 'Đang tìm những sản phẩm sách của bạn…', 'customer-orders-loading'));
   $('#customer-orders-limit').hidden = true;
   try {
     const token = await waitFor(currentUser.getIdToken(), 10000);

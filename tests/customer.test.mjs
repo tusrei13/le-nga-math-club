@@ -30,12 +30,12 @@ test('D1 customer orders isolate owners and ignore a forged client customer_id',
   const env={...envConfig,DB};
   const req=(path,method='GET',data,uid)=>worker.fetch(new Request('https://site.test'+path,{method,headers:{'Content-Type':'application/json','Idempotency-Key':crypto.randomUUID(),...(uid?{Authorization:`Bearer ${jwt(uid)}`}:{})},body:data?JSON.stringify(data):undefined}),env);
   try{
-    const payload={name:'Parent',phone:'0989066885',grade:6,address:'Hà Nội',customer_id:'test-project:bob',items:[{product_id:'toan-6-tap-1',quantity:1}]};
+    const payload={name:'Parent',phone:'0989066885',grade:6,address:'Hà Nội',customer_id:'test-project:bob',items:[{product_id:'phan-dang-6-bo-2-tap',quantity:1}]};
     assert.equal((await req('/api/orders','POST',payload,'alice')).status,201);
     assert.equal((await req('/api/orders','POST',payload)).status,201);
     const alice=await(await req('/api/customer/orders','GET',undefined,'alice')).json();const bob=await(await req('/api/customer/orders','GET',undefined,'bob')).json();
     assert.equal(alice.orders.length,1);assert.equal(bob.orders.length,0);
-    assert.equal(alice.orders[0].items[0].title,'Phân dạng Toán 6 tập 1');
+    assert.equal(alice.orders[0].items[0].title,'Bộ Phân dạng Toán 6 (Tập 1 + Tập 2)');
     assert.equal((await req('/api/customer/orders')).status,401);
     assert.equal((await req('/api/admin/orders','GET',undefined,'alice')).status,401);
     assert.equal(db.prepare('SELECT count(*) n FROM customer_orders').get().n,1);

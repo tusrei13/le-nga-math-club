@@ -322,3 +322,5 @@ h1, h2, h3, h4, p, .chosen-program strong, .contact-block a, .check-label span, 
   *, *::before, *::after { transition: none !important; }
   .gold:hover { transform: none; }
 }
+
+.stem-reference-grid {display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr);gap:40px;align-items:center}.stem-reference-grid>img{width:100%;max-height:520px;object-fit:contain}.stem-reference-grid li{margin-block:10px}.stem-reference-grid a{text-decoration:underline;text-underline-offset:3px}@media(max-width:700px){.stem-reference-grid{grid-template-columns:1fr;gap:24px}.stem-reference-grid>img{max-height:400px}}

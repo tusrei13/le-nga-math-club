@@ -35,3 +35,6 @@ node_modules/
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Local reference templates
+/sach-toan-co-le-nga/

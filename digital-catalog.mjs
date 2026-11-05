@@ -22,7 +22,7 @@ export const digitalPreviews = [
   {
     "id": "g3-quyen-1-4-preview",
     "grade": 3,
-    "title": "Toán 3 · Quyển 1–4",
+    "title": "Toán 3 Nâng cao · Luyện tập theo tuần (4 quyển)",
     "files": [
       {
         "label": "Đọc thử quyển 1",
@@ -51,7 +51,7 @@ export const digitalPreviews = [
   {
     "id": "g3-10-de-cuoi-hk1",
     "grade": 3,
-    "title": "10 đề chinh phục cuối học kỳ I · Toán 3",
+    "title": "10 đề kiểm tra học kỳ I · Toán 3",
     "files": [
       {
         "label": "Bản đọc thử PDF",
@@ -103,7 +103,7 @@ export const digitalPreviews = [
   {
     "id": "g4-cuoi-tuan-clc",
     "grade": 4,
-    "title": "Toán cuối tuần Chất lượng cao · Toán 4",
+    "title": "Cuối tuần Toán 4 Chất lượng cao · Tập 1",
     "files": [
       {
         "label": "Bản đọc thử PDF",
