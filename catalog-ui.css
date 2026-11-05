@@ -41,7 +41,7 @@
 .reference-document { display:flex; gap:20px; padding:24px; background:white; border:1px solid var(--line); min-width:0; }
 .reference-document>img { flex:0 0 100px; width:100px; height:145px; object-fit:contain; }
 .reference-document-copy { display:flex; flex-direction:column; min-width:0; gap:12px; }
-.reference-document h3 { font:600 17px/1.45 var(--sans); margin:0; }
+.reference-document h3 { font:700 17px/1.45 var(--sans); margin:0; }
 .reference-document p { margin:0; font-size:13px; line-height:1.7; }
 .reference-document small { font-size:11px; color:var(--ink-soft); }
 .reference-document .reference-actions .btn { padding:10px 12px; font-size:12px; min-height:44px; }

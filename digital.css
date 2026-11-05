@@ -32,7 +32,7 @@
 
 /* Small paper stacks keep the title and purchase information in focus. */
 .digital-product-info { display:flex; min-width:0; flex-direction:column; padding:0; }
-.digital-product-info h3 { font:600 20px/1.45 var(--sans); margin:0 0 20px; overflow-wrap:anywhere; }
+.digital-product-info h3 { font:700 20px/1.45 var(--sans); margin:0 0 20px; overflow-wrap:anywhere; }
 .digital-cover { position:relative; isolation:isolate; align-self:start; display:flex; flex-direction:column; justify-content:space-between; width:110px; min-height:154px; padding:14px 12px 12px 16px; background:#fffdf7; color:var(--brand-navy); border:1px solid #29315f40; border-left:4px solid var(--brand-navy); margin:0 6px 6px 0; }
 .digital-cover::before,.digital-cover::after { content:""; position:absolute; z-index:-1; inset:3px -4px -4px 3px; border:1px solid #29315f26; background:#f6f5ef; }
 .digital-cover::after { inset:6px -7px -7px 6px; z-index:-2; background:#eeeee8; }
