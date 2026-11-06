@@ -17,6 +17,7 @@ for(const file of ['index.html','styles.css','app.js']){
 for(const file of ['logo.png','teacher-le-nga.jpg'])await cp(resolve(root,'public/assets',file),resolve(output,'assets',file));
 await mkdir(resolve(output,'assets/catalog'),{recursive:true});
 await cp(resolve(root,'public/assets/catalog/co-le-nga-tai-clb.jpg'),resolve(output,'assets/catalog/co-le-nga-tai-clb.jpg'));
+await cp(resolve(root,'public/assets/fonts/be-vietnam-pro'),resolve(output,'assets/fonts/be-vietnam-pro'),{recursive:true,filter:source=>!source.endsWith('.code-workspace')});
 await build({entryPoints:[resolve(site,'worker.mjs')],outfile:resolve(output,'_worker.js'),bundle:true,platform:'neutral',format:'esm',external:['node:crypto']});
 await writeFile(resolve(output,'_routes.json'),JSON.stringify({version:1,include:['/api/*','/healthz','/robots.txt','/sitemap.xml','/admin'],exclude:[]}));
 await writeFile(resolve(output,'_headers'),staticSecurityHeaders(policies.stem));

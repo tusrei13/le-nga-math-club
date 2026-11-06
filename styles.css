@@ -255,7 +255,7 @@ h3 em { font-style:normal; }
 .order-contact { display:flex; flex-wrap:wrap; align-items:center; gap:8px 20px; border-top:1px solid var(--line-dark); margin-top:24px; padding-top:18px; }
 .order-contact span { width:100%; font-size:14px; }
 .order-contact a { font:700 24px/1.4 var(--serif); }
-.order-contact small { font-size:14px; overflow-wrap:anywhere; }
+.order-contact small { width:100%; font-size:14px; overflow-wrap:anywhere; }
 .order-panel { padding:28px; background:var(--paper); color:var(--ink); scroll-margin-top:20px; }
 .order-panel:focus { outline:none; }
 .order-panel:focus-visible { outline:3px solid var(--paper); outline-offset:6px; }
@@ -614,3 +614,21 @@ details p { font-size:16px; color:var(--ink-soft); margin:16px 0 0; }
 .hero-book-covers .hero-primary-cover:last-child { right:2%; width:43%; bottom:3%; }
 
 .hero-book-covers .hero-entrance-cover:first-child { left:2%; width:42%; bottom:3%; clip-path:polygon(14.4% 9.7%,18% 9.5%,77.4% 11%,94.9% 80.8%,89.9% 85.1%,19.1% 87%,16.5% 88%,10.8% 13.1%,11.3% 12.1%,12.7% 10.8%); }
+
+/* Layout polish: one tidy book image, readable contacts, compact mobile catalog. */
+.order-book-display.is-single img { width:150px; height:auto; max-height:200px; transform:none; border-radius:6px; }
+.footer-links a { display:inline-flex; align-items:center; min-height:36px; }
+@media(max-width:560px) {
+  .book-catalog { grid-template-columns:repeat(2,minmax(0,1fr)); gap:28px 14px; }
+  .book-card,.book-card:last-child { width:auto; grid-column:auto; }
+  .book-card .book-meta span:first-child { display:none; }
+  .book-card-copy { padding-top:12px; }
+  .book-card-copy h3 { font-size:16px; line-height:1.35; margin-bottom:6px; }
+  .book-card-copy p { font-size:13px; line-height:1.5; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  .book-card .reference-product-meta { font-size:11px; }
+  .book-card .product-price { font-size:17px; overflow-wrap:anywhere; }
+  .book-card-actions { flex-direction:column; align-items:stretch; gap:6px; }
+  .book-card-actions > * { width:100%; justify-content:center; text-align:center; }
+  .book-card-actions .text-link { font-size:14px; }
+  .book-preview { font-size:13px; padding:8px; }
+}

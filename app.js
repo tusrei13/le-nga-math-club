@@ -310,6 +310,7 @@ function updateOrderArtwork() {
     image.hidden = !cover;
     if (cover) image.src = cover.url;
   });
+  document.querySelector('.order-book-display')?.classList.toggle('is-single', document.querySelectorAll('.order-book-display img:not([hidden])').length < 2);
 }
 function validBookSelection() {
   const items = selectedItems();
@@ -455,8 +456,10 @@ async function loadLanding() {
     document.querySelector('.hero-book-covers').hidden = !useBookCovers;
     if (!useBookCovers) heroImage.src = illustration;
     const contact = data.content.contact;
-    document.querySelectorAll('a[href^="tel:"]:not([data-assistant-phone])').forEach(a=>{a.href='tel:'+contact.phone;a.textContent=contact.phone_display;});
-    document.querySelectorAll('[data-assistant-phone]').forEach(a=>{a.href='tel:'+(contact.assistant_phone||'0365473632');a.textContent=contact.assistant_phone_display||'0365 473 632';});
+    // Only rewrite text that is itself a phone number, so labelled links keep their wording.
+    const setPhone=(a,href,display)=>{a.href='tel:'+href;const target=[a,...a.querySelectorAll('strong')].find(e=>/^[\d\s.+]+$/.test(e.textContent.trim()));if(target)target.textContent=display;};
+    document.querySelectorAll('a[href^="tel:"]:not([data-assistant-phone])').forEach(a=>setPhone(a,contact.phone,contact.phone_display));
+    document.querySelectorAll('[data-assistant-phone]').forEach(a=>setPhone(a,contact.assistant_phone||'0365473632',contact.assistant_phone_display||'0365 473 632'));
     document.querySelector('.order-contact small').textContent = contact.email;
     document.querySelector('a[href^="mailto:"]').href = `mailto:${contact.email}`;
     document.querySelector('a[href^="mailto:"]').textContent = contact.email;
