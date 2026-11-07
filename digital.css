@@ -77,3 +77,10 @@
 #digital-preview-files .btn { justify-content:flex-start; white-space:normal; overflow-wrap:anywhere; }
 .digital-preview-free { color:var(--ink-soft); font-size:12px; }
 @media(max-width:420px) { .digital-preview-dialog { padding:20px; } }
+
+/* Real first-page thumbnails keep the stacked-paper edge of the typographic cover. */
+.digital-cover.has-image { padding:0; min-height:0; aspect-ratio:400 / 566; background:white; border-left-width:0; }
+.digital-cover.has-image img { display:block; width:100%; height:100%; object-fit:cover; object-position:top; }
+.digital-product:hover .digital-cover.has-image { transform:translateY(-3px); }
+.digital-cover { transition:transform .25s var(--ease); }
+@media(prefers-reduced-motion:reduce) { .digital-cover { transition:none; } .digital-product:hover .digital-cover.has-image { transform:none; } }

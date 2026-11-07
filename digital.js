@@ -4,14 +4,20 @@ let products=[];
 const node=(tag,text,className)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(className)e.className=className;return e;};
 let selectedGrade='',currentPage=1;
 const pageSize=6;
+function typographicCover(topic,product){return [node('span','TOÁN CÔ LÊ NGA','digital-cover-brand'),node('strong','TOÁN '+product.grade,'digital-cover-grade'),node('span',undefined,'digital-cover-lines'),node('span',topic?'CHUYÊN ĐỀ':'BỘ ĐỀ','digital-cover-kind')];}
 function productCard(product){
   const topic=/chuyên đề|tổng\s*[–-]\s*hiệu|tối ưu|đường tròn/i.test(product.title);
   const card=node('article',undefined,'digital-product');
   const cover=node('div',undefined,'digital-cover'+(topic?' digital-cover-topic':''));
   cover.setAttribute('aria-hidden','true');
-  cover.append(node('span','TOÁN CÔ LÊ NGA','digital-cover-brand'),node('strong','TOÁN '+product.grade,'digital-cover-grade'),node('span',undefined,'digital-cover-lines'),node('span',topic?'CHUYÊN ĐỀ':'BỘ ĐỀ','digital-cover-kind'));
+  if(product.cover){
+    // Real first page of the reading sample; fall back to the typographic cover if it fails.
+    const image=node('img');image.src=product.cover;image.alt='';image.loading='lazy';image.decoding='async';image.width=400;image.height=566;
+    image.addEventListener('error',()=>{cover.classList.remove('has-image');image.remove();cover.append(...typographicCover(topic,product));},{once:true});
+    cover.classList.add('has-image');cover.append(image);
+  } else cover.append(...typographicCover(topic,product));
   const info=node('div',undefined,'digital-product-info');
-  info.append(node('p',(topic?'Chuyên đề':'Bộ đề')+' · PDF · '+product.file_count+' bản đọc thử','digital-product-meta'),node('h3',product.title));
+  info.append(node('p',(topic?'Chuyên đề':'Bộ đề')+' PDF, '+product.file_count+' bản đọc thử','digital-product-meta'),node('h3',product.title));
   const bottom=node('div',undefined,'digital-product-bottom');
   bottom.append(node('span','Đọc thử miễn phí','digital-preview-free'));
   if(product.files.length===1)bottom.append(previewLink(product.files[0],'Đọc thử PDF','btn btn-primary'));

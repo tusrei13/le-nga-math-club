@@ -15,6 +15,17 @@ let orderStep = 1;
 let activeBookGroup = '6';
 const primaryBook=product=>product.category==='thi-vao-6'||product.id.startsWith('sieu-nhan-tap-');
 const bookGroup=product=>primaryBook(product)?'primary':String(product.grade);
+// Order-form artwork uses the 3D book renders from /assets/books, cut out to transparent WebP in /assets/books/cutout (a catalog cover may be a photo of cô Nga).
+const bookRenders=product=>{
+  const bundle=/^phan-dang-(\d)-bo-2-tap$/.exec(product.id);
+  if(bundle)return [1,2].map(tap=>`/assets/books/cutout/phan-dang-${bundle[1]}-tap-${tap}.webp`);
+  const single=/^toan-(\d)-tap-(\d)$/.exec(product.id);
+  if(single)return [`/assets/books/cutout/phan-dang-${single[1]}-tap-${single[2]}.webp`];
+  const hero=/^sieu-nhan-tap-(\d)$/.exec(product.id);
+  if(hero)return [`/assets/books/cutout/sieu-nhan-tap-${hero[1]}.webp`];
+  if(product.id==='70-de-vao-6')return ['/assets/books/cutout/70-de-but-toc.webp'];
+  const cover=product.media.find(m=>m.kind==='cover');return cover?[cover.url]:[];
+};
 const visibility = { hero: true, order: false, footer: false, digital: false };
 const visibleActions = new Set();
 const overlappingContent = new Set();
@@ -303,12 +314,12 @@ function updateTotal() {
 }
 function updateOrderArtwork() {
   const chosen = selectedItems().map(item => catalog.find(p => p.id === item.product_id));
-  const group = catalog.filter(p => bookGroup(p) === activeBookGroup);
-  const books = [...chosen, ...group.filter(p => !chosen.some(c => c.id === p.id))].slice(0,2);
+  // Books listed in the picker come first so the artwork matches what parents can order.
+  const group = catalog.filter(p => bookGroup(p) === activeBookGroup).sort((a,b) => Number(Boolean(b.orderable)) - Number(Boolean(a.orderable)));
+  const covers = [...chosen, ...group.filter(p => !chosen.some(c => c.id === p.id))].flatMap(bookRenders).slice(0,2);
   document.querySelectorAll('.order-book-display img').forEach((image,index) => {
-    const cover = books[index]?.media.find(m => m.kind === 'cover');
-    image.hidden = !cover;
-    if (cover) image.src = cover.url;
+    image.hidden = !covers[index];
+    if (covers[index]) image.src = covers[index];
   });
   document.querySelector('.order-book-display')?.classList.toggle('is-single', document.querySelectorAll('.order-book-display img:not([hidden])').length < 2);
 }
@@ -362,7 +373,7 @@ async function loadLanding() {
       if(!primaryIntroAdded&&product.id.startsWith('sieu-nhan-tap-')){const intro=document.querySelector('#primary-series-intro');if(intro)cards.append(intro.content.cloneNode(true));primaryIntroAdded=true;}
       const card = element('article', undefined, 'book-card');card.dataset.productId=product.id;
       const meta = element('div', undefined, 'book-meta');
-      meta.append(element('span', `${String(index + 1).padStart(2,'0')} / ${primaryBook(product)?'TOÁN TIỂU HỌC':'PHÂN DẠNG'}`), element('span', primaryBook(product)?'TIỂU HỌC':`LỚP ${product.grade}`));
+      meta.append(element('span', primaryBook(product)?'Toán Tiểu học':`Phân dạng · Lớp ${product.grade}`));
       const cover = product.media.find(media => media.kind === 'cover');
       const art = element('div', undefined, 'product-cover');
       if (cover) {
@@ -389,7 +400,7 @@ async function loadLanding() {
       const option = element('div', undefined, 'book-option');
       option.dataset.pickerGroup = bookGroup(product);
       const thumbnail = element('img'); thumbnail.alt = ''; thumbnail.loading = 'lazy';
-      if (cover) thumbnail.src = cover.url; else thumbnail.hidden = true;
+      const render = bookRenders(product)[0]; if (render) thumbnail.src = render; else thumbnail.hidden = true;
       thumbnail.addEventListener('error', () => { thumbnail.hidden = true; }, { once: true });
       const info = element('div', undefined, 'book-option-info');
       info.append(element('h4', product.title),element('span', currency(product.price_vnd)+'/'+product.unit));
@@ -443,7 +454,8 @@ async function loadLanding() {
     const author = data.content.author;
     document.querySelector('.author-photo').src = author.photo_url;
     document.querySelector('.portrait-caption strong').textContent = author.name;
-    document.querySelector('.hero-deck').textContent = data.content.hero.description;
+    // Stored copy may contain an em dash; render it as a plain comma clause.
+    document.querySelector('.hero-deck').textContent = String(data.content.hero.description).replace(/\s*—\s*/g, ', ');
     const heroTitle = document.querySelector('.hero-title');
     if (heroTitle.textContent.replace(/\s+/g,' ').trim() !== data.content.hero.title) heroTitle.textContent = data.content.hero.title;
     heroTitle.setAttribute('aria-label',data.content.hero.title);
@@ -460,7 +472,7 @@ async function loadLanding() {
     const setPhone=(a,href,display)=>{a.href='tel:'+href;const target=[a,...a.querySelectorAll('strong')].find(e=>/^[\d\s.+]+$/.test(e.textContent.trim()));if(target)target.textContent=display;};
     document.querySelectorAll('a[href^="tel:"]:not([data-assistant-phone])').forEach(a=>setPhone(a,contact.phone,contact.phone_display));
     document.querySelectorAll('[data-assistant-phone]').forEach(a=>setPhone(a,contact.assistant_phone||'0365473632',contact.assistant_phone_display||'0365 473 632'));
-    document.querySelector('.order-contact small').textContent = contact.email;
+    const orderEmail = document.querySelector('.order-email'); orderEmail.textContent = contact.email; orderEmail.href = 'mailto:' + contact.email;
     document.querySelector('a[href^="mailto:"]').href = `mailto:${contact.email}`;
     document.querySelector('a[href^="mailto:"]').textContent = contact.email;
     document.querySelector('.footer-links>div:nth-child(2) p').textContent = contact.address;
@@ -469,13 +481,12 @@ async function loadLanding() {
     const shippingNote = salesPolicy.shipping_vnd ? `Phí giao hàng ${currency(salesPolicy.shipping_vnd)}` : 'Phí vận chuyển được CLB xác nhận riêng';
     document.querySelector('#shipping-label').textContent = shippingNote;
     document.querySelector('#order-total-label').textContent = salesPolicy.shipping_vnd ? 'Tổng tiền' : 'Tiền sách';
-    document.querySelector('.hero-offer>span').textContent='Giá theo cuốn, bộ hoặc tài liệu PDF. Sách giấy giao tận nhà; PDF đầy đủ đặt qua Zalo trợ lí.';
     const showGifts = Boolean(salesPolicy.gifts_with_order && data.gifts.length);
     document.querySelector('#qua-tang').hidden = !showGifts;
     document.querySelectorAll('a[href="#qua-tang"]').forEach(link => { link.hidden = !showGifts; });
     document.querySelector('.gift-price strong').textContent = salesPolicy.gifts_with_order ? `${data.gifts.length} quà tặng` : 'Liên hệ CLB';
     document.querySelector('.catalog-facts>div:last-child span').textContent = 'CLB xác nhận phí giao hàng';
-    const promises = document.querySelector('.promise-list'); promises.replaceChildren(element('p',shippingNote),element('p','CLB xác nhận thông tin đơn sách trước khi gửi.'));
+    const promises = document.querySelector('.promise-list'); promises.replaceChildren(element('p',shippingNote+'.'),element('p','CLB xác nhận thông tin đơn sách trước khi gửi.'));
     catalogLoaded = true;
     updateTotal();
     window.dispatchEvent(new Event('landing:loaded'));
@@ -537,3 +548,16 @@ orderForm?.addEventListener('submit', async (event) => {
 const year = document.querySelector('#year');
 if (year) year.textContent = new Date().getFullYear();
 
+// Highlight the product store currently in view inside the sticky switcher.
+{
+  const links = [...document.querySelectorAll('[data-catalog-link]')];
+  const sections = links.map(link => document.querySelector(link.getAttribute('href'))).filter(Boolean);
+  if (links.length && 'IntersectionObserver' in window) {
+    const mark = id => links.forEach(link => link.toggleAttribute('aria-current', link.getAttribute('href') === '#' + id));
+    const observer = new IntersectionObserver(entries => {
+      const visible = entries.filter(entry => entry.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+      if (visible) mark(visible.target.id);
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    sections.forEach(section => observer.observe(section));
+  }
+}

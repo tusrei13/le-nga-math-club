@@ -2,6 +2,7 @@
 export const digitalPreviews = [
   {
     "id": "g3-8-de-giua-hk1",
+    "cover": "/assets/documents/covers/g3-8-de-giua-hk1.jpg",
     "grade": 3,
     "title": "8 đề ôn tập giữa học kỳ I · Toán 3",
     "files": [
@@ -21,6 +22,7 @@ export const digitalPreviews = [
   },
   {
     "id": "g3-quyen-1-4-preview",
+    "cover": "/assets/documents/covers/g3-quyen-1-4-preview.jpg",
     "grade": 3,
     "title": "Toán 3 Nâng cao · Luyện tập theo tuần (4 quyển)",
     "files": [
@@ -50,6 +52,7 @@ export const digitalPreviews = [
   },
   {
     "id": "g3-10-de-cuoi-hk1",
+    "cover": "/assets/documents/covers/g3-10-de-cuoi-hk1.jpg",
     "grade": 3,
     "title": "10 đề kiểm tra học kỳ I · Toán 3",
     "files": [
@@ -64,6 +67,7 @@ export const digitalPreviews = [
   },
   {
     "id": "g4-tong-hieu",
+    "cover": "/assets/documents/covers/g4-tong-hieu.jpg",
     "grade": 4,
     "title": "Chuyên đề Tổng – Hiệu · Toán 4",
     "files": [
@@ -83,6 +87,7 @@ export const digitalPreviews = [
   },
   {
     "id": "g4-5-de-giua-hk1",
+    "cover": "/assets/documents/covers/g4-5-de-giua-hk1.jpg",
     "grade": 4,
     "title": "5 đề ôn tập giữa học kỳ I · Toán 4",
     "files": [
@@ -102,6 +107,7 @@ export const digitalPreviews = [
   },
   {
     "id": "g4-cuoi-tuan-clc",
+    "cover": "/assets/documents/covers/g4-cuoi-tuan-clc.jpg",
     "grade": 4,
     "title": "Cuối tuần Toán 4 Chất lượng cao · Tập 1",
     "files": [
@@ -116,6 +122,7 @@ export const digitalPreviews = [
   },
   {
     "id": "g5-so-thap-phan",
+    "cover": "/assets/documents/covers/g5-so-thap-phan.jpg",
     "grade": 5,
     "title": "2 đề Số thập phân · Toán 5",
     "files": [
@@ -135,6 +142,7 @@ export const digitalPreviews = [
   },
   {
     "id": "g5-bo-de-giua-hk1",
+    "cover": "/assets/documents/covers/g5-bo-de-giua-hk1.jpg",
     "grade": 5,
     "title": "Bộ đề ôn tập giữa học kỳ I · Toán 5",
     "files": [
@@ -154,6 +162,7 @@ export const digitalPreviews = [
   },
   {
     "id": "g5-5-de-giua-hk1",
+    "cover": "/assets/documents/covers/g5-5-de-giua-hk1.jpg",
     "grade": 5,
     "title": "Tuyển tập 5 đề giữa học kỳ I · Toán 5",
     "files": [
@@ -168,6 +177,7 @@ export const digitalPreviews = [
   },
   {
     "id": "g6-7-de-hk1",
+    "cover": "/assets/documents/covers/g6-7-de-hk1.jpg",
     "grade": 6,
     "title": "7 đề kiểm tra học kỳ I · Toán 6",
     "files": [
@@ -187,6 +197,7 @@ export const digitalPreviews = [
   },
   {
     "id": "g7-10-de-giua-hk1",
+    "cover": "/assets/documents/covers/g7-10-de-giua-hk1.jpg",
     "grade": 7,
     "title": "10 đề giữa kỳ I, đề và đáp án · Toán 7",
     "files": [
@@ -201,6 +212,7 @@ export const digitalPreviews = [
   },
   {
     "id": "g8-5-de-hk1-kntt",
+    "cover": "/assets/documents/covers/g8-5-de-hk1-kntt.jpg",
     "grade": 8,
     "title": "5 đề cuối kỳ I · Toán 8 Kết nối tri thức",
     "files": [
@@ -220,6 +232,7 @@ export const digitalPreviews = [
   },
   {
     "id": "g9-duong-tron",
+    "cover": "/assets/documents/covers/g9-duong-tron.jpg",
     "grade": 9,
     "title": "42 bài hình Đường tròn · Toán 9",
     "files": [
@@ -239,6 +252,7 @@ export const digitalPreviews = [
   },
   {
     "id": "g9-7-de-thang-11",
+    "cover": "/assets/documents/covers/g9-7-de-thang-11.jpg",
     "grade": 9,
     "title": "7 đề khảo sát tháng 11 · Toán 9",
     "files": [
@@ -258,6 +272,7 @@ export const digitalPreviews = [
   },
   {
     "id": "g9-8-de-thang-10",
+    "cover": "/assets/documents/covers/g9-8-de-thang-10.jpg",
     "grade": 9,
     "title": "8 đề khảo sát tháng 10 · Toán 9",
     "files": [
@@ -277,6 +292,7 @@ export const digitalPreviews = [
   },
   {
     "id": "g9-de-thang-11",
+    "cover": "/assets/documents/covers/g9-de-thang-11.jpg",
     "grade": 9,
     "title": "Đề khảo sát tháng 11 · Toán 9",
     "files": [
@@ -291,6 +307,7 @@ export const digitalPreviews = [
   },
   {
     "id": "g9-toi-uu",
+    "cover": "/assets/documents/covers/g9-toi-uu.jpg",
     "grade": 9,
     "title": "Phiếu bài Tối ưu, GTLN – GTNN · Toán 9",
     "files": [

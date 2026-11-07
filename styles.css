@@ -592,12 +592,19 @@ details p { font-size:16px; color:var(--ink-soft); margin:16px 0 0; }
   .site-header .brand-copy span { font-size:21px; }
 }
 
-/* Three independent cutouts retain the original cover pixels. CSS controls the grouping. */
+/* Hero visual: the author photo on a gold block, two real covers in front. */
+.stage-frame { aspect-ratio:5 / 4; }
 .hero-book-covers { position:relative; isolation:isolate; width:100%; height:100%; }
-.hero-book-covers img { position:absolute; display:block; width:39%; height:auto; bottom:7%; filter:drop-shadow(0 10px 8px rgb(41 49 95 / .16)); transform-origin:50% 95%; }
-.hero-book-covers img:first-child { left:1%; transform:rotate(-6deg); }
-.hero-book-covers img:nth-child(2) { left:28%; width:44%; bottom:7%; z-index:2; }
-.hero-book-covers img:last-child { right:1%; transform:rotate(5deg); }
+.hero-book-covers::before { content:""; position:absolute; z-index:-1; right:0; bottom:0; width:64%; height:72%; background:var(--brand-gold); }
+.hero-teacher-photo { position:absolute; right:4%; top:0; width:70%; height:89%; object-fit:cover; object-position:45% 80%; border:6px solid var(--brand-navy); }
+.hero-float-cover { position:absolute; display:block; height:auto; filter:drop-shadow(0 12px 10px rgb(41 49 95 / .2)); transform-origin:50% 95%; }
+.hero-float-cover.cover-back { transform:rotate(-6deg); }
+.hero-float-cover.cover-front { z-index:2; transform:rotate(4deg); }
+@media (prefers-reduced-motion:no-preference) {
+  .hero-float-cover { transition:transform .5s var(--ease); }
+  .hero-stage:hover .cover-back { transform:rotate(-8deg) translateY(-6px); }
+  .hero-stage:hover .cover-front { transform:rotate(6deg) translateY(-4px); }
+}
 
 /* Read the matching sample before choosing a physical book. */
 .book-card-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; }
@@ -608,12 +615,9 @@ details p { font-size:16px; color:var(--ink-soft); margin:16px 0 0; }
 .catalog-sample-note { margin:0; font-size:14px; }
 
 
-/* Frame the original primary-book photos in CSS; cover lettering stays untouched. */
-.hero-book-covers .hero-primary-cover { clip-path:polygon(14.3% 4.3%,18.7% 4.3%,86.8% 7.4%,92.2% 84.5%,91.9% 85.9%,89.4% 87.1%,87.4% 90.5%,12% 91.8%,11.2% 90.2%,8.7% 10%,9.1% 7.8%,11.2% 5.7%); }
-.hero-book-covers .hero-primary-cover:nth-child(2) { left:26%; width:49%; bottom:3%; }
-.hero-book-covers .hero-primary-cover:last-child { right:2%; width:43%; bottom:3%; }
-
-.hero-book-covers .hero-entrance-cover:first-child { left:2%; width:42%; bottom:3%; clip-path:polygon(14.4% 9.7%,18% 9.5%,77.4% 11%,94.9% 80.8%,89.9% 85.1%,19.1% 87%,16.5% 88%,10.8% 13.1%,11.3% 12.1%,12.7% 10.8%); }
+/* The cover photos sit on a teal backdrop; clip each to the book outline (cover lettering untouched). */
+.hero-float-cover.cover-back { left:0; bottom:5%; width:27%; clip-path:polygon(14.4% 9.7%,18% 9.5%,77.4% 11%,94.9% 80.8%,89.9% 85.1%,19.1% 87%,16.5% 88%,10.8% 13.1%,11.3% 12.1%,12.7% 10.8%); }
+.hero-float-cover.cover-front { left:11%; bottom:0; width:27%; clip-path:polygon(14.3% 4.3%,18.7% 4.3%,86.8% 7.4%,92.2% 84.5%,91.9% 85.9%,89.4% 87.1%,87.4% 90.5%,12% 91.8%,11.2% 90.2%,8.7% 10%,9.1% 7.8%,11.2% 5.7%); }
 
 /* Layout polish: one tidy book image, readable contacts, compact mobile catalog. */
 .order-book-display.is-single img { width:150px; height:auto; max-height:200px; transform:none; border-radius:6px; }
@@ -621,7 +625,6 @@ details p { font-size:16px; color:var(--ink-soft); margin:16px 0 0; }
 @media(max-width:560px) {
   .book-catalog { grid-template-columns:repeat(2,minmax(0,1fr)); gap:28px 14px; }
   .book-card,.book-card:last-child { width:auto; grid-column:auto; }
-  .book-card .book-meta span:first-child { display:none; }
   .book-card-copy { padding-top:12px; }
   .book-card-copy h3 { font-size:16px; line-height:1.35; margin-bottom:6px; }
   .book-card-copy p { font-size:13px; line-height:1.5; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
@@ -632,3 +635,58 @@ details p { font-size:16px; color:var(--ink-soft); margin:16px 0 0; }
   .book-card-actions .text-link { font-size:14px; }
   .book-preview { font-size:13px; padding:8px; }
 }
+
+/* Key figures directly under the hero (shared design with STEM Maths). */
+.stats-band { padding:8px 0 40px; }
+.stats-card { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); margin:0; background:white; border:1px solid var(--line); }
+.stats-card > div { padding:22px 26px; min-width:0; }
+.stats-card > div + div { border-left:1px solid var(--line); }
+.stats-card dt { font:600 12px/1.5 var(--sans); letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); }
+.stats-card dd { margin:6px 0 0; }
+.stats-card strong { display:block; font:700 clamp(28px,2.6vw,38px)/1.15 var(--sans); letter-spacing:-.02em; color:var(--brand-navy); }
+.stats-card strong::after { content:""; display:block; width:28px; height:3px; margin:10px 0 8px; background:var(--brand-gold); }
+.stats-card span { display:block; font-size:14px; line-height:1.5; color:var(--ink-soft); }
+@media (max-width:1023px) {
+  .stats-card { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .stats-card > div:nth-child(3) { border-left:0; }
+  .stats-card > div:nth-child(n+3) { border-top:1px solid var(--line); }
+}
+@media (max-width:560px) {
+  .stats-band { padding:4px 0 28px; }
+  .stats-card > div { padding:16px 14px; }
+  .stats-card strong { font-size:26px; }
+  .stats-card span { font-size:13px; }
+}
+
+/* Sticky switcher across the three product stores. */
+.catalog-switch { position:sticky; top:0; z-index:4; background:color-mix(in srgb, var(--paper) 94%, transparent); border-block:1px solid var(--line); backdrop-filter:blur(6px); }
+.catalog-switch .container { display:flex; gap:4px; overflow-x:auto; scrollbar-width:none; }
+.catalog-switch .container::-webkit-scrollbar { display:none; }
+.catalog-switch a { position:relative; display:inline-flex; align-items:center; min-height:52px; padding:0 18px; font:600 15px/1.3 var(--sans); color:var(--ink-soft); white-space:nowrap; }
+.catalog-switch a::after { content:""; position:absolute; left:18px; right:18px; bottom:-1px; height:3px; background:var(--brand-gold); transform:scaleX(0); transition:transform .25s var(--ease); }
+.catalog-switch a:hover,.catalog-switch a[aria-current] { color:var(--brand-navy); }
+.catalog-switch a[aria-current]::after { transform:scaleX(1); }
+.catalog-zone [id] { scroll-margin-top:60px; }
+@media (max-width:560px) { .catalog-switch a { min-height:48px; padding:0 12px; font-size:14px; } .catalog-switch a::after { left:12px; right:12px; } }
+@media (prefers-reduced-motion:reduce) { .catalog-switch a::after { transition:none; } }
+
+/* Section rhythm: alternate the three stores between cream and white. */
+.digital-section { background:var(--paper); }
+
+/* Order intro column: everything left-aligned, artwork framed like the hero, contacts grouped. */
+.order-copy .order-book-display { justify-content:flex-start; max-width:none; min-height:0; padding:28px 0 24px 8px; }
+.order-book-display.is-single { padding:28px 0 20px 12px; }
+.order-book-display.is-single img { width:150px; height:auto; max-height:210px; transform:rotate(-4deg); border:0; box-shadow:none; filter:drop-shadow(6px 10px 8px #0b102e66); }
+.order-copy .promise-list { display:grid; gap:10px; margin-top:20px; padding-top:18px; }
+.order-copy .promise-list p { position:relative; margin:0; padding-left:26px; font-size:15px; }
+.order-copy .promise-list p::before { content:""; position:absolute; left:2px; top:.45em; width:12px; height:6px; border-left:2px solid var(--brand-gold); border-bottom:2px solid var(--brand-gold); transform:rotate(-45deg); }
+.order-copy .order-contact { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px 24px; align-items:start; margin-top:22px; padding-top:20px; }
+.order-contact .order-contact-label { grid-column:1 / -1; margin:0; font-size:13px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--brand-gold); }
+.order-contact a.order-phone { display:grid; gap:2px; font:inherit; color:var(--paper); text-decoration:none; }
+.order-phone small { font-size:13px; color:#c9d3ea; }
+.order-phone strong { font-size:clamp(22px,2vw,26px); font-weight:700; line-height:1.3; letter-spacing:-.01em; }
+.order-phone:hover strong { color:var(--brand-gold); }
+.order-contact a.order-zalo { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:0 18px; font:600 15px/1.2 var(--sans); background:var(--brand-gold); color:var(--brand-navy); text-decoration:none; justify-self:start; }
+.order-contact a.order-zalo:hover { background:var(--paper); }
+.order-contact a.order-email { align-self:center; font:400 14px/1.4 var(--sans); color:#e4ecf8; overflow-wrap:anywhere; }
+@media (max-width:420px) { .order-copy .order-contact { grid-template-columns:1fr; } }

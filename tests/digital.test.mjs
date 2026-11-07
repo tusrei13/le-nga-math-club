@@ -19,7 +19,7 @@ test('Public catalog maps all 31 actual PDF samples once, including four Toan 3 
  assert.equal(digitalPreviews.length,17);const urls=digitalPreviews.flatMap(p=>p.files.map(f=>f.url));assert.equal(urls.length,31);assert.equal(new Set(urls).size,31);
  const actual=readdirSync('public/assets/documents/previews',{recursive:true}).filter(f=>String(f).endsWith('.pdf')).map(f=>'/assets/documents/previews/'+String(f).replaceAll('\\','/'));
  assert.deepEqual([...urls].sort(),actual.sort());
- for(const p of digitalPreviews){assert.equal(p.file_count,p.files.length);assert.equal(p.preview_only,true);assert.ok(p.grade>=3&&p.grade<=9);
+ for(const p of digitalPreviews){assert.equal(p.cover,'/assets/documents/covers/'+p.id+'.jpg');assert.deepEqual([...readFileSync('public'+p.cover).subarray(0,2)],[255,216]);assert.equal(p.file_count,p.files.length);assert.equal(p.preview_only,true);assert.ok(p.grade>=3&&p.grade<=9);
   for(const f of p.files){assert.match(f.url,/^\/assets\/documents\/previews\/lop-[3-9]\/[A-Za-z0-9_./-]+\.pdf$/);assert.ok(f.url.includes('/lop-'+p.grade+'/'));assert.equal(readFileSync('public'+f.url).subarray(0,5).toString(),'%PDF-');assert.equal(statSync('public'+f.url).size,f.size_bytes);assert.ok(f.size_bytes<25*1024*1024);}
  }
 });

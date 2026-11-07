@@ -66,3 +66,22 @@ form.addEventListener('submit',async event=>{
   finally{busy=false;form.removeAttribute('aria-busy');$('#enquiry-submit').disabled=!programs.length;}
 });
 loadPrograms();
+// YouTube videos load only after a click: data-youtube-id on .class-video-frame buttons.
+for(const frame of document.querySelectorAll('.class-video-frame[data-youtube-id]')){
+  frame.addEventListener('click',()=>{
+    const id=frame.dataset.youtubeId;if(!/^[\w-]{11}$/.test(id))return;
+    const iframe=document.createElement('iframe');
+    iframe.src=`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`;
+    iframe.title=frame.getAttribute('aria-label')||'Video CLB Toán Cô Lê Nga';
+    iframe.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';iframe.allowFullscreen=true;
+    const box=document.createElement('div');box.className='class-video-frame is-playing';box.append(iframe);frame.replaceWith(box);
+  },{once:true});
+}
+{const videos=$('#class-videos');if(videos&&videos.querySelector('.class-video'))videos.hidden=false;}
+// Sections fade up once as they enter the viewport; skipped for reduced motion.
+if('IntersectionObserver' in window&&!reducedMotion.matches){
+  const items=document.querySelectorAll('main > section:not(.hero) .wrap > *, .stats-card > div, .gallery-grid figure, .learning-stage');
+  document.documentElement.classList.add('reveal-ready');
+  const observer=new IntersectionObserver(entries=>{for(const entry of entries)if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target);}},{rootMargin:'0px 0px -8% 0px'});
+  items.forEach((item,index)=>{item.classList.add('reveal-item');item.style.setProperty('--reveal-delay',(index%4)*70+'ms');observer.observe(item);});
+}

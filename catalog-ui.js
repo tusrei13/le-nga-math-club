@@ -19,7 +19,7 @@ function renderDocs(){
   const card=node('article',undefined,'reference-document');card.dataset.referenceProduct=p.id;
   const media=p.media.find(m=>m.kind==='cover');
   if(media){const img=node('img');img.src=media.url;img.alt='Bìa '+p.title;img.loading='lazy';img.width=180;img.height=240;card.append(img);}
-  const copy=node('div',undefined,'reference-document-copy');copy.append(node('p','Lớp '+p.grade+' · '+p.format_label,'reference-product-meta'),node('h3',p.title),node('p',p.description),priceLine(p));
+  const copy=node('div',undefined,'reference-document-copy');copy.append(node('p','Lớp '+p.grade+', '+p.format_label,'reference-product-meta'),node('h3',p.title),node('p',p.description),priceLine(p));
   if(p.promotion_ends_at)copy.append(node('small','Ưu đãi đến '+new Intl.DateTimeFormat('vi-VN',{timeZone:'Asia/Bangkok'}).format(new Date(p.promotion_ends_at))));
   if(p.format==='enquiry')copy.append(node('small','Liên hệ trợ lí để xác nhận hình thức nhận tài liệu.'));
   const actions=node('div',undefined,'reference-actions'),preview=previewButton(p);if(preview)actions.append(preview);
@@ -49,8 +49,8 @@ function decorate(){
  for(const card of document.querySelectorAll('.book-card[data-product-id]')){
   const p=products.find(p=>p.id===card.dataset.productId);if(!p)continue;const copy=card.querySelector('.book-card-copy');
   if(copy.querySelector('.reference-product-meta'))continue;
-  copy.prepend(node('p',[p.format_label,p.pages].filter(Boolean).join(' · '),'reference-product-meta'));
-  if(p.old_price_vnd){const detail=node('p','Giá gốc '+money(p.old_price_vnd)+'/'+p.unit+' · Ưu đãi đến '+new Intl.DateTimeFormat('vi-VN',{timeZone:'Asia/Bangkok'}).format(new Date(p.promotion_ends_at)),'reference-product-meta');copy.querySelector('.product-price').after(detail);}
+  copy.prepend(node('p',[p.format_label,p.pages].filter(Boolean).join(', '),'reference-product-meta'));
+  if(p.old_price_vnd){const detail=node('p','Giá gốc '+money(p.old_price_vnd)+'/'+p.unit+'. Ưu đãi đến '+new Intl.DateTimeFormat('vi-VN',{timeZone:'Asia/Bangkok'}).format(new Date(p.promotion_ends_at)),'reference-product-meta');copy.querySelector('.product-price').after(detail);}
  }
  filterPaper();
 }
@@ -68,8 +68,8 @@ $('#reference-document-filters').addEventListener('click',event=>{const b=event.
 const previewDialog=$('#catalog-preview-dialog');let previewOpener;
 document.addEventListener('click',event=>{
  const b=event.target.closest('[data-catalog-preview]');if(!b)return;const p=products.find(p=>p.id===b.dataset.catalogPreview);if(!p)return;
- const files=$('#catalog-preview-files');files.replaceChildren();$('#catalog-preview-title').textContent='Đọc thử · '+p.title;
- for(const file of p.previews||[]){const href=previewUrl(file.url);if(href)files.append(external(file.label+' · PDF',href,'book-preview'));}
+ const files=$('#catalog-preview-files');files.replaceChildren();$('#catalog-preview-title').textContent='Đọc thử: '+p.title;
+ for(const file of p.previews||[]){const href=previewUrl(file.url);if(href)files.append(external(file.label+' (PDF)',href,'book-preview'));}
  previewOpener=b;previewDialog.showModal();
 });
 $('#catalog-preview-close').addEventListener('click',()=>previewDialog.close());

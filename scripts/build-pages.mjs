@@ -16,6 +16,9 @@ for (const preview of bookPreviews) {
   const pdf = await readFile(resolve(root,'public/assets/books preview',preview.file));
   if (pdf.subarray(0,5).toString('ascii') !== '%PDF-') throw new Error('Invalid reading sample: '+preview.file);
 }
+for(const product of digitalPreviews){
+  if(product.cover){if(!/^\/assets\/documents\/covers\/[a-z0-9-]+\.jpg$/.test(product.cover))throw new Error('Invalid preview cover path');const jpg=await readFile(resolve(root,'public'+product.cover));if(jpg[0]!==255||jpg[1]!==216)throw new Error('Invalid preview cover: '+product.cover);}
+}
 for(const product of digitalPreviews)for(const file of product.files){
   if(!/^\/assets\/documents\/previews\/lop-[3-9]\/[A-Za-z0-9_./-]+\.pdf$/.test(file.url)||file.url.split('/').includes('..'))throw new Error('Invalid preview path');
   const pdf=await readFile(resolve(root,'public'+file.url));
