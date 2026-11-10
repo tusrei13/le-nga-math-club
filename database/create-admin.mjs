@@ -30,6 +30,6 @@ try {
       db.prepare('DELETE FROM admin_sessions WHERE user_id=?').run(exists.id);
     } else db.prepare('INSERT INTO admin_users(id,username,password_hash) VALUES(?,?,?)').run(randomUUID(), username, encoded);
   });
-  console.log(`Đã ${exists ? 'đặt lại mật khẩu' : 'tạo tài khoản'} ${username}. Đăng nhập tại http://localhost:3000/admin`);
+  console.log(`Đã ${exists ? 'đặt lại mật khẩu' : 'tạo tài khoản'} ${username}. Đăng nhập tại http://localhost:3001/admin`);
 } catch (error) { console.error(error.message); process.exitCode = 1; }
 finally { readline.close(); db.close(); }

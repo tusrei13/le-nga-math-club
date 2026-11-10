@@ -3,7 +3,7 @@
 Cập nhật hiện hành tháng 11/2026: danh mục 21 mục và giá theo bản mẫu dùng migration [010-reference-catalog.sql](database/migrations/010-reference-catalog.sql). Xem [REFERENCE-CATALOG.md](REFERENCE-CATALOG.md) để triển khai và phân biệt sách giấy, PDF đầy đủ, bản đọc thử. Các migration bên dưới ghi lại các giai đoạn trước.
 
 
-Trang STEM Maths có project và cấu hình build riêng; xem [STEM-MATHS.md](STEM-MATHS.md). Root directory của project STEM là `stem-maths`, không dùng cấu hình build trang sách bên dưới.
+Từ tháng 11/2026 STEM Maths (lớp học tại CLB) nằm trong cùng một trang với trang sách, nên chỉ còn một project Pages. Xem [STEM-MATHS.md](STEM-MATHS.md) cho phần lớp học, D1 và việc chuyển project STEM cũ.
 
 Pages phục vụ giao diện; Pages Function trong `cloudflare/worker.mjs` xử lý API; D1 lưu sách, đơn, tư vấn và phiên quản trị. Không upload toàn bộ thư mục dự án. Không đưa file SQLite hay mật khẩu vào Git.
 

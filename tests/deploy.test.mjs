@@ -90,6 +90,13 @@ test('Pages output excludes private files and SQLite online backups preserve row
   }
   for(const config of Object.values(bookVideos))for(const path of [config.src,config.poster])assert.ok(readFileSync(join('dist',path)).equals(readFileSync(join('public',path))),'Video asset differs: '+path);
   for(const file of ['book-videos.js','book-videos.css','book-video-data.js'])assert.ok(existsSync(join('dist',file)));
+  // STEM Maths is part of the main page: its assets ship, a separate site does not.
+  for(const file of ['class-zone.js','class-zone.css'])assert.ok(existsSync(join('dist',file)));
+  assert.equal(existsSync('stem-maths'),false);
+  const page=readFileSync('dist/index.html','utf8');
+  for(const id of ['lop-hoc','lo-trinh-hoc','tu-van-lop','enquiry-form','grade-options'])assert.match(page,new RegExp('id="'+id+'"'));
+  const ids=[...page.matchAll(/ id="([^"]+)"/g)].map(match=>match[1]);
+  assert.deepEqual(ids.filter((id,index)=>ids.indexOf(id)!==index),[],'Duplicate element ids in the merged page');
   const scratch=mkdtempSync(join(tmpdir(),'le-nga-backup-')),source=join(scratch,'source.sqlite'),target=join(scratch,'backup.sqlite');
   try{const db=new DatabaseSync(source);db.exec("PRAGMA journal_mode=WAL;CREATE TABLE sample(value TEXT);INSERT INTO sample VALUES('saved');");execFileSync(process.execPath,['database/backup.mjs',target],{env:{...process.env,DATABASE_PATH:source}});const copy=new DatabaseSync(target);assert.equal(copy.prepare('SELECT value FROM sample').get().value,'saved');copy.close();db.close();}finally{rmSync(scratch,{recursive:true,force:true});}
 });

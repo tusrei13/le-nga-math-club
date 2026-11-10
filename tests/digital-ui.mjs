@@ -82,16 +82,19 @@ try {
   assert.equal(await evaluate("document.querySelector('#digital-sale-note').textContent"),'Đọc thử miễn phí');
   assert.equal(await evaluate("document.querySelector('.digital-product').textContent.includes('Giá')"),false);
   const titles=new Set(await evaluate("[...document.querySelectorAll('.digital-product h3')].map(e=>e.textContent)"));
-  for(const page of [2,3]){
+  // Free previews and full documents share one grid: 17 free + 12 Zalo-ordered = 29 items over 5 pages.
+  for(const page of [2,3,4,5]){
     await evaluate("document.querySelectorAll('#digital-pagination button')["+page+"].click()");
-    assert.equal(await evaluate("document.querySelectorAll('.digital-product').length"),page===2?6:5);
+    assert.equal(await evaluate("document.querySelectorAll('.digital-product').length"),page===5?5:6);
     for(const title of await evaluate("[...document.querySelectorAll('.digital-product h3')].map(e=>e.textContent)")){assert.equal(titles.has(title),false);titles.add(title);}
   }
-  assert.equal(titles.size,17);
-  assert.equal(await evaluate("document.querySelector('#digital-page-summary').textContent"),'Hiển thị 13–17 trong 17 bộ tài liệu');
+  assert.equal(titles.size,29);
+  assert.equal(await evaluate("document.querySelector('#digital-page-summary').textContent"),'Hiển thị 25–29 trong 29 tài liệu');
   await evaluate("document.querySelectorAll('[data-digital-grade]')[1].click()");
-  assert.equal(await evaluate("document.querySelectorAll('.digital-product').length"),3);
-  assert.equal(await evaluate("document.querySelector('#digital-pagination').hidden"),true);
+  assert.equal(await evaluate("document.querySelectorAll('.digital-product').length"),6);
+  assert.equal(await evaluate("document.querySelector('#digital-pagination').hidden"),false);
+  assert.equal(await evaluate("document.querySelector('#digital-page-summary').textContent"),'Hiển thị 1–6 trong 10 tài liệu');
+  await evaluate("document.querySelector('#digital-pagination [data-digital-page=\"2\"]').click()");
   await evaluate("document.querySelector('[data-digital-preview=g3-quyen-1-4-preview]').click()");
   assert.equal(await evaluate("document.querySelector('#digital-preview-dialog').open"),true);
   assert.equal(await evaluate("document.querySelectorAll('#digital-preview-files a').length"),4);

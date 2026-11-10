@@ -2,7 +2,7 @@
 
 Landing page gồm 21 mục sách và tài liệu theo bản mẫu tháng 11/2026: 9 mục sách giấy và 12 mục tài liệu lớp 3–5. Sách giấy có giá được đặt COD; PDF đầy đủ đặt qua Zalo trợ lí, PDF đọc thử miễn phí. Dữ liệu lưu trong SQLite; frontend và API chạy chung bằng Node.js.
 
-STEM Maths là landing page thứ hai dành cho chương trình Toán offline lớp 3–9. Chạy `npm run build:stem`, xem local tại `/stem/`; hướng dẫn Cloudflare và D1 trong [STEM-MATHS.md](STEM-MATHS.md).
+Mục "Lớp học tại CLB" (STEM Maths, Toán offline lớp 3–9) nằm ngay trong trang chính, id `#lop-hoc`. Trang `/stem/` cũ tự chuyển về mục này. Hướng dẫn trong [STEM-MATHS.md](STEM-MATHS.md).
 
 Hướng dẫn bảo mật và thu hồi phiên quản trị: [SECURITY.md](SECURITY.md).
 
@@ -15,7 +15,7 @@ npm run db:init
 npm start
 ```
 
-Mở `http://localhost:3000`. Không mở trực tiếp `index.html` bằng `file://`, vì trang cần gọi API.
+Mở `http://localhost:3001`. Không mở trực tiếp `index.html` bằng `file://`, vì trang cần gọi API.
 
 Database tự tạo ở `data/landing.sqlite`, với danh mục hiện hành theo `reference-catalog.mjs`. `npm start` cũng tự khởi tạo nếu chưa có database.
 
@@ -45,13 +45,13 @@ Landing page có đăng nhập/đăng ký email và Google qua Firebase Authenti
 
 Với bản Cloudflare, xem [CLOUDFLARE.md](CLOUDFLARE.md). Tài khoản D1 độc lập với tài khoản SQLite dưới đây.
 
-Chạy `npm run admin:create` trong terminal để tự đặt tên đăng nhập và mật khẩu (tối thiểu 15 ký tự). Khởi động lại server rồi mở `http://localhost:3000/admin` để quản lý đơn sách và yêu cầu tư vấn. Dùng `npm run admin:reset` nếu cần đặt lại mật khẩu. Xem [ADMIN.md](ADMIN.md) để biết cách sử dụng và cấu hình triển khai.
+Chạy `npm run admin:create` trong terminal để tự đặt tên đăng nhập và mật khẩu (tối thiểu 15 ký tự). Khởi động lại server rồi mở `http://localhost:3001/admin` để quản lý đơn sách và yêu cầu tư vấn. Dùng `npm run admin:reset` nếu cần đặt lại mật khẩu. Xem [ADMIN.md](ADMIN.md) để biết cách sử dụng và cấu hình triển khai.
 
 ## Biến môi trường
 
 Các biến dưới đây dành cho bản Node. Cấu hình Pages/D1 theo hướng dẫn Cloudflare.
 
-- `PORT`: cổng server, mặc định `3000`.
+- `PORT`: cổng server, mặc định `3001`.
 - `DATABASE_PATH`: đường dẫn SQLite, mặc định `data/landing.sqlite`.
 - `PUBLIC_ORIGIN`: origin HTTPS, ví dụ `https://books.example.com`, bắt buộc khi Node chạy `NODE_ENV=production`.
 - `TRUST_PROXY=1`: chỉ dùng khi Node nằm sau đúng một proxy tin cậy và không được truy cập trực tiếp; mặc định bỏ qua `X-Forwarded-For`.

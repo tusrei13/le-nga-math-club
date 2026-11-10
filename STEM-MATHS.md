@@ -1,46 +1,38 @@
-# STEM Maths: chương trình Toán offline lớp 3–9
+# STEM Maths: lớp học tại CLB (lớp 3–9)
 
-Website mới ở thư mục `stem-maths/`, độc lập với giao diện bán sách. Hai website dùng chung D1 và trang quản trị tại `https://le-nga-books.pages.dev/admin`.
+Từ tháng 11/2026 STEM Maths không còn là website riêng. Phần "Lớp học tại CLB" nằm trong trang chính của CLB, cùng một trang với sách và tài liệu. Chỉ còn **một** project Cloudflare Pages (`le-nga-books`) và một lệnh build (`npm run build:pages`).
 
 Hướng dẫn bảo mật, URL Production/Preview, thu hồi phiên admin và kiểm tra dependency: [SECURITY.md](SECURITY.md).
 
-## Chạy trên máy
+## Cấu trúc trang
 
-Tại thư mục gốc repository:
+| Mục | id | Nội dung |
+| --- | --- | --- |
+| Hai lối đi | `#chon-huong` | Thẻ "Sách và tài liệu" và "Lớp học tại CLB" ngay sau dải số liệu |
+| Chọn chương trình | `#lop-hoc` | Chọn lớp 3–9 và nhu cầu, xem hướng học phù hợp |
+| Lộ trình | `#lo-trinh-hoc` | Tiểu học / THCS, cách CLB cùng gia đình chọn lớp |
+| Học trực tiếp | `#hoc-truc-tiep` | Liên hệ, chỗ chờ video YouTube `#class-videos` |
+| Đăng ký tư vấn | `#tu-van-lop` | Form gửi tới `/api/stem/enquiries` |
+
+Các mục dùng chung (giới thiệu cô Nga, thành tích, hỏi đáp) là của trang sách; ba câu hỏi về lớp học đã được thêm vào mục hỏi đáp chung.
+
+File nguồn: `class-zone.css` (kiểu dáng, dùng biến màu của `styles.css`) và `class-zone.js` (chọn chương trình, gửi form, video). Phần lớp học được bọc trong `div.class-zone`; menu chính có liên kết "Lớp học".
+
+## Chạy trên máy
 
 ```powershell
 npm ci
 npm start
 ```
 
-Mở `http://localhost:3000/stem/`. Database local tự thêm các bảng STEM. Không cần Firebase để gửi yêu cầu tư vấn. Trang quản trị local dùng tài khoản admin local như trước.
+Mở `http://localhost:3001/` rồi cuộn tới "Lớp học tại CLB". Database local tự thêm các bảng STEM. Không cần Firebase để gửi yêu cầu tư vấn. `http://localhost:3001/stem/` chuyển về `/#lop-hoc`.
 
-```powershell
-npm run build:stem
-```
+## Trang STEM cũ trên Cloudflare
 
-Output nằm ở `stem-maths/dist-stem/`. Chỉ upload output, không upload nguồn hoặc database.
+Project **stem-maths-co-nga** không còn được build từ repo này. Chọn một trong hai cách:
 
-## Giao diện điện thoại, iPad và máy tính
-
-Bố cục tự thay đổi theo chiều rộng, hỗ trợ iPad dọc/ngang và chia đôi màn hình. Menu thu gọn dưới 1024px; các nút chọn lớp có vùng chạm tối thiểu 44px. Form chuyển về một cột trên màn hình hẹp, giữ chữ nhập liệu 16px và không khóa khả năng phóng to trang. Ảnh giữ tỷ lệ, khoảng đệm tính cả vùng an toàn của màn hình.
-
-Chạy `npm run test:ui` từ thư mục gốc để kiểm tra 19 kích thước từ 320 đến 2560px, menu cảm ứng, xoay màn hình và gửi form. Bài kiểm tra dùng Chrome/Edge với viewport mô phỏng; ảnh chụp lưu trong `data/stem-responsive-*.png`. Kiểm tra trực tiếp bằng Safari trên iPad khi có thiết bị để xác nhận thêm hành vi bàn phím và thanh trình duyệt.
-
-## Sửa lỗi Cloudflare `Missing script: build:stem`
-
-Commit/push bản code này trước. Trong project **stem-maths-co-nga → Settings → Builds & deployments → Build configuration**, đặt:
-
-- Production branch: `main`.
-- Root directory: **`stem-maths`**.
-- Framework preset: `None`.
-- Build command: **`npm run build:stem`**.
-- Build output directory: **`dist-stem`**.
-- Biến build `NODE_VERSION`: **`24`**.
-
-Root directory rất quan trọng: project mới phải đọc `stem-maths/wrangler.toml`, không đọc `wrangler.toml` của trang sách. Subproject có `package.json` và lockfile riêng để Cloudflare cài đúng dependency. Sau khi code mới có trên GitHub, nhấn Retry deployment.
-
-`stem-maths/wrangler.toml` khai báo tên project, `nodejs_compat` và D1 binding `DB` dùng database `le-nga-books`. Nếu chuyển tài khoản/database, cập nhật ID D1 trong file này. Không cần thêm Firebase hoặc cấp lại quyền admin.
+1. Xóa project đó trên Cloudflare nếu chưa gửi link cho ai.
+2. Nếu link `stem-maths-co-nga.pages.dev` đã được gửi cho phụ huynh, giữ project và đổi nó thành trang chuyển hướng: để Root directory trống, Build command trống, Output directory `redirect`, và đặt trong thư mục đó một file `_redirects` có nội dung `/* https://le-nga-books.pages.dev/#lop-hoc 301`.
 
 ## Khởi tạo D1 dùng chung
 
@@ -50,9 +42,7 @@ Trước khi nhận yêu cầu thật, chạy tại thư mục gốc:
 npx wrangler d1 execute le-nga-books --remote --file=database/migrations/005-stem-maths.sql
 ```
 
-Migration thêm chương trình, yêu cầu tư vấn và lịch sử xử lý, không sửa đơn sách. Chạy lại an toàn. Đồng thời deploy bản code mới của trang sách để admin có tab STEM Maths. Form cần D1 đã khởi tạo mới hoạt động.
-
-Nếu gặp `too many terms in compound SELECT`, dùng bản migration mới đã tách dữ liệu chương trình thành từng lệnh `INSERT OR IGNORE`, rồi chạy lại lệnh trên. Không cần xóa database. Các chương trình đã có và yêu cầu tư vấn được giữ nguyên khi chạy lại.
+Migration thêm chương trình, yêu cầu tư vấn và lịch sử xử lý, không sửa đơn sách. Chạy lại an toàn. Nếu gặp `too many terms in compound SELECT`, dùng bản migration mới đã tách dữ liệu chương trình thành từng lệnh `INSERT OR IGNORE` rồi chạy lại; chương trình và yêu cầu đã có được giữ nguyên.
 
 ## Chức năng
 
@@ -62,17 +52,19 @@ Nếu gặp `too many terms in compound SELECT`, dùng bản migration mới đ�
 - Mã yêu cầu riêng, chống gửi trùng, giới hạn 20 lần/IP/15 phút.
 - Admin có tab STEM Maths: tìm kiếm, lọc, ghi chú nội bộ, lịch sử và chuyển trạng thái Mới → Đã liên hệ → Đang tư vấn → Đã xếp lớp/Đã hủy.
 - Dùng phiên admin và CSRF hiện có. API công khai không cho đọc danh sách phụ huynh.
+- Video YouTube chỉ tải sau khi bấm (`youtube-nocookie.com`). Thêm video bằng một nút `.class-video-frame[data-youtube-id]` trong `#class-videos`; CSP trang sách đã cho phép khung này.
 
 Các mục chương trình là nhóm nhu cầu để tư vấn, không phải danh sách lớp đang khai giảng hoặc xác nhận còn chỗ. Website không tự đặt học phí, lịch học, sĩ số hay cam kết học thử miễn phí. CLB cần xác nhận trước khi công bố. Chưa có gửi email/Zalo tự động hoặc nhận thanh toán học phí.
 
 ## Kiểm tra sau deploy
 
-1. `/healthz` trên STEM trả `status: ok`.
+1. `/healthz` trả `status: ok`.
 2. `/api/stem/programs` có 28 chương trình (7 khối × 4 nhu cầu).
-3. Chọn lớp 3 không có mục tiêu thi chuyên; lớp 7 có thể bật mục tiêu này.
-4. Gửi yêu cầu thử; mở admin trang sách → STEM Maths để tìm phiếu.
+3. Mở `/#lop-hoc`: chọn lớp 3 không có mục tiêu thi chuyên; lớp 7 có thể bật mục tiêu này.
+4. Gửi yêu cầu thử ở `#tu-van-lop`; mở `/admin` → STEM Maths để tìm phiếu.
 5. Lưu ghi chú và chuyển trạng thái.
+6. `/stem/` (nếu server hỗ trợ) chuyển về `/#lop-hoc`.
 
-Trang sách giữ lệnh `npm run check:pages && npm run build:pages`, Root directory mặc định và output `dist`.
+Lệnh deploy giữ nguyên: `npm run check:pages && npm run build:pages`.
 
-Tham khảo: [Cloudflare Pages monorepos](https://developers.cloudflare.com/pages/configuration/monorepos/), [D1 bindings](https://developers.cloudflare.com/pages/functions/bindings/).
+Kiểm tra giao diện: `npm run test:ui` chạy 19 kích thước từ 320 đến 2560px cho phần lớp học, menu cảm ứng, xoay màn hình, gửi form và xử lý phiếu trong admin. Ảnh chụp lưu ở `data/`.

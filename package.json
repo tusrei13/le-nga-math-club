@@ -8,7 +8,6 @@
     "db:init": "node database/init.mjs",
     "db:backup": "node database/backup.mjs",
     "build:pages": "node scripts/build-pages.mjs",
-    "build:stem": "node scripts/build-stem.mjs",
     "check:pages": "node scripts/check-pages.mjs",
     "pages:dev": "wrangler pages dev dist",
     "pages:admin": "node scripts/pages-admin.mjs",

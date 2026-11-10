@@ -34,7 +34,7 @@ SQLite tự cập nhật khi khởi động. D1 đã deploy cần áp dụng mig
 
 ## Triển khai
 
-1. Commit/push code cùng public/assets/catalog và các file mới; build trang sách bằng npm run build:pages và STEM bằng npm run build:stem.
+1. Commit/push code cùng public/assets/catalog và các file mới; build trang bằng npm run build:pages.
 2. Khi bản build đã thành công, chạy từ thư mục gốc:
    npx wrangler d1 execute le-nga-books --remote --file=database/migrations/010-reference-catalog.sql
 3. Kiểm tra /api/landing có 21 mục, giá bộ lớp 6 là 269000 trong thời gian ưu đãi, các mục hỏi giá có price_vnd=null; thử đơn 70 đề và bộ lớp 6.
