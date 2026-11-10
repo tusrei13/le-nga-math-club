@@ -28,30 +28,17 @@
 .catalog-toolbar input { display:block; width:100%; min-height:46px; padding:10px 12px; margin-top:6px; border:1px solid var(--line); border-radius:0; background:white; color:var(--ink); }
 .catalog-toolbar>p { grid-column:1/-1; font-size:13px; margin:0; color:var(--ink-soft); }
 .catalog-filter-buttons { display:flex; flex-wrap:wrap; gap:8px; }
-.catalog-filter-buttons button,.reference-pagination button { min-height:44px; padding:8px 14px; border:1px solid var(--line); background:var(--paper); color:var(--brand-navy); font:500 13px var(--sans); }
-.catalog-filter-buttons button[aria-pressed=true],.reference-pagination button[aria-current=page] { background:var(--brand-navy); color:white; }
+.catalog-filter-buttons button { min-height:44px; padding:8px 14px; border:1px solid var(--line); background:var(--paper); color:var(--brand-navy); font:500 13px var(--sans); }
+.catalog-filter-buttons button[aria-pressed=true] { background:var(--brand-navy); color:white; }
 .reference-product-meta { color:var(--ink-soft); font-size:12px; line-height:1.6; }
-.reference-documents { background:var(--paper-deep); }
 .reference-learning-notes { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:40px; margin:32px 0 48px; }
 .reference-learning-notes article { min-width:0; }
 .reference-learning-notes h3 { font-size:26px; }
 .reference-learning-notes p { font-size:14px; color:var(--ink-soft); }
 .reference-learning-notes article>img { width:100%; aspect-ratio:1/1; max-height:380px; object-fit:contain; background:#131c43; }
-.reference-document-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; margin-top:24px; overflow-anchor:none; }
-.reference-document { display:flex; gap:20px; padding:24px; background:white; border:1px solid var(--line); min-width:0; }
-.reference-document>img { flex:0 0 100px; width:100px; height:145px; object-fit:contain; }
-.reference-document-copy { display:flex; flex-direction:column; min-width:0; gap:12px; }
-.reference-document h3 { font:700 17px/1.45 var(--sans); margin:0; }
-.reference-document p { margin:0; font-size:13px; line-height:1.7; }
-.reference-document small { font-size:11px; color:var(--ink-soft); }
-.reference-document .reference-actions .btn { padding:10px 12px; font-size:12px; min-height:44px; }
 .reference-price { display:flex; flex-wrap:wrap; gap:8px; align-items:baseline; }
 .reference-price strong { font-size:17px; }
 .reference-price del { color:var(--ink-muted); font-size:12px; }
-.reference-pagination { display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px; align-items:center; margin-top:24px; }
-.reference-pagination p { color:var(--ink-soft); font-size:13px; }
-.reference-pagination nav { display:flex; gap:8px; }
-.reference-pagination button:disabled { opacity:.5; cursor:default; }
 .reference-author-facts { display:flex; flex-wrap:wrap; gap:16px; padding-block:20px; border-block:1px solid var(--line); margin-block:24px; }
 .reference-author-facts p { flex:1 1 120px; font-size:12px; margin:0; }
 .reference-author-facts strong { display:block; font-size:28px; }
@@ -66,23 +53,16 @@
 .book-catalog { overflow-anchor:none; }
 @media(max-width:1000px) {
  .catalog-toolbar { grid-template-columns:1fr; }
- .reference-document { flex-direction:column; padding:20px; }
- .reference-document>img { flex-basis:auto; width:100%; height:180px; }
  .reference-author-gallery img { height:260px; }
 }
 @media(max-width:650px) {
- .reference-feature,.reference-learning-notes,.reference-document-grid { grid-template-columns:1fr; }
+ .reference-feature,.reference-learning-notes { grid-template-columns:1fr; }
  .reference-feature,.reference-learning-notes { gap:24px; }
  .reference-learning-notes { margin-bottom:32px; }
  .reference-contact-strip .container { flex-wrap:nowrap; justify-content:flex-start; gap:16px; overflow-x:auto; white-space:nowrap; scrollbar-width:none; }
  .reference-contact-strip .container::-webkit-scrollbar { display:none; }
  .reference-author-gallery { grid-template-columns:1fr; }
  .reference-author-gallery img { height:auto; max-height:480px; object-fit:contain; }
- .reference-document { flex-direction:row; gap:14px; padding:16px; }
- .reference-document>img { width:72px; height:105px; flex:0 0 72px; }
- .reference-document h3 { font-size:15px; }
- .reference-document .reference-actions { align-items:stretch; }
- .reference-document .reference-actions>* { width:100%; }
 }
 
 .book-card .product-cover img {object-fit:contain;}

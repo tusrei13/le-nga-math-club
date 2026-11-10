@@ -76,7 +76,7 @@ try {
   await until(() => evaluate(`document.querySelectorAll('[data-product-quantity]').length === 4 && document.querySelector('#hero-book-price').textContent.includes('49')`), 'loaded catalog');
   await sleep(300);
   assert.equal(await evaluate('document.title'),'Sách & Tài liệu Toán Cô Lê Nga');
-  assert.equal(await evaluate("document.querySelector('.site-nav a[href=\"#tai-lieu-so\"]').textContent"),'Đọc thử PDF');
+  assert.equal(await evaluate("document.querySelector('.site-nav a[href=\"#tai-lieu-so\"]').textContent"),'Tài liệu');
 
   assert.equal(await evaluate("document.querySelectorAll('.book-card [data-book-preview]').length"),9);
   assert.equal(await evaluate("[...document.querySelectorAll('[data-product-quantity]')].every(input=>input.value==='0')"),true);
@@ -220,7 +220,7 @@ try {
   assert.equal(await evaluate(`document.querySelector('#customer-avatar').children.length`),0);
   await cdp('Fetch.disable');customerFixture=undefined;
   await cdp('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});
-  await cdp('Page.navigate',{url:`http://127.0.0.1:${port}/stem/`});
+  await cdp('Page.navigate',{url:`http://127.0.0.1:${port}/`});
   await until(()=>evaluate(`document.querySelector('#program-title')?.textContent==='Cơ bản · Lớp 6' && !document.querySelector('#enquiry-submit').disabled`),'STEM programs');
   await screenshot('stem-desktop.png');
   const responsiveProblems=[];
@@ -241,15 +241,15 @@ try {
     const layout=await evaluate(`(()=>{
       const visible=e=>e.getClientRects().length>0;
       const bounds=e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,width:r.width,height:r.height};};
-      const outside=[...document.querySelectorAll('body *')].filter(visible).filter(e=>{const r=bounds(e);return r.left<-.5||r.right>innerWidth+.5;}).map(e=>e.id||e.className||e.tagName).slice(0,8);
-      const clipped=[...document.querySelectorAll('.button,.grades button,.brand strong')].filter(visible).filter(e=>e.scrollWidth>e.clientWidth+1).map(e=>e.textContent.trim());
-      const smallTargets=[...document.querySelectorAll('.grades button,.menu-toggle,.button,.levels label,.check-label,.specialist-choice,.faq-grid summary,.site-header nav>a')].filter(visible).filter(e=>{const r=bounds(e);return r.width<43.5||r.height<43.5;}).map(e=>e.textContent.trim());
+      const outside=[...document.querySelectorAll('.class-zone *,.site-header *')].filter(visible).filter(e=>{const r=bounds(e);return r.left<-.5||r.right>innerWidth+.5;}).map(e=>e.id||e.className||e.tagName).slice(0,8);
+      const clipped=[...document.querySelectorAll('.class-zone .btn,.grades button,.brand-copy strong')].filter(visible).filter(e=>e.scrollWidth>e.clientWidth+1).map(e=>e.textContent.trim());
+      const smallTargets=[...document.querySelectorAll('.grades button,.menu-toggle,.class-zone .btn,.levels label,.class-zone .check-label,.specialist-choice,.site-nav>a')].filter(visible).filter(e=>{const r=bounds(e);return r.width<43.5||r.height<43.5;}).map(e=>e.textContent.trim());
       return {viewport:innerWidth,document:document.documentElement.scrollWidth,outside,clipped,smallTargets,menu:visible(document.querySelector('.menu-toggle')),formInputs:[...document.querySelectorAll('.enquiry-form input:not([type=checkbox]),.enquiry-form select,.enquiry-form textarea')].filter(e=>e.name!=='website').map(e=>parseFloat(getComputedStyle(e).fontSize))};
     })()`);
     if(layout.viewport!==width||layout.document>width||layout.outside.length||layout.clipped.length||layout.smallTargets.length||layout.formInputs.some(size=>size<16))responsiveProblems.push({name,width,...layout});
     if(['phone-small','ipad','ipad-landscape','desktop-wide'].includes(name)){
       await screenshot('stem-responsive-'+name+'.png');
-      await evaluate(`document.querySelector('#tu-van').scrollIntoView({behavior:'instant'})`);
+      await evaluate(`document.querySelector('#tu-van-lop').scrollIntoView({behavior:'instant'})`);
       await screenshot('stem-responsive-'+name+'-form.png');
       await evaluate(`scrollTo({top:0,behavior:'instant'})`);
     }
@@ -258,7 +258,7 @@ try {
       await cdp('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[point]});
       await cdp('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
       await until(()=>evaluate(`document.querySelector('.menu-toggle').getAttribute('aria-expanded')==='true'`),'touch menu '+name);
-      if(!await evaluate(`document.querySelector('#main-nav').scrollWidth<=document.querySelector('#main-nav').clientWidth && document.querySelector('#main-nav').getBoundingClientRect().right<=innerWidth`))responsiveProblems.push({name,error:'Open menu overflows'});
+      if(!await evaluate(`document.querySelector('#site-nav').scrollWidth<=document.querySelector('#site-nav').clientWidth && document.querySelector('#site-nav').getBoundingClientRect().right<=innerWidth`))responsiveProblems.push({name,error:'Open menu overflows'});
       await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
       await cdp('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
       assert.equal(await evaluate(`document.querySelector('.menu-toggle').getAttribute('aria-expanded')==='false' && document.activeElement===document.querySelector('.menu-toggle')`),true);
@@ -271,15 +271,15 @@ try {
   await cdp('Emulation.setDeviceMetricsOverride',{width:1366,height:1024,deviceScaleFactor:1,mobile:true});
   await until(()=>evaluate(`document.querySelector('.menu-toggle').getAttribute('aria-expanded')==='false'`),'close menu after rotation');
   await cdp('Emulation.setDeviceMetricsOverride',{width:768,height:1024,deviceScaleFactor:1,mobile:true});
-  assert.equal(await evaluate(`getComputedStyle(document.querySelector('#main-nav')).display`),'none');
-  await evaluate(`document.querySelector('.menu-toggle').click();document.querySelector('#main-nav a').click()`);
+  assert.equal(await evaluate(`getComputedStyle(document.querySelector('#site-nav')).display`),'none');
+  await evaluate(`document.querySelector('.menu-toggle').click();document.querySelector('#site-nav a').click()`);
   assert.equal(await evaluate(`document.querySelector('.menu-toggle').getAttribute('aria-expanded')`),'false');
   await evaluate(`document.querySelector('[data-grade="3"]').click()`);
   assert.equal(await evaluate(`document.querySelector('#specialist-choice').hidden && document.querySelector('#form-specialist-label').hidden`),true);
   await evaluate(`document.querySelector('[data-grade="7"]').click();document.querySelector('input[name="level"][value="advanced"]').click();document.querySelector('#specialist-goal').click()`);
   assert.equal(await evaluate(`document.querySelector('#chosen-program').textContent`),'Nâng cao · Lớp 7 · Định hướng thi chuyên');
   await cdp('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
-  await evaluate(`document.querySelector('#tu-van').scrollIntoView({behavior:'instant'});const f=document.querySelector('#enquiry-form');f.elements.name.value='Phụ huynh STEM';f.elements.phone.value='0989066885';f.elements.note.value='Muốn trao đổi chương trình nâng cao <img src=x onerror="window.__stemXss=true">';f.elements.consent.checked=true`);
+  await evaluate(`document.querySelector('#tu-van-lop').scrollIntoView({behavior:'instant'});const f=document.querySelector('#enquiry-form');f.elements.name.value='Phụ huynh STEM';f.elements.phone.value='0989066885';f.elements.note.value='Muốn trao đổi chương trình nâng cao <img src=x onerror="window.__stemXss=true">';f.elements.consent.checked=true`);
   assert.equal(await evaluate(`document.documentElement.scrollWidth<=innerWidth`),true);
   await screenshot('stem-enquiry-mobile.png');
   await evaluate(`document.querySelector('#enquiry-form').requestSubmit()`);

@@ -84,3 +84,7 @@
 .digital-product:hover .digital-cover.has-image { transform:translateY(-3px); }
 .digital-cover { transition:transform .25s var(--ease); }
 @media(prefers-reduced-motion:reduce) { .digital-cover { transition:none; } .digital-product:hover .digital-cover.has-image { transform:none; } }
+
+.digital-product-desc { font-size:14px; line-height:1.6; color:var(--ink-soft); margin:8px 0 0; }
+.digital-product-price { margin:10px 0 0; }
+.digital-product-price strong { font-size:17px; font-weight:700; color:var(--brand-navy); }

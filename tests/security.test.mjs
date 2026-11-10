@@ -7,7 +7,6 @@ import {readJson,policies} from '../security.mjs';
 import {sqliteD1} from '../database/d1-adapter.mjs';
 import {seed} from '../database/seed.mjs';
 import worker from '../cloudflare/worker.mjs';
-import stemWorker from '../stem-maths/worker.mjs';
 
 function fixture(){
   const db=new DatabaseSync(':memory:');
@@ -16,7 +15,7 @@ function fixture(){
   const password='test-only-'+randomUUID(),digest=createHash('sha256').update(password).digest('hex');
   db.prepare('INSERT INTO admin_users(id,username,password_hash) VALUES(?,?,?)').run('security-admin','admin','token-sha256:'+digest);
   const env={DB:sqliteD1(db),ASSETS:{fetch:async()=>new Response('<!doctype html><title>Admin</title>',{headers:{'Content-Type':'text/html'}})}};
-  const req=(path,{method='GET',data,headers={},stem=false}={})=>(stem?stemWorker:worker).fetch(new Request('https://site.test'+path,{method,headers:{'Content-Type':'application/json',...headers},body:data===undefined?undefined:JSON.stringify(data)}),env);
+  const req=(path,{method='GET',data,headers={}}={})=>worker.fetch(new Request('https://site.test'+path,{method,headers:{'Content-Type':'application/json',...headers},body:data===undefined?undefined:JSON.stringify(data)}),env);
   const login=async(headers={})=>{
     const response=await req('/api/auth/login',{method:'POST',data:{username:'admin',password},headers});
     assert.equal(response.status,200);
@@ -77,8 +76,8 @@ test('Reauthentication rotates the presented admin session; old cookies and forg
 
 test('Pages applies security headers to dynamic responses, failures, health checks and admin HTML',async()=>{
   const {db,req}=fixture();try{
-    for(const stem of [false,true])for(const path of ['/healthz','/api/does-not-exist','/api/admin/stem-enquiries']){
-      const response=await req(path,{stem});
+    for(const path of ['/healthz','/api/does-not-exist','/api/admin/stem-enquiries']){
+      const response=await req(path);
       assert.equal(response.headers.get('X-Frame-Options'),'DENY');
       assert.equal(response.headers.get('X-Content-Type-Options'),'nosniff');
       assert.equal(response.headers.get('Cross-Origin-Resource-Policy'),'same-origin');
@@ -113,7 +112,7 @@ test('Parent input stays data, SQL search stays bound and API responses hide int
 });
 test('Pages preview URLs cannot write real enquiries, log in as admin or read private APIs',async()=>{
   const {db,env}=fixture();try{
-    for(const [site,handler] of [['le-nga-books',worker],['stem-maths-co-nga',stemWorker]]){
+    for(const [site,handler] of [['le-nga-books',worker]]){
       for(const prefix of ['a1b2c3d4','feature-branch']){
         const origin=`https://${prefix}.${site}.pages.dev`;
         for(const [path,method] of [['/api/stem/enquiries','POST'],['/api/orders','POST'],['/api/auth/login','POST'],['/api/auth/session','GET'],['/api/admin/stem-enquiries','GET'],['/api/customer/orders','GET']]){

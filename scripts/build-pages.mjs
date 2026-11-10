@@ -38,7 +38,7 @@ for(const config of Object.values(bookVideos)){
 }
 await rm(output,{recursive:true,force:true}); await mkdir(output,{recursive:true});
 const logoVersion = createHash('sha256').update(await readFile('public/assets/logo.png')).digest('hex').slice(0,12);
-for (const name of ['index.html','styles.css','app.js','admin.html','admin.css','admin.js','customer.js','customer.css','digital.js','digital.css','admin-digital.js','admin-digital.css','book-videos.js','book-video-data.js','book-videos.css','catalog-ui.js','catalog-ui.css']) {
+for (const name of ['index.html','styles.css','app.js','admin.html','admin.css','admin.js','customer.js','customer.css','digital.js','digital.css','admin-digital.js','admin-digital.css','book-videos.js','book-video-data.js','book-videos.css','catalog-ui.js','catalog-ui.css','class-zone.js','class-zone.css']) {
   const destination = resolve(output,name);
   if (name.endsWith('.html') || name === 'customer.js') {
     const text = await readFile(name,'utf8');
@@ -51,6 +51,8 @@ await cp('public/assets',`${output}/public/assets`,{recursive:true});
 await build({entryPoints:['cloudflare/worker.mjs'],outfile:`${output}/_worker.js`,bundle:true,platform:'neutral',format:'esm',external:['node:crypto']});
 await writeFile(`${output}/404.html`,'<!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Không tìm thấy trang · CLB Toán Cô Lê Nga</title><link rel="stylesheet" href="/styles.css"><main class="container section-pad"><h1>Không tìm thấy trang.</h1><p><a class="btn btn-primary" href="/">Về trang bán sách</a></p></main></html>');
 await writeFile(`${output}/_routes.json`,JSON.stringify({version:1,include:['/api/*','/admin','/admin/*','/admin.html','/healthz','/robots.txt','/sitemap.xml'],exclude:[]}));
+// The retired standalone STEM page now lives in the class zone of the main page.
+await writeFile(`${output}/_redirects`,'/stem /#lop-hoc 301\n/stem/ /#lop-hoc 301\n');
 await writeFile(`${output}/_headers`,staticSecurityHeaders(policies.books)+'/admin*\n  Cache-Control: no-store\n');
 const schema=await readFile('database/schema.sql','utf8'), adminSchema=await readFile('database/admin-schema.sql','utf8');
 const customerSchema=await readFile('database/customer-schema.sql','utf8');

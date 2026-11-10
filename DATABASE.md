@@ -135,8 +135,8 @@ Ví dụ PowerShell, sau khi đã cấu hình token trong phiên shell:
 
 ```powershell
 $headers = @{ Authorization = "Bearer $env:ADMIN_API_TOKEN" }
-Invoke-RestMethod 'http://localhost:3000/api/admin/orders' -Headers $headers
-Invoke-RestMethod 'http://localhost:3000/api/admin/products/toan-6-tap-1' `
+Invoke-RestMethod 'http://localhost:3001/api/admin/orders' -Headers $headers
+Invoke-RestMethod 'http://localhost:3001/api/admin/products/toan-6-tap-1' `
   -Method Patch -Headers $headers -ContentType 'application/json' `
   -Body '{"price_vnd":125000}'
 ```

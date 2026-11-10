@@ -9,7 +9,7 @@ import { db } from './database/db.mjs';
 import { publicOrigin } from './runtime.mjs';
 
 const root = fileURLToPath(new URL('.', import.meta.url));
-const port = Number(process.env.PORT || 3000);
+const port = Number(process.env.PORT || 3001);
 const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.pdf': 'application/pdf', '.woff2': 'font/woff2' };
 
 const server = createServer(async (request, response) => {
@@ -19,7 +19,7 @@ const server = createServer(async (request, response) => {
   response.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   try {
     const url = new URL(request.url, `http://${request.headers.host || 'localhost'}`);
-    const policy=url.pathname.startsWith('/api/')||url.pathname==='/healthz'?policies.api:url.pathname.startsWith('/stem')?policies.stem:url.pathname.startsWith('/admin')?policies.admin:policies.books;
+    const policy=url.pathname.startsWith('/api/')||url.pathname==='/healthz'?policies.api:url.pathname.startsWith('/admin')?policies.admin:policies.books;
     for(const [name,value] of Object.entries(securityHeaders({https:publicOrigin.startsWith('https:'),policy,sensitive:url.pathname.startsWith('/api/')||url.pathname.startsWith('/admin')||url.pathname==='/healthz'})))response.setHeader(name,value);
     if (url.pathname === '/healthz' && ['GET','HEAD'].includes(request.method)) {
       db.prepare('SELECT 1').get();
@@ -37,30 +37,26 @@ const server = createServer(async (request, response) => {
     if (url.pathname.startsWith('/api/')) return await handleApi(request, response, url);
     if (!['GET', 'HEAD'].includes(request.method)) { response.writeHead(405); response.end(); return; }
     const pathname = decodeURIComponent(url.pathname);
-    if(pathname==='/stem'){response.writeHead(302,{Location:'/stem/'});response.end();return;}
+    // The standalone STEM Maths page now lives inside the main page.
+    if(pathname==='/stem'||pathname.startsWith('/stem/')){response.writeHead(301,{Location:'/#lop-hoc'});response.end();return;}
     const relative = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
     const adminFiles = { admin:'admin.html', 'admin/':'admin.html', 'admin.html':'admin.html', 'admin.js':'admin.js', 'admin.css':'admin.css', 'admin-digital.js':'admin-digital.js', 'admin-digital.css':'admin-digital.css' };
-    const stemFiles={'stem/':'index.html','stem/index.html':'index.html','stem/styles.css':'styles.css','stem/app.js':'app.js'};
     const publicRoot = resolve(root, 'public');
     let file;
-    if(Object.hasOwn(stemFiles,relative)){
-      file=join(root,'stem-maths',stemFiles[relative]);
-      response.setHeader('Content-Security-Policy',policies.stem);
-    }
-    else if (Object.hasOwn(adminFiles,relative)) {
+    if (Object.hasOwn(adminFiles,relative)) {
       file = join(root,adminFiles[relative]);
       response.setHeader('Cache-Control','no-store');
       response.setHeader('X-Frame-Options','DENY');
       response.setHeader('Referrer-Policy','same-origin');
       response.setHeader('Content-Security-Policy',policies.admin);
     }
-    else if (['index.html', 'styles.css', 'app.js', 'customer.js', 'customer.css', 'digital.js', 'digital.css', 'book-videos.js', 'book-video-data.js', 'book-videos.css', 'catalog-ui.js', 'catalog-ui.css'].includes(relative)) {
+    else if (['index.html', 'styles.css', 'app.js', 'customer.js', 'customer.css', 'digital.js', 'digital.css', 'book-videos.js', 'book-video-data.js', 'book-videos.css', 'catalog-ui.js', 'catalog-ui.css', 'class-zone.js', 'class-zone.css'].includes(relative)) {
       file = join(root, relative);
       response.setHeader('Content-Security-Policy', policies.books);
     }
     else if (relative === 'manus-routes.json' || relative.startsWith('assets/')) file = resolve(publicRoot, relative);
     else if (relative.startsWith('public/assets/')) file = resolve(publicRoot, relative.slice(7));
-    if (!file || (!Object.hasOwn(stemFiles,relative) && !Object.hasOwn(adminFiles,relative) && !['index.html', 'styles.css', 'app.js', 'customer.js', 'customer.css', 'digital.js', 'digital.css', 'book-videos.js', 'book-video-data.js', 'book-videos.css', 'catalog-ui.js', 'catalog-ui.css'].includes(relative) && !file.startsWith(publicRoot + sep))) {
+    if (!file || (!Object.hasOwn(adminFiles,relative) && !['index.html', 'styles.css', 'app.js', 'customer.js', 'customer.css', 'digital.js', 'digital.css', 'book-videos.js', 'book-video-data.js', 'book-videos.css', 'catalog-ui.js', 'catalog-ui.css', 'class-zone.js', 'class-zone.css'].includes(relative) && !file.startsWith(publicRoot + sep))) {
       response.writeHead(404); response.end('Not found'); return;
     }
     if(extname(file)==='.mp4'){await serveVideoFile(request,response,file);return;}

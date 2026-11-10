@@ -77,7 +77,7 @@ try {
   socket.addEventListener('message',e=>{const r=JSON.parse(e.data);if(r.method==='Network.requestWillBeSent'&&r.params.request.url.endsWith('.mp4'))mediaRequests.push(r.params.request.url);});
   await cdp('Network.enable');
   await cdp('Page.navigate',{url:'http://127.0.0.1:'+port+'/'});
-  await until(()=>evaluate("document.querySelectorAll('.book-card').length===9 && document.querySelectorAll('[data-product-quantity]').length===4 && document.querySelectorAll('.reference-document').length===6"),'new catalog renders');
+  await until(()=>evaluate("document.querySelectorAll('.book-card').length===9 && document.querySelectorAll('[data-product-quantity]').length===4 && document.querySelectorAll('#digital-catalog .digital-product').length===6"),'new catalog renders');
   assert.equal(mediaRequests.length,0,'no initial video traffic');
   assert.equal(await evaluate("document.querySelector('#hero-book-count').textContent"),'21');
   assert.equal(await evaluate("document.querySelector('[data-assistant-phone]').getAttribute('href')"),'tel:0365473632','assistant must not be replaced by main number');
@@ -88,12 +88,13 @@ try {
   assert.equal(await evaluate("document.querySelectorAll('.book-card:not([hidden])').length"),1);
   await evaluate("document.querySelector('[data-paper-filter=all]').click();var catalogSearchInput=document.querySelector('#catalog-search');catalogSearchInput.value='toan 3';catalogSearchInput.dispatchEvent(new Event('input',{bubbles:true}))");
   assert.equal(await evaluate("document.querySelectorAll('.book-card:not([hidden])').length"),0);
-  assert.match(await evaluate("document.querySelector('#reference-document-status').textContent"),/7 tài liệu/);
-  await evaluate("var catalogSearchInput=document.querySelector('#catalog-search');catalogSearchInput.value='';catalogSearchInput.dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('[data-reference-grade=\"5\"]').click()");
-  assert.equal(await evaluate("document.querySelectorAll('.reference-document').length"),3);
-  await evaluate("document.querySelector('[data-reference-grade=all]').click();document.querySelector('[data-catalog-preview=tai-lieu-t3tuan]').click()");
-  assert.equal(await evaluate("document.querySelector('#catalog-preview-dialog').open"),true);
-  assert.equal(await evaluate("document.querySelectorAll('#catalog-preview-files a').length"),4);
+  assert.match(await evaluate("document.querySelector('#digital-result-count').textContent"),/10 tài liệu/);
+  await evaluate("var catalogSearchInput=document.querySelector('#catalog-search');catalogSearchInput.value='';catalogSearchInput.dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('[data-digital-grade=\"5\"]').click()");
+  assert.equal(await evaluate("document.querySelectorAll('[data-order-product]').length"),3);
+  await evaluate("document.querySelector('[data-digital-grade=\"\"]').click();document.querySelector('[data-digital-preview=tai-lieu-t3tuan]').click()");
+  assert.equal(await evaluate("document.querySelector('#digital-preview-dialog').open"),true);
+  assert.equal(await evaluate("document.querySelectorAll('#digital-preview-files a').length"),4);
+  await evaluate("document.querySelector('#digital-preview-close').click()");
   await evaluate("document.querySelector('#catalog-preview-close').click();document.querySelector('[data-catalog-preview=phan-dang-6-bo-2-tap]').click()");
   assert.equal(await evaluate("document.querySelectorAll('#catalog-preview-files a').length"),3);
   await evaluate("document.querySelector('#catalog-preview-close').click()");
@@ -101,16 +102,16 @@ try {
   const viewports=[[320,568],[375,812],[768,1024],[820,1180],[1024,768],[1440,1000],[1920,1080]];
   for(const [width,height] of viewports){
     await cdp('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<1400});
-    for(const section of ['#gioi-thieu','#gioi-thieu-70-de','#bo-sach','#reference-document-grid','#tai-lieu-so','#tac-gia','#dat-sach','.site-footer']){
+    for(const section of ['#gioi-thieu','#gioi-thieu-70-de','#bo-sach','#digital-catalog','#tai-lieu-so','#tac-gia','#dat-sach','.site-footer']){
       await evaluate("document.querySelector("+JSON.stringify(section)+").scrollIntoView({behavior:'instant',block:'start'})");await sleep(100);
       const bounds=await evaluate("({inner:innerWidth,width:document.documentElement.scrollWidth})");
       assert.equal(bounds.inner,width,JSON.stringify({section,...bounds}));assert.ok(bounds.width<=width,JSON.stringify({section,...bounds}));
-      if([375,1440].includes(width)&&['#reference-document-grid','#bo-sach','#tac-gia'].includes(section))await screenshot('reference-'+section.slice(1)+'-'+width+'.png');
+      if([375,1440].includes(width)&&['#digital-catalog','#bo-sach','#tac-gia'].includes(section))await screenshot('reference-'+section.slice(1)+'-'+width+'.png');
     }
   }
   await cdp('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});
-  await evaluate("document.querySelector('#reference-document-pages').scrollIntoView({behavior:'instant',block:'center'})");const before=await evaluate('scrollY');
-  await evaluate("document.querySelector('#reference-document-pages button:last-child').click()");await sleep(150);
+  await evaluate("document.querySelector('#digital-pagination').scrollIntoView({behavior:'instant',block:'center'})");const before=await evaluate('scrollY');
+  await evaluate("document.querySelector('#digital-pagination button:last-child').click()");await sleep(150);
   assert.ok(Math.abs((await evaluate('scrollY'))-before)<3,'document pagination must not scroll');
   await evaluate("document.querySelector('[data-paper-filter=all]').click();document.querySelector('.book-card[data-product-id=phan-dang-6-bo-2-tap] button.text-link').click();document.querySelector('[data-book-group=primary]').click();document.querySelector('[data-product-quantity=\"70-de-vao-6\"]').value=1;document.querySelector('[data-product-quantity=\"70-de-vao-6\"]').dispatchEvent(new Event('input',{bubbles:true}))");
   assert.equal(await evaluate("document.querySelector('#order-total').textContent"),'518.000đ');
@@ -123,17 +124,16 @@ try {
     await until(()=>evaluate("document.querySelector('[data-reference-player=\""+key+"\"]').readyState>=2"),'reference video '+key);
     await evaluate("document.querySelector('[data-reference-player=\""+key+"\"]').pause()");
   }
+  // The retired standalone STEM URL lands on the class zone of the main page.
   await cdp('Page.navigate',{url:'http://127.0.0.1:'+port+'/stem/'});
-  await until(()=>evaluate("!!document.querySelector('.stem-reference-about')"),'STEM page');
-  await evaluate("document.querySelector('.stem-reference-about').scrollIntoView({behavior:'instant'})");
-  await until(()=>evaluate("document.querySelector('.stem-reference-grid img')?.complete && document.querySelector('.stem-reference-grid img')?.naturalWidth>0"),'STEM reference author photo');
+  await until(()=>evaluate("location.pathname==='/'&&location.hash==='#lop-hoc'&&!!document.querySelector('#lop-hoc')"),'STEM redirect to class zone');
   for(const [width,height] of [[375,812],[768,1024],[1440,1000]]){
-    await cdp('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<1400});await evaluate("document.querySelector('.stem-reference-about').scrollIntoView({behavior:'instant'})");
-    assert.equal(await evaluate("document.documentElement.scrollWidth<=innerWidth"),true,'STEM author '+width);
-    if(width===375)await screenshot('reference-stem-author-375.png');
+    await cdp('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<1400});await evaluate("document.querySelector('#lop-hoc').scrollIntoView({behavior:'instant'})");
+    assert.equal(await evaluate("document.documentElement.scrollWidth<=innerWidth"),true,'class zone '+width);
+    if(width===375)await screenshot('reference-class-zone-375.png');
   }
   assert.deepEqual(browserErrors,[]);
-  console.log('Reference UI passed: 21 products, 9 paper entries, 4 orderable products; search, filters, preview selectors, non-scrolling pagination, both new videos, new bundle checkout and 7 responsive sizes; STEM author photo and layout. Screenshots in data/.');
+  console.log('Reference UI passed: 21 products, 9 paper entries, 4 orderable products; search, filters, preview selectors, non-scrolling pagination, both new videos, new bundle checkout and 7 responsive sizes; class zone layout and the /stem redirect. Screenshots in data/.');
 } finally {
   if (socket?.readyState === WebSocket.OPEN) { try { await cdp('Browser.close'); } catch {} socket.close(); }
   for (const process of [chromium, server]) if (process && process.exitCode === null) {

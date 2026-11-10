@@ -1,25 +1,14 @@
+// "Lớp học tại CLB" (STEM Maths): program picker, consultation form and click-to-load YouTube videos.
+(()=>{
 const $=selector=>document.querySelector(selector);
-$('#year').textContent=String(new Date().getFullYear());
 const form=$('#enquiry-form');
+if(!form)return;
 let programs=[],grade=6,level='basic',specialist=false,busy=false,pending;
-const menu=$('#main-nav'),toggle=$('.menu-toggle');
-function closeMenu(){menu.classList.remove('is-open');toggle.setAttribute('aria-expanded','false');}
-toggle.addEventListener('click',()=>{const open=menu.classList.toggle('is-open');toggle.setAttribute('aria-expanded',String(open));});
-menu.querySelectorAll('a').forEach(link=>link.addEventListener('click',closeMenu));
-document.addEventListener('keydown',event=>{if(event.key==='Escape'&&menu.classList.contains('is-open')){closeMenu();toggle.focus();}});
-const desktopNavigation=matchMedia('(min-width:1024px)');
-desktopNavigation.addEventListener('change',event=>{
-  if(!event.matches)return;
-  const toggleHadFocus=document.activeElement===toggle;
-  closeMenu();
-  if(toggleHadFocus)menu.querySelector('a').focus({preventScroll:true});
-});
-document.addEventListener('click',event=>{if(!event.target.closest('.site-header'))closeMenu();});
 const reducedMotion=matchMedia('(prefers-reduced-motion:reduce)');
 function render(animate=false){
   if(grade<6)specialist=false;
   document.querySelectorAll('[data-grade]').forEach(button=>{button.setAttribute('aria-pressed',String(Number(button.dataset.grade)===grade));button.setAttribute('aria-label',`Lớp ${button.dataset.grade}`);});
-  document.querySelectorAll('[name=level]').forEach(input=>{if(input.type==='radio')input.checked=input.value===level;});
+  document.querySelectorAll('.class-zone [name=level]').forEach(input=>{if(input.type==='radio')input.checked=input.value===level;});
   $('#specialist-choice').hidden=grade<6;$('#specialist-goal').checked=specialist;
   form.elements.grade.value=String(grade);form.elements.level.value=level;form.elements.specialist_goal.checked=specialist;
   form.elements.specialist_goal.disabled=grade<6;$('#form-specialist-label').hidden=grade<6;
@@ -45,7 +34,7 @@ async function loadPrograms(){
 }
 $('#program-retry').addEventListener('click',loadPrograms);
 document.querySelectorAll('[data-grade]').forEach(button=>button.addEventListener('click',()=>{grade=Number(button.dataset.grade);render(true);}));
-document.querySelectorAll('input[name=level]').forEach(input=>input.addEventListener('change',()=>{level=input.value;render(true);}));
+document.querySelectorAll('.class-zone input[name=level]').forEach(input=>input.addEventListener('change',()=>{level=input.value;render(true);}));
 $('#specialist-goal').addEventListener('change',event=>{specialist=event.target.checked;render(true);});
 document.querySelectorAll('[data-start-grade]').forEach(link=>link.addEventListener('click',()=>{grade=Number(link.dataset.startGrade);render(true);}));
 form.elements.grade.addEventListener('change',event=>{grade=Number(event.target.value);render();});
@@ -66,6 +55,8 @@ form.addEventListener('submit',async event=>{
   finally{busy=false;form.removeAttribute('aria-busy');$('#enquiry-submit').disabled=!programs.length;}
 });
 loadPrograms();
+// Hide the book purchase bar while the class zone is on screen.
+if('IntersectionObserver' in window){const zone=$('.class-zone');if(zone)new IntersectionObserver(([entry])=>document.body.classList.toggle('in-class-zone',entry.isIntersecting),{rootMargin:'-30% 0px -30% 0px'}).observe(zone);}
 // YouTube videos load only after a click: data-youtube-id on .class-video-frame buttons.
 for(const frame of document.querySelectorAll('.class-video-frame[data-youtube-id]')){
   frame.addEventListener('click',()=>{
@@ -78,10 +69,4 @@ for(const frame of document.querySelectorAll('.class-video-frame[data-youtube-id
   },{once:true});
 }
 {const videos=$('#class-videos');if(videos&&videos.querySelector('.class-video'))videos.hidden=false;}
-// Sections fade up once as they enter the viewport; skipped for reduced motion.
-if('IntersectionObserver' in window&&!reducedMotion.matches){
-  const items=document.querySelectorAll('main > section:not(.hero) .wrap > *, .stats-card > div, .gallery-grid figure, .learning-stage');
-  document.documentElement.classList.add('reveal-ready');
-  const observer=new IntersectionObserver(entries=>{for(const entry of entries)if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target);}},{rootMargin:'0px 0px -8% 0px'});
-  items.forEach((item,index)=>{item.classList.add('reveal-item');item.style.setProperty('--reveal-delay',(index%4)*70+'ms');observer.observe(item);});
-}
+})();
