@@ -71,7 +71,7 @@ Migration cập nhật 10 sách về 299.000đ/cuốn và gỡ các chính sách
 npm run pages:deploy
 ```
 
-Lần đầu Wrangler có thể hỏi tạo Pages project, đặt tên `le-nga-books`. Sau đó mở URL `https://le-nga-books.pages.dev` do Wrangler trả về và `/admin` để đăng nhập. `/healthz` kiểm tra binding/schema.
+Lần đầu Wrangler có thể hỏi tạo Pages project, đặt tên `stem-math-co-le-nga`. Sau đó mở URL `https://stem-math-co-le-nga.pages.dev` do Wrangler trả về và `/admin` để đăng nhập. `/healthz` kiểm tra binding/schema.
 
 Nếu kết nối GitHub trong dashboard Pages:
 

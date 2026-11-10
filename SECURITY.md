@@ -13,7 +13,7 @@
 
 ## Domain chính và bản xem thử
 
-Dùng `https://le-nga-books.pages.dev` để đăng nhập hoặc gửi thông tin thật. Các URL `https://<hash-hoặc-branch>.<project>.pages.dev` chỉ được đọc API danh mục công khai; API nhận phiếu, đăng nhập và dữ liệu riêng tư bị chặn. Quy tắc này cũng áp dụng cho link hash của một bản deploy Production.
+Dùng `https://stem-math-co-le-nga.pages.dev` để đăng nhập hoặc gửi thông tin thật. Các URL `https://<hash-hoặc-branch>.<project>.pages.dev` chỉ được đọc API danh mục công khai; API nhận phiếu, đăng nhập và dữ liệu riêng tư bị chặn. Quy tắc này cũng áp dụng cho link hash của một bản deploy Production.
 
 Lớp chặn trong code không thay thế việc tách môi trường: dùng D1 riêng cho Preview, hoặc tắt build Preview nếu chưa cần. Đặc biệt không gắn custom domain cho Preview dùng D1 production. Có thể bật Cloudflare Access cho Preview trong dashboard. Các bản deploy cũ giữ code cũ, nên cần kiểm soát truy cập hoặc dọn các bản cũ không còn dùng. Không cấp production binding/secret cho code hoặc nhánh không tin cậy.
 

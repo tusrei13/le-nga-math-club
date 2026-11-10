@@ -73,7 +73,7 @@ Các tài liệu cần đọc theo chủ đề:
 - Giữ CSP và các header bảo mật trong `server.mjs`, `security.mjs`, `cloudflare/worker.mjs`. Trang admin không được dùng script inline hoặc eval.
 - Dữ liệu người dùng (tên phụ huynh, ghi chú) hiển thị bằng text, không bằng HTML. Query SQL luôn dùng tham số.
 - File trả phí không được đặt trong `public/`. Kho đọc thử công khai và kho file trả phí phải tách bạch; quyền tải kiểm tra ở server.
-- Không đưa bản preview (`<hash>.le-nga-books.pages.dev`) vào luồng đăng nhập hoặc gửi thông tin thật. Chỉ dùng domain production.
+- Không đưa bản preview (`<hash>.stem-math-co-le-nga.pages.dev`) vào luồng đăng nhập hoặc gửi thông tin thật. Chỉ dùng domain production.
 
 **Frontend**
 - Không hardcode giá hoặc số điện thoại mới trong HTML nếu đã có nguồn trong `reference-catalog.mjs` / `site_content`.

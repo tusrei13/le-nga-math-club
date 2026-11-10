@@ -8,7 +8,7 @@ Khách hàng dùng Firebase Authentication; chủ CLB dùng trang `/admin` với
 2. Project settings → General → Your apps → chọn biểu tượng Web `</>`, đăng ký ứng dụng. Không cần Firebase Hosting vì website chạy trên Cloudflare Pages.
 3. Sao chép ba giá trị của web config: `apiKey`, `projectId`, `authDomain` (thường là `PROJECT_ID.firebaseapp.com`). Đây là cấu hình web công khai, không phải khóa service account. Không đưa private key/service account JSON vào frontend hoặc Git.
 4. Build → Authentication → Get started → Sign-in method: bật **Email/Password** và **Google**. Với Google, chọn email hỗ trợ rồi lưu.
-5. Authentication → Settings → Authorized domains: thêm tên miền Pages thật, ví dụ `le-nga-books.pages.dev`, và tên miền riêng nếu có. Thêm `localhost` khi thử trên máy; dự án mới không mặc định cho phép localhost. Tránh bật Google trên các preview domain chưa được duyệt.
+5. Authentication → Settings → Authorized domains: thêm tên miền Pages thật, ví dụ `stem-math-co-le-nga.pages.dev`, và tên miền riêng nếu có. Thêm `localhost` khi thử trên máy; dự án mới không mặc định cho phép localhost. Tránh bật Google trên các preview domain chưa được duyệt.
 6. Authentication → Settings: bật chính sách mật khẩu tối thiểu **12 ký tự** và bảo vệ chống dò email nếu giao diện cung cấp. Trong Templates, chỉnh tên người gửi, nội dung email xác minh/đặt lại mật khẩu và action URL về website thật theo hướng dẫn Firebase.
 
 Không cần tạo OAuth client riêng hoặc lấy Google client secret nếu dùng Firebase Google provider. Popup Google được quản lý bởi Firebase SDK. Bật popup cho trang nếu trình duyệt chặn.
