@@ -5,6 +5,7 @@ export const digitalPreviews = [
     "cover": "/assets/documents/covers/g3-8-de-giua-hk1.jpg",
     "grade": 3,
     "title": "8 đề ôn tập giữa học kỳ I · Toán 3",
+    "description": "Bộ 8 đề ôn tập giữa học kì I, năm học 2026–2027, có đáp án. Có bản học sinh để làm bài và bản có đáp án cho phụ huynh.",
     "files": [
       {
         "label": "Bản đọc thử 1",
@@ -25,6 +26,7 @@ export const digitalPreviews = [
     "cover": "/assets/documents/covers/g3-quyen-1-4-preview.jpg",
     "grade": 3,
     "title": "Toán 3 Nâng cao · Luyện tập theo tuần (4 quyển)",
+    "description": "Bản đọc thử bộ luyện theo tuần gồm 4 quyển, 35 tuần, mỗi tuần 2 trang: Quyển 1 tuần 1–9, Quyển 2 tuần 10–17, Quyển 3 tuần 18–26, Quyển 4 tuần 27–35.",
     "files": [
       {
         "label": "Đọc thử quyển 1",
@@ -55,6 +57,7 @@ export const digitalPreviews = [
     "cover": "/assets/documents/covers/g3-10-de-cuoi-hk1.jpg",
     "grade": 3,
     "title": "10 đề kiểm tra học kỳ I · Toán 3",
+    "description": "Bộ 10 đề kiểm tra 45 phút cuối học kì I, năm học 2026–2027, dành cho học sinh lớp 3.",
     "files": [
       {
         "label": "Bản đọc thử PDF",
@@ -70,6 +73,7 @@ export const digitalPreviews = [
     "cover": "/assets/documents/covers/g4-tong-hieu.jpg",
     "grade": 4,
     "title": "Chuyên đề Tổng – Hiệu · Toán 4",
+    "description": "Chuyên đề Tổng – Hiệu gồm 4 buổi: 3 buổi học 6 dạng bài và 1 buổi ôn kèm bài kiểm tra 45 phút. Có phiếu trên lớp, phiếu về nhà và bản giải chi tiết cho giáo viên.",
     "files": [
       {
         "label": "Bản đọc thử GV",
@@ -90,6 +94,7 @@ export const digitalPreviews = [
     "cover": "/assets/documents/covers/g4-5-de-giua-hk1.jpg",
     "grade": 4,
     "title": "5 đề ôn tập giữa học kỳ I · Toán 4",
+    "description": "Tuyển tập 5 đề ôn tập giữa học kì I, năm học 2026–2027, có đáp án. Có bản học sinh và bản đáp án riêng.",
     "files": [
       {
         "label": "Bản đọc thử 1",
@@ -110,6 +115,7 @@ export const digitalPreviews = [
     "cover": "/assets/documents/covers/g4-cuoi-tuan-clc.jpg",
     "grade": 4,
     "title": "Cuối tuần Toán 4 Chất lượng cao · Tập 1",
+    "description": "18 tuần luyện tập, mỗi tuần 2 trang. Phần I điền đáp số, Phần II trình bày bài giải. Có bài thử thách và đáp án.",
     "files": [
       {
         "label": "Bản đọc thử PDF",
@@ -125,6 +131,7 @@ export const digitalPreviews = [
     "cover": "/assets/documents/covers/g5-so-thap-phan.jpg",
     "grade": 5,
     "title": "2 đề Số thập phân · Toán 5",
+    "description": "Hai đề kiểm tra chuyên đề Số thập phân, thời gian 45 phút, thang điểm 10. Có file đáp án và hướng dẫn chấm.",
     "files": [
       {
         "label": "Bản đọc thử 1",
@@ -145,6 +152,7 @@ export const digitalPreviews = [
     "cover": "/assets/documents/covers/g5-bo-de-giua-hk1.jpg",
     "grade": 5,
     "title": "Bộ đề ôn tập giữa học kỳ I · Toán 5",
+    "description": "Bộ 5 đề ôn tập giữa học kì I, năm học 2026–2027. Có bản giáo viên có đáp án và bản học sinh.",
     "files": [
       {
         "label": "Bản đọc thử GV",
@@ -165,6 +173,7 @@ export const digitalPreviews = [
     "cover": "/assets/documents/covers/g5-5-de-giua-hk1.jpg",
     "grade": 5,
     "title": "Tuyển tập 5 đề giữa học kỳ I · Toán 5",
+    "description": "Tuyển tập 5 đề giữa học kì I, năm học 2026–2027, bản theo file gốc, có đáp án.",
     "files": [
       {
         "label": "Bản đọc thử 1",
@@ -180,6 +189,7 @@ export const digitalPreviews = [
     "cover": "/assets/documents/covers/g6-7-de-hk1.jpg",
     "grade": 6,
     "title": "7 đề kiểm tra học kỳ I · Toán 6",
+    "description": "Tuyển tập 7 đề kiểm tra học kì I năm học 2023–2024, chọn từ đề của nhiều trường và phòng giáo dục tại Hà Nội. Có đáp án và bản học sinh.",
     "files": [
       {
         "label": "Bản đọc thử 1",
@@ -200,6 +210,7 @@ export const digitalPreviews = [
     "cover": "/assets/documents/covers/g7-10-de-giua-hk1.jpg",
     "grade": 7,
     "title": "10 đề giữa kỳ I, đề và đáp án · Toán 7",
+    "description": "Bộ 10 đề kiểm tra giữa học kì I năm học 2026–2027, thời gian 90 phút mỗi đề. Có đề và đáp án.",
     "files": [
       {
         "label": "Bản đọc thử 1",
@@ -215,6 +226,7 @@ export const digitalPreviews = [
     "cover": "/assets/documents/covers/g8-5-de-hk1-kntt.jpg",
     "grade": 8,
     "title": "5 đề cuối kỳ I · Toán 8 Kết nối tri thức",
+    "description": "Tuyển tập 5 đề kiểm tra cuối học kì I theo sách Kết nối tri thức, lấy từ đề của các trường THCS. Có đáp án và bản học sinh.",
     "files": [
       {
         "label": "Bản đọc thử 1",
@@ -235,6 +247,7 @@ export const digitalPreviews = [
     "cover": "/assets/documents/covers/g9-duong-tron.jpg",
     "grade": 9,
     "title": "42 bài hình Đường tròn · Toán 9",
+    "description": "42 bài toán hình về đường tròn và tiếp tuyến, có lời giải và hướng dẫn, chia thành 6 chủ đề: từ hai tiếp tuyến cắt nhau đến các bài tổng hợp.",
     "files": [
       {
         "label": "Bản đọc thử GV",
@@ -255,6 +268,7 @@ export const digitalPreviews = [
     "cover": "/assets/documents/covers/g9-7-de-thang-11.jpg",
     "grade": 9,
     "title": "7 đề khảo sát tháng 11 · Toán 9",
+    "description": "Tuyển tập 7 đề khảo sát chất lượng tháng 11 năm học 2025–2026 của các trường THCS. Có đáp án và bản học sinh.",
     "files": [
       {
         "label": "Bản đọc thử 1",
@@ -275,6 +289,7 @@ export const digitalPreviews = [
     "cover": "/assets/documents/covers/g9-8-de-thang-10.jpg",
     "grade": 9,
     "title": "8 đề khảo sát tháng 10 · Toán 9",
+    "description": "Tuyển tập 8 đề khảo sát chất lượng tháng 10 của các trường THCS. Có đáp án và bản học sinh.",
     "files": [
       {
         "label": "Bản đọc thử 1",
@@ -295,6 +310,7 @@ export const digitalPreviews = [
     "cover": "/assets/documents/covers/g9-de-thang-11.jpg",
     "grade": 9,
     "title": "Đề khảo sát tháng 11 · Toán 9",
+    "description": "Đề khảo sát tháng 11 năm học 2025–2026 của nhiều trường THCS, dành cho học sinh lớp 9 luyện tập và tự kiểm tra.",
     "files": [
       {
         "label": "Bản đọc thử HS",
@@ -310,6 +326,7 @@ export const digitalPreviews = [
     "cover": "/assets/documents/covers/g9-toi-uu.jpg",
     "grade": 9,
     "title": "Phiếu bài Tối ưu, GTLN – GTNN · Toán 9",
+    "description": "3 phiếu bài về tìm giá trị lớn nhất, nhỏ nhất bằng bất đẳng thức và biểu thức bậc hai, có lời giải chi tiết. Phù hợp ôn thi vào lớp 10.",
     "files": [
       {
         "label": "Bản đọc thử GV",
