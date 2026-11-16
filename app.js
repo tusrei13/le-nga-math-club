@@ -35,6 +35,7 @@ function setMenu(open, returnFocus = false) {
 }
 menuToggle?.addEventListener('click', () => setMenu(!siteNav.classList.contains('is-open')));
 siteNav?.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setMenu(false)));
+siteNav?.querySelector('.nav-close')?.addEventListener('click', () => setMenu(false, true));
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && siteNav?.classList.contains('is-open')) setMenu(false, true);
 });
