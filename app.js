@@ -2,7 +2,6 @@ const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
 const mobileNavigation = window.matchMedia('(max-width: 900px)');
 const menuToggle = document.querySelector('.menu-toggle');
 const siteNav = document.querySelector('.site-nav');
-const floatingOrder = document.querySelector('#floating-order');
 const orderSection = document.querySelector('#dat-sach');
 const orderPanel = document.querySelector('#order-panel');
 const orderForm = document.querySelector('#order-form');
@@ -26,33 +25,6 @@ const bookRenders=product=>{
   if(product.id==='70-de-vao-6')return ['/assets/books/cutout/70-de-but-toc.webp'];
   const cover=product.media.find(m=>m.kind==='cover');return cover?[cover.url]:[];
 };
-const visibility = { hero: true, order: false, footer: false, digital: false };
-const visibleActions = new Set();
-const overlappingContent = new Set();
-
-const floatingBody = document.querySelector('#floating-body');
-const floatingToggle = document.querySelector('.floating-toggle');
-floatingToggle?.addEventListener('click', () => {
-  const collapsed = floatingOrder.classList.toggle('is-collapsed');
-  floatingBody.hidden = collapsed;
-  floatingBody.inert = collapsed;
-  floatingToggle.setAttribute('aria-expanded', String(!collapsed));
-  floatingToggle.setAttribute('aria-label', collapsed ? 'Mở lại thanh mua sách' : 'Thu gọn thanh mua sách');
-  floatingToggle.querySelector('span').textContent = collapsed ? 'Mua sách' : '−';
-});
-
-function updateFloatingOrder() {
-  if (!floatingOrder) return;
-  const active = document.activeElement;
-  const interacting = active?.matches('input, select, textarea, summary, button, a')
-    && !floatingOrder.contains(active);
-  const visible = !visibility.hero && !visibility.order && !visibility.footer && !visibility.digital
-    && !interacting && visibleActions.size === 0 && overlappingContent.size === 0
-    && !siteNav?.classList.contains('is-open');
-  floatingOrder.hidden = !visible;
-  floatingOrder.inert = !visible;
-  floatingOrder.setAttribute('aria-hidden', String(!visible));
-}
 
 function setMenu(open, returnFocus = false) {
   siteNav?.classList.toggle('is-open', open);
@@ -60,7 +32,6 @@ function setMenu(open, returnFocus = false) {
   menuToggle?.setAttribute('aria-label', open ? 'Đóng menu' : 'Mở menu');
   if (siteNav) siteNav.inert = mobileNavigation.matches && !open;
   if (returnFocus) menuToggle?.focus();
-  updateFloatingOrder();
 }
 menuToggle?.addEventListener('click', () => setMenu(!siteNav.classList.contains('is-open')));
 siteNav?.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setMenu(false)));
@@ -143,9 +114,6 @@ document.querySelectorAll('[data-book-group]').forEach(button => button.addEvent
 function openForm(mode, updateHash = true) {
   setFormMode(mode);
   setMenu(false);
-  // Hide immediately, before scrolling and before IntersectionObserver fires.
-  visibility.order = true;
-  updateFloatingOrder();
   if (updateHash && window.location.hash !== '#dat-sach') history.pushState(null, '', '#dat-sach');
   orderPanel?.focus({ preventScroll: true });
   orderPanel?.scrollIntoView({ behavior: motionPreference.matches ? 'instant' : 'smooth', block: 'start' });
@@ -163,58 +131,6 @@ function syncHash() {
 window.addEventListener('hashchange', syncHash);
 if (window.location.hash === '#dat-sach') requestAnimationFrame(syncHash);
 
-if ('IntersectionObserver' in window) {
-  const targets = [
-    [document.querySelector('.hero'), 'hero'],
-    [orderSection, 'order'],
-    [document.querySelector('.site-footer'), 'footer'],
-    [document.querySelector('#tai-lieu-so'), 'digital'],
-  ];
-  const stickyObserver = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      const match = targets.find(([target]) => target === entry.target);
-      if (match) visibility[match[1]] = entry.isIntersecting;
-    });
-    updateFloatingOrder();
-  }, { threshold: 0, rootMargin: '0px 0px 100px 0px' });
-  targets.forEach(([target]) => { if (target) stickyObserver.observe(target); });
-  // Keep purchase controls and FAQ clear, including just before they enter view.
-  const actionObserver = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) visibleActions.add(entry.target);
-      else visibleActions.delete(entry.target);
-    });
-    updateFloatingOrder();
-  }, { threshold: 0, rootMargin: '0px 0px 100px 0px' });
-  document.querySelectorAll('.catalog-foot, .arrow-link, .faq-list')
-    .forEach((target) => actionObserver.observe(target));
-  // Watch the bottom safety area independently of the bar's hidden state.
-  // The bar can appear over whitespace or artwork, but never over reading text.
-  let contentObserver;
-  function observeBottomContent() {
-    contentObserver?.disconnect();
-    overlappingContent.clear();
-    const topInset = Math.max(0, window.innerHeight - 100);
-    contentObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) overlappingContent.add(entry.target);
-        else overlappingContent.delete(entry.target);
-      });
-      updateFloatingOrder();
-    }, { threshold: 0, rootMargin: `-${topInset}px 0px 0px 0px` });
-    document.querySelectorAll('main h2, main h3, main p, main a, main button, main summary, main label, .catalog-facts, .book-meta, .book-tag, .credentials, .portrait-caption, .gift-price, .score-row, .score-wall-head, .score-wall-foot, .testimonial footer, .solution-note li')
-      .forEach((target) => contentObserver.observe(target));
-    updateFloatingOrder();
-  }
-  observeBottomContent();
-  window.addEventListener('resize', observeBottomContent);
-  window.addEventListener('landing:loaded', observeBottomContent);
-} else if (floatingOrder) {
-  floatingOrder.hidden = true;
-  floatingOrder.inert = true;
-}
-document.addEventListener('focusin', updateFloatingOrder);
-document.addEventListener('focusout', () => requestAnimationFrame(updateFloatingOrder));
 
 // Native validation remains available if JavaScript fails to load.
 // With JavaScript, inline errors replace browser bubbles and preserve entered values.
@@ -446,7 +362,6 @@ async function loadLanding() {
     setBookGroup(activeBookGroup);
     if (catalog.length) {
       const minimum=Math.min(...catalog.filter(p=>p.price_vnd!==null).map(p=>p.price_vnd));
-      document.querySelector('#floating-book-price').textContent='Từ '+currency(minimum);
     }
     const faqList = document.querySelector('.faq-list'); faqList.replaceChildren();
     for (const [index, faq] of data.faqs.entries()) {

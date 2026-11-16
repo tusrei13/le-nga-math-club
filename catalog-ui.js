@@ -35,7 +35,13 @@ function decorate(){
 function initialize(list){
  products=list;queueMicrotask(decorate);
  for(const el of document.querySelectorAll('[data-reference-price]')){const p=products.find(p=>p.id===el.dataset.referencePrice);if(p)el.textContent=p.price_vnd===null?'Liên hệ':money(p.price_vnd)+'/'+p.unit;}
- const sale=products.filter(p=>p.old_price_vnd);$('#uu-dai').hidden=!sale.length;const target=$('#reference-sale-list');target.replaceChildren();
+ const sale=products.filter(p=>p.old_price_vnd);
+ // Thanh ưu đãi: người dùng đóng thì nhớ trên trình duyệt; đổi danh sách ưu đãi thì hiện lại.
+ const promoKey=sale.map(p=>p.id+':'+p.price_vnd).join('|');
+ let dismissed=false;try{dismissed=localStorage.getItem('le-nga-promo-dismissed')===promoKey;}catch{}
+ $('#uu-dai').hidden=!sale.length||dismissed;
+ $('#uu-dai-close')?.addEventListener('click',()=>{$('#uu-dai').hidden=true;try{localStorage.setItem('le-nga-promo-dismissed',promoKey);}catch{}});
+ const target=$('#reference-sale-list');target.replaceChildren();
  for(const p of sale.filter(p=>p.format==='paper').concat(sale.filter(p=>p.format!=='paper').slice(0,2))){
   const a=node('a',undefined,'reference-sale-item');a.href=p.format==='paper'?'#bo-sach':'#tai-lieu-so';a.append(node('strong',p.title),node('span',money(p.price_vnd)+'/'+p.unit));target.append(a);
  }

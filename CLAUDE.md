@@ -43,7 +43,7 @@ Yêu cầu: Node.js **>= 22.16** (khuyến nghị 24). Không mở `index.html` 
 - **Server Node**: `server.mjs` (HTTP, static, CSP), `api.mjs` (API sách/đơn/tư vấn/admin), `stem-api.mjs`, `digital-api.mjs`, `digital-catalog.mjs`, `auth.mjs`, `customer-auth.mjs`, `security.mjs`, `edge-rate-limit.mjs`, `passwords.mjs`, `video-assets.mjs`.
 - **Danh mục chuẩn**: `reference-catalog.mjs` là nguồn chính của sản phẩm, giá và nhóm hiển thị. API luôn trả `price_vnd=null` và `orderable=false` cho mục cần báo giá.
 - **Cloudflare**: `cloudflare/worker.mjs` (Pages Function), `cloudflare/edge-schema.sql`, `wrangler.toml`, `pages-admin-auth.mjs`.
-- **Database**: `database/schema.sql` (SQLite gốc), `database/migrations/*.sql` (004–010), `database/init.mjs`, `database/seed.mjs`, `database/d1-adapter.mjs`, `database/backup.mjs`.
+- **Database**: `database/schema.sql` (SQLite gốc), `database/migrations/*.sql` (004–012), `database/init.mjs`, `database/seed.mjs`, `database/d1-adapter.mjs`, `database/backup.mjs`.
 - **Scripts build/kiểm tra**: `scripts/build-pages.mjs` (bundle, thêm hash SHA-256 vào URL logo/favicon), `scripts/check-pages.mjs`, `scripts/pages-admin.mjs`.
 - **Tài nguyên tĩnh**: `public/assets/` (ảnh bìa, ảnh bìa mẫu, PDF đọc thử, video MP4 của bộ Tiểu học, PDF mẫu tài liệu số).
 - **Test**: `tests/*.test.mjs` (Node test runner) và `tests/*-ui.mjs` (trình duyệt thật). Ảnh kiểm tra ghi vào `data/` và không commit.
@@ -63,7 +63,7 @@ Các tài liệu cần đọc theo chủ đề:
 - Đơn cũ giữ giá tại thời điểm đặt (`order_items`). Không sửa ngược dữ liệu lịch sử.
 
 **Database và migration**
-- Mọi thay đổi schema hoặc dữ liệu production phải có file migration mới trong `database/migrations/`, đánh số tiếp theo (hiện có tới 010). Không sửa migration đã áp dụng.
+- Mọi thay đổi schema hoặc dữ liệu production phải có file migration mới trong `database/migrations/`, đánh số tiếp theo (hiện có tới 012). Không sửa migration đã áp dụng.
 - Migration phải an toàn khi chạy lại: không ghi đè chỉnh sửa do quản trị làm.
 - Với D1: deploy code và tài nguyên trước, rồi mới chạy `npx wrangler d1 execute le-nga-books --remote --file=...`. Ghi rõ thứ tự này trong tài liệu liên quan khi thêm migration.
 - Các POST đặt hàng và tư vấn yêu cầu header `Idempotency-Key` (16–100 ký tự, chữ/số/gạch ngang). Giữ nguyên quy tắc này khi sửa API.
@@ -90,7 +90,7 @@ Các tài liệu cần đọc theo chủ đề:
 1. `npm test` và `npm run check:pages` phải pass.
 2. Commit và push (kèm `public/assets/` mới nếu có).
 3. `npm run pages:deploy` (lệnh này tự chạy check và build).
-4. Chạy migration D1 mới nhất theo tài liệu tương ứng (ví dụ `010-reference-catalog.sql`).
+4. Chạy migration D1 còn thiếu theo thứ tự số, theo tài liệu tương ứng (hiện tại: `010-reference-catalog.sql`, `011-tighten-homepage-copy.sql`, `012-phan-dang-9-cover.sql`). Kiểm tra trước bằng `npx wrangler d1 execute le-nga-books --remote --command "SELECT version FROM schema_versions ORDER BY version"`.
 5. Kiểm tra `/healthz`, `/api/landing` và nút đọc thử trên domain production.
 
 Sau khi sửa phần bảo mật hoặc dependency: chạy `npm audit --audit-level=moderate`. Không chạy `npm audit fix --force` vì sẽ hạ Wrangler; `overrides.undici` đã được cấu hình có chủ đích.
@@ -105,4 +105,4 @@ Sau khi sửa phần bảo mật hoặc dependency: chạy `npm audit --audit-le
 
 ## Trạng thái git hiện tại
 
-Branch `feat/merge-stem-into-books` đang có các thay đổi chưa commit, trong đó thư mục `stem-maths/` và `scripts/build-stem.mjs` đã được xóa (staged) để gộp STEM vào trang sách. Không khôi phục các file này trừ khi người dùng yêu cầu. Các file mới chưa theo dõi: `class-zone.css`, `class-zone.js`.
+Branch `feat/merge-stem-into-books` đã commit trang chủ mới (`9d96c48`) và chưa push. Việc gộp STEM vào trang sách đã xong: thư mục `stem-maths/` và `scripts/build-stem.mjs` đã bị xóa, không khôi phục trừ khi người dùng yêu cầu. Chưa merge vào `main`; cần PR hoặc xác nhận của người dùng trước khi đưa lên `main`.
