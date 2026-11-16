@@ -39,6 +39,7 @@ function productCard(item){
     if(item.promotion_ends_at)info.append(node('small','Ưu đãi đến '+new Intl.DateTimeFormat('vi-VN',{timeZone:'Asia/Bangkok'}).format(new Date(item.promotion_ends_at)),'digital-product-meta'));
   } else {
     info.append(node('p',(topic?'Chuyên đề':'Bộ đề')+' PDF, '+item.file_count+' bản đọc thử','digital-product-meta'),node('h3',item.title));
+    if(item.description)info.append(node('p',item.description,'digital-product-desc'));
   }
   card.append(coverFor(item,topic));
   const bottom=node('div',undefined,'digital-product-bottom');
