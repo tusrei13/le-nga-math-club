@@ -28,6 +28,8 @@ transaction(() => {
   db.exec(readFileSync(new URL('./migrations/008-digital-documents.sql', import.meta.url),'utf8'));
   db.exec(readFileSync(new URL('./migrations/009-primary-maths-books.sql', import.meta.url),'utf8'));
   db.exec(readFileSync(new URL('./migrations/010-reference-catalog.sql', import.meta.url),'utf8'));
+  db.exec(readFileSync(new URL('./migrations/011-tighten-homepage-copy.sql', import.meta.url),'utf8'));
+  db.exec(readFileSync(new URL('./migrations/012-phan-dang-9-cover.sql', import.meta.url),'utf8'));
 });
 export function products(includeInactive = false) {
   return db.prepare(`SELECT * FROM products ${includeInactive ? '' : 'WHERE active = 1'} ORDER BY sort_order,id`).all().map(p => ({
