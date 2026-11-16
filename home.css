@@ -65,7 +65,12 @@
 }
 
 /* Menu điện thoại: mục con hiện thẳng bên dưới mục cha. */
-.site-nav.is-open { max-height:calc(100vh - 72px); overflow-y:auto; }
+/* Menu điện thoại: cao tối đa 60% màn hình, cuộn được, có nút × để đóng. */
+.nav-close { display:none; }
+@media (max-width:900px) {
+  .site-nav.is-open { max-height:60vh; overflow-y:auto; overscroll-behavior:contain; }
+  .nav-close { display:grid; place-items:center; align-self:flex-end; width:44px; height:44px; margin:-4px -4px 4px 0; border:0; background:transparent; color:var(--brand-navy); font-size:26px; line-height:1; cursor:pointer; }
+}
 .nav-drop { display:grid; }
 .nav-drop-link { display:flex; align-items:center; min-height:44px; font-weight:600; }
 .nav-sub { display:grid; margin:0 0 8px 12px; padding-left:12px; border-left:2px solid var(--home-line); }
