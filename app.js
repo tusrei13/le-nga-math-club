@@ -283,6 +283,9 @@ function updateTotal() {
   const free=items.length&&items.every(i=>catalog.find(p=>p.id===i.product_id)?.free_shipping_preorder);
   document.querySelector('#shipping-label').textContent=free?'Miễn phí vận chuyển cho 70 đề bứt tốc đặt trước':salesPolicy.shipping_vnd?'Phí giao hàng '+currency(salesPolicy.shipping_vnd):'Phí vận chuyển được CLB xác nhận riêng';
   document.querySelector('#selected-book-count').textContent = count ? `${count} sản phẩm` : 'Chưa chọn sách';
+  const headerCount = document.querySelector('#header-cart-count');
+  headerCount.textContent = String(count); headerCount.hidden = count === 0;
+  document.querySelector('#header-cart')?.setAttribute('aria-label', `Giỏ sách: ${count} cuốn`);
   const selected = document.querySelector('#selected-books');
   selected.replaceChildren();
   if (!items.length) selected.append(element('p', 'Cuốn sách đầu tiên đang chờ con.', 'receipt-empty'));
@@ -332,6 +335,29 @@ function validBookSelection() {
   error.scrollIntoView({ behavior: motionPreference.matches ? 'instant' : 'smooth', block: 'nearest' });
   return false;
 }
+function cartIcon() {
+  const ns = 'http://www.w3.org/2000/svg';
+  const icon = document.createElementNS(ns, 'svg');
+  icon.setAttribute('viewBox', '0 0 24 24'); icon.setAttribute('aria-hidden', 'true'); icon.setAttribute('focusable', 'false'); icon.setAttribute('class', 'icon');
+  for (const [tag, attributes] of [['path', { d: 'M3 4h2l2.2 10.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.5L20.5 8H6.2' }], ['circle', { cx: '10', cy: '20', r: '1.4' }], ['circle', { cx: '17', cy: '20', r: '1.4' }]]) {
+    const shape = document.createElementNS(ns, tag);
+    for (const [name, value] of Object.entries(attributes)) shape.setAttribute(name, value);
+    icon.append(shape);
+  }
+  return icon;
+}
+// Thêm vào giỏ không cuộn trang: đổi nhãn nút một lúc, báo cho trình đọc màn hình và nháy số đếm trên header.
+function announceCart(button, title) {
+  const live = document.querySelector('#cart-live'); if (live) live.textContent = `Đã thêm “${title}” vào giỏ.`;
+  const label = button.querySelector('.add-to-cart-label');
+  if (label) label.textContent = 'Đã thêm vào giỏ';
+  button.classList.add('is-added');
+  clearTimeout(button.addedTimer);
+  button.addedTimer = setTimeout(() => { button.classList.remove('is-added'); if (label) label.textContent = 'Thêm vào giỏ'; }, 1600);
+  const cart = document.querySelector('#header-cart');
+  if (cart && !motionPreference.matches) { cart.classList.remove('is-bump'); void cart.offsetWidth; cart.classList.add('is-bump'); }
+}
+
 function element(tag, text, className) {
   const node = document.createElement(tag);
   if (text !== undefined) node.textContent = text;
@@ -383,13 +409,14 @@ async function loadLanding() {
       } else art.append(element('p', product.title));
       const copy = element('div', undefined, 'book-card-copy');
       copy.append(element('h3', product.title), element('p', product.description), element('strong', product.price_vnd===null?'Liên hệ':currency(product.price_vnd)+'/'+product.unit, 'product-price'));
-      const choose = element(product.orderable?'button':'a', product.orderable?'Chọn sản phẩm này':'Hỏi giá qua Zalo', 'text-link');
+      const choose = element(product.orderable?'button':'a', product.orderable?undefined:'Hỏi giá qua Zalo', product.orderable?'text-link add-to-cart':'text-link');
+      if(product.orderable)choose.append(cartIcon(),element('span','Thêm vào giỏ','add-to-cart-label'));
       if(!product.orderable){choose.href='https://zalo.me/0365473632';choose.target='_blank';choose.rel='noopener noreferrer';}else choose.type='button';
       if(product.orderable)choose.addEventListener('click', () => {
         const quantity = document.querySelector(`[data-product-quantity="${product.id}"]`);
         setBookGroup(bookGroup(product));
-        quantity.value = Math.min(20, Number(quantity.value) + 1); updateTotal(); orderStep = 1; openForm('order');
-        quantity.focus({ preventScroll: true });
+        quantity.value = Math.min(20, Number(quantity.value) + 1); updateTotal(); orderStep = 1; setFormMode('order');
+        announceCart(choose, product.title);
       });
       const actions = element('div', undefined, 'book-card-actions');
       actions.append(choose);
@@ -419,9 +446,7 @@ async function loadLanding() {
     setBookGroup(activeBookGroup);
     if (catalog.length) {
       const minimum=Math.min(...catalog.filter(p=>p.price_vnd!==null).map(p=>p.price_vnd));
-      document.querySelector('#catalog-min-price').textContent='Từ '+currency(minimum);
       document.querySelector('#floating-book-price').textContent='Từ '+currency(minimum);
-      document.querySelector('#hero-book-price').textContent='Từ '+currency(Math.min(...data.products.filter(p=>p.price_vnd!==null).map(p=>p.price_vnd)))+'/tài liệu';
     }
     const faqList = document.querySelector('.faq-list'); faqList.replaceChildren();
     for (const [index, faq] of data.faqs.entries()) {
@@ -460,7 +485,6 @@ async function loadLanding() {
     if (heroTitle.textContent.replace(/\s+/g,' ').trim() !== data.content.hero.title) heroTitle.textContent = data.content.hero.title;
     heroTitle.setAttribute('aria-label',data.content.hero.title);
     document.querySelector('#hero-book-count').textContent = data.products.length;
-    document.querySelector('#catalog-book-count').textContent = catalog.length + ' sản phẩm sách giấy';
     const heroImage = document.querySelector('.hero-art-image');
     const illustration = data.content.hero.illustration_url;
     const useBookCovers = ['/assets/book-stack.png','/assets/book-stack.svg','public/assets/book-stack.svg'].includes(illustration);
@@ -485,7 +509,6 @@ async function loadLanding() {
     document.querySelector('#qua-tang').hidden = !showGifts;
     document.querySelectorAll('a[href="#qua-tang"]').forEach(link => { link.hidden = !showGifts; });
     document.querySelector('.gift-price strong').textContent = salesPolicy.gifts_with_order ? `${data.gifts.length} quà tặng` : 'Liên hệ CLB';
-    document.querySelector('.catalog-facts>div:last-child span').textContent = 'CLB xác nhận phí giao hàng';
     const promises = document.querySelector('.promise-list'); promises.replaceChildren(element('p',shippingNote+'.'),element('p','CLB xác nhận thông tin đơn sách trước khi gửi.'));
     catalogLoaded = true;
     updateTotal();
@@ -561,3 +584,95 @@ if (year) year.textContent = new Date().getFullYear();
     sections.forEach(section => observer.observe(section));
   }
 }
+
+// Tìm sách trên header: gợi ý khi gõ, Enter để lọc lưới sách, chọn gợi ý để tới đúng thẻ sách.
+const SEARCH_LIMIT = 6;
+const foldText = (text) => text.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').toLowerCase();
+function searchHits(query) {
+  const needle = foldText(query.trim());
+  if (needle.length < 2) return [];
+  return catalog.filter((p) => foldText(`${p.title} ${p.description || ''}`).includes(needle)).slice(0, SEARCH_LIMIT);
+}
+function spotlightProduct(productId) {
+  // Xóa bộ lọc hiện tại để thẻ sách chắc chắn hiện ra, rồi cuộn tới và làm nổi thẻ đó.
+  document.querySelector('[data-paper-filter="all"]')?.click();
+  const search = document.querySelector('#catalog-search');
+  if (search && search.value) { search.value = ''; search.dispatchEvent(new Event('input', { bubbles: true })); }
+  const card = document.querySelector(`.book-card[data-product-id="${productId}"]`);
+  if (!card) return;
+  card.scrollIntoView({ behavior: motionPreference.matches ? 'instant' : 'smooth', block: 'center' });
+  card.classList.remove('is-spotlight'); void card.offsetWidth; card.classList.add('is-spotlight');
+  setTimeout(() => card.classList.remove('is-spotlight'), 1800);
+}
+function bindSearch(form, input, list) {
+  if (!form || !input || !list) return;
+  let hits = [];
+  let active = -1;
+  input.setAttribute('role', 'combobox');
+  input.setAttribute('aria-autocomplete', 'list');
+  input.setAttribute('aria-expanded', 'false');
+  input.setAttribute('aria-controls', list.id);
+  const close = () => { list.hidden = true; list.replaceChildren(); input.setAttribute('aria-expanded', 'false'); input.removeAttribute('aria-activedescendant'); active = -1; };
+  const choose = (product) => { input.value = ''; close(); spotlightProduct(product.id); };
+  const paint = (query) => {
+    list.replaceChildren();
+    if (!catalogLoaded) {
+      list.append(Object.assign(document.createElement('li'), { className: 'search-empty', textContent: 'Đang tải danh mục…' }));
+    } else if (!hits.length) {
+      const empty = document.createElement('li'); empty.className = 'search-empty';
+      empty.append(`Không có sách nào khớp “${query.trim()}”. Thử tên lớp hoặc chuyên đề, hoặc `);
+      const zalo = document.createElement('a'); zalo.href = 'https://zalo.me/0365473632'; zalo.target = '_blank'; zalo.rel = 'noopener noreferrer'; zalo.textContent = 'nhắn Zalo trợ lí';
+      empty.append(zalo, '.');
+      list.append(empty);
+    } else {
+      hits.forEach((product, index) => {
+        const item = document.createElement('li');
+        item.id = `${list.id}-${index}`; item.setAttribute('role', 'option'); item.setAttribute('aria-selected', String(index === active));
+        item.className = index === active ? 'search-hit is-active' : 'search-hit';
+        const cover = (product.media || []).find((media) => media.kind === 'cover');
+        const image = document.createElement('img'); image.alt = ''; image.loading = 'lazy';
+        if (cover) image.src = cover.url; else image.hidden = true;
+        image.addEventListener('error', () => { image.hidden = true; }, { once: true });
+        const text = document.createElement('span'); text.className = 'search-hit-text';
+        const title = document.createElement('strong'); title.textContent = product.title;
+        const price = document.createElement('small'); price.textContent = product.price_vnd === null ? 'Liên hệ' : `${currency(product.price_vnd)}/${product.unit}`;
+        text.append(title, price); item.append(image, text);
+        item.addEventListener('mousedown', (event) => { event.preventDefault(); choose(product); });
+        list.append(item);
+      });
+      if (active >= 0) input.setAttribute('aria-activedescendant', `${list.id}-${active}`);
+    }
+    list.hidden = false; input.setAttribute('aria-expanded', 'true');
+  };
+  input.addEventListener('input', () => {
+    hits = searchHits(input.value); active = -1;
+    if (input.value.trim().length < 2) { close(); return; }
+    paint(input.value);
+  });
+  input.addEventListener('keydown', (event) => {
+    if (list.hidden) return;
+    if (event.key === 'Escape') { close(); return; }
+    if (!hits.length) return;
+    if (event.key === 'ArrowDown') { event.preventDefault(); active = (active + 1) % hits.length; paint(input.value); }
+    else if (event.key === 'ArrowUp') { event.preventDefault(); active = active <= 0 ? hits.length - 1 : active - 1; paint(input.value); }
+    else if (event.key === 'Enter' && active >= 0) { event.preventDefault(); choose(hits[active]); }
+  });
+  input.addEventListener('blur', () => setTimeout(close, 120));
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    close();
+    document.querySelector('[data-paper-filter="all"]')?.click();
+    const search = document.querySelector('#catalog-search');
+    if (search) { search.value = input.value; search.dispatchEvent(new Event('input', { bubbles: true })); }
+    document.querySelector('#bo-sach')?.scrollIntoView({ behavior: motionPreference.matches ? 'instant' : 'smooth', block: 'start' });
+  });
+}
+bindSearch(document.querySelector('#header-search'), document.querySelector('#header-search-input'), document.querySelector('#search-suggest'));
+bindSearch(document.querySelector('#header-search-mobile'), document.querySelector('#header-search-input-mobile'), document.querySelector('#search-suggest-mobile'));
+document.querySelectorAll('[data-paper-jump]').forEach((link) => link.addEventListener('click', () => {
+  document.querySelector(`[data-paper-filter="${link.dataset.paperJump}"]`)?.click();
+}));
+document.querySelectorAll('[data-digital-jump]').forEach((link) => link.addEventListener('click', () => {
+  document.querySelector(`[data-digital-grade="${link.dataset.digitalJump}"]`)?.click();
+}));
+

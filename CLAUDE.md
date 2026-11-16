@@ -7,7 +7,7 @@ Hướng dẫn cho Claude khi làm việc trong repo này. Tài liệu chi tiế
 Landing page của **CLB Toán Cô Lê Nga**, gồm ba phần trong một trang chính:
 
 - **Sách và tài liệu**: danh mục sách giấy (đặt COD), PDF đầy đủ (đặt qua Zalo trợ lí), bản đọc thử PDF miễn phí, mục Tài liệu số.
-- **Lớp học tại CLB** (STEM Maths, lớp 3–9): id `#lop-hoc`, form tư vấn gửi tới `/api/stem/enquiries`.
+- **Lớp học tại CLB** (STEAM Maths, lớp 3–9): id `#lop-hoc`, form tư vấn gửi tới `/api/stem/enquiries`. Tên hiển thị là **STEAM Maths**; các định danh trong code (`stem-api.mjs`, `/api/stem`, bảng `stem_*`, mã `STEM-…`) giữ nguyên.
 - **Trang quản trị** `/admin`: xử lý đơn sách và yêu cầu tư vấn.
 
 Giao diện và nội dung hiển thị bằng **tiếng Việt**. Tài liệu trong repo cũng viết bằng tiếng Việt.

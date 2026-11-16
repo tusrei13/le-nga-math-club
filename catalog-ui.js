@@ -27,7 +27,8 @@ function decorate(){
   const p=products.find(p=>p.id===card.dataset.productId);if(!p)continue;const copy=card.querySelector('.book-card-copy');
   if(copy.querySelector('.reference-product-meta'))continue;
   copy.prepend(node('p',[p.format_label,p.pages].filter(Boolean).join(', '),'reference-product-meta'));
-  if(p.old_price_vnd){const detail=node('p','Giá gốc '+money(p.old_price_vnd)+'/'+p.unit+'. Ưu đãi đến '+new Intl.DateTimeFormat('vi-VN',{timeZone:'Asia/Bangkok'}).format(new Date(p.promotion_ends_at)),'reference-product-meta');copy.querySelector('.product-price').after(detail);}
+  // Giá ưu đãi hiển thị cạnh giá gốc gạch ngang, kèm ngày hết hạn ưu đãi.
+  if(p.old_price_vnd){const price=copy.querySelector('.product-price'),row=node('div',undefined,'price-row'),old=node('del',money(p.old_price_vnd),'product-old-price');old.setAttribute('aria-label','Giá gốc '+money(p.old_price_vnd)+'/'+p.unit);price.before(row);row.append(price,old);row.after(node('p','Ưu đãi đến '+new Intl.DateTimeFormat('vi-VN',{timeZone:'Asia/Bangkok'}).format(new Date(p.promotion_ends_at)),'reference-product-meta product-promo-until'));}
  }
  filterPaper();
 }

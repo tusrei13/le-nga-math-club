@@ -598,7 +598,7 @@ export const referenceCatalog = [
       "9",
       "thcs"
     ],
-    "cover": "/assets/catalog/bia-phan-dang-toan-9.jpg",
+    "cover": "/assets/catalog/co-le-nga-voi-phan-dang-toan-9.jpg",
     "pages": "",
     "previews": [
       {

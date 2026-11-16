@@ -37,6 +37,10 @@ SQLite tự cập nhật khi khởi động. D1 đã deploy cần áp dụng mig
 1. Commit/push code cùng public/assets/catalog và các file mới; build trang bằng npm run build:pages.
 2. Khi bản build đã thành công, chạy từ thư mục gốc:
    npx wrangler d1 execute le-nga-books --remote --file=database/migrations/010-reference-catalog.sql
+   Sau đó chạy migration 011 (rút gọn câu mô tả đầu trang và FAQ; chỉ đổi nội dung còn đúng bản cũ):
+   npx wrangler d1 execute le-nga-books --remote --file=database/migrations/011-tighten-homepage-copy.sql
+   Sau đó chạy migration 012 (đổi ảnh bìa Bộ Phân dạng Toán 9 sang ảnh thấy rõ mặt cô Nga; chỉ đổi khi ảnh vẫn là ảnh cũ):
+   npx wrangler d1 execute le-nga-books --remote --file=database/migrations/012-phan-dang-9-cover.sql
 3. Kiểm tra /api/landing có 21 mục, giá bộ lớp 6 là 269000 trong thời gian ưu đãi, các mục hỏi giá có price_vnd=null; thử đơn 70 đề và bộ lớp 6.
 4. Kiểm tra số trợ lí, liên kết Zalo, ba PDF đọc thử của bộ Toán 6 và hai video bổ sung. STEM phải có ảnh tác giả và thông tin lớp học mới.
 

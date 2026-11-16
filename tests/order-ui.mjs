@@ -73,7 +73,7 @@ try {
   await cdp('Runtime.enable'); await cdp('Page.enable');
   await cdp('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
   await cdp('Page.navigate', { url: `http://127.0.0.1:${port}/` });
-  await until(() => evaluate(`document.querySelectorAll('[data-product-quantity]').length === 4 && document.querySelector('#hero-book-price').textContent.includes('49')`), 'loaded catalog');
+  await until(() => evaluate(`document.querySelectorAll('[data-product-quantity]').length === 4`), 'loaded catalog');
   await sleep(300);
   assert.equal(await evaluate('document.title'),'Sách & Tài liệu Toán Cô Lê Nga');
   assert.equal(await evaluate("document.querySelector('.site-nav a[href=\"#tai-lieu-so\"]').textContent"),'Tài liệu');
@@ -352,7 +352,7 @@ try {
   await evaluate(`document.querySelector('#close-detail').click()`);
   assert.equal(await evaluate(`document.querySelector('#detail-dialog').open`),false);
   await evaluate(`document.querySelector('[data-inbox="stem-enquiries"]').click()`);
-  await until(()=>evaluate(`document.querySelector('#inbox-title').textContent==='Tư vấn STEM Maths' && document.querySelectorAll('.request-card').length===1`),'STEM admin inbox');
+  await until(()=>evaluate(`document.querySelector('#inbox-title').textContent==='Tư vấn STEAM Maths' && document.querySelectorAll('.request-card').length===1`),'STEM admin inbox');
   await evaluate(`document.querySelector('.detail-button').click()`);
   await until(()=>evaluate(`document.querySelector('.stem-notes textarea')`),'STEM admin details');
   assert.equal(await evaluate(`document.querySelector('#detail-content').textContent.includes('Nâng cao · Lớp 7')`),true);
