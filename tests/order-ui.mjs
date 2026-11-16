@@ -105,7 +105,6 @@ try {
     assert.equal(layout.inner,width,JSON.stringify(layout));
     assert.ok(layout.document<=width,JSON.stringify({width,...layout}));
     assert.deepEqual(layout.outside,[],JSON.stringify({width,...layout}));
-    await until(()=>evaluate("document.querySelector('#floating-order').hidden"),'hide book CTA in digital section');
     if([375,768,1440].includes(width)){
       const clip=await evaluate("(()=>{const r=document.querySelector('#tai-lieu-so').getBoundingClientRect();return {x:r.left+scrollX,y:r.top+scrollY,width:r.width,height:r.height,scale:1};})()");
       const capture=await cdp('Page.captureScreenshot',{format:'png',clip,captureBeyondViewport:true});

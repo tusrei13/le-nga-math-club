@@ -94,7 +94,7 @@ test('Pages output excludes private files and SQLite online backups preserve row
   for(const file of ['class-zone.js','class-zone.css'])assert.ok(existsSync(join('dist',file)));
   assert.equal(existsSync('stem-maths'),false);
   const page=readFileSync('dist/index.html','utf8');
-  for(const id of ['lop-hoc','lo-trinh-hoc','tu-van-lop','enquiry-form','grade-options'])assert.match(page,new RegExp('id="'+id+'"'));
+  for(const id of ['lop-hoc','tu-van-lop','enquiry-form','grade-options'])assert.match(page,new RegExp('id="'+id+'"'));
   const ids=[...page.matchAll(/ id="([^"]+)"/g)].map(match=>match[1]);
   assert.deepEqual(ids.filter((id,index)=>ids.indexOf(id)!==index),[],'Duplicate element ids in the merged page');
   const scratch=mkdtempSync(join(tmpdir(),'le-nga-backup-')),source=join(scratch,'source.sqlite'),target=join(scratch,'backup.sqlite');

@@ -187,8 +187,6 @@
   .class-video-frame:hover .class-video-play { transform:translate(-50%,-50%); }
 }
 
-/* The book purchase bar is irrelevant while reading about classes. */
-body.in-class-zone .floating-order { display:none !important; }
 .path-actions { align-self:stretch; }
 
 /* Six navigation items no longer fit between 901px and 1100px: the intro link is the same as the logo. */
